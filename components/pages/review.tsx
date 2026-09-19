@@ -476,14 +476,19 @@ function FindingEditor({
     </Modal>
   );
 }
-function ReviewContent({ batchId }: { batchId: string }) {
+type ReviewPageProps = {
+  batchId: string;
+  startAnalysis?: boolean;
+  initialStudentId?: string;
+};
+function ReviewContent({
+  batchId,
+  startAnalysis = false,
+  initialStudentId = "",
+}: ReviewPageProps) {
   const { data, mutate, notify } = useWorkspace();
   const [mode, setMode] = useState<"pattern" | "individual">("pattern");
-  const [studentId, setStudentId] = useState(() =>
-    typeof window !== "undefined"
-      ? (new URLSearchParams(location.search).get("student") ?? "")
-      : "",
-  );
+  const [studentId, setStudentId] = useState(initialStudentId);
   const [questionId, setQuestionId] = useState("");
   const [pattern, setPattern] = useState<FindingCode | null>(null);
   const [selected, setSelected] = useState<string[]>([]);
@@ -492,7 +497,7 @@ function ReviewContent({ batchId }: { batchId: string }) {
   const [editingFinding, setEditingFinding] = useState<Finding | null>(null);
   const [newFinding, setNewFinding] = useState<Finding | null>(null);
   const [busy, setBusy] = useState(false);
-  const [autoRun, setAutoRun] = useState(false);
+  const [autoRun, setAutoRun] = useState(startAnalysis);
   if (!data) return null;
   const { state, curriculum } = data;
   const batch = state.batches.find((b) => b.id === batchId);
@@ -648,11 +653,7 @@ function ReviewContent({ batchId }: { batchId: string }) {
         <JobProgress
           key={job.id}
           job={job}
-          autoStart={
-            autoRun ||
-            (typeof window !== "undefined" &&
-              new URLSearchParams(location.search).get("run") === "1")
-          }
+          autoStart={autoRun}
         />
       )}{" "}
       {!job || job.status === "completed" ? (
@@ -681,11 +682,13 @@ function ReviewContent({ batchId }: { batchId: string }) {
               disabled={busy}
               onClick={async () => {
                 setBusy(true);
+                setAutoRun(true);
                 try {
                   await mutate(`/api/batches/${batch.id}/analyze`, {
                     expectedRevision: batch.revision,
                   });
-                  setAutoRun(true);
+                } catch {
+                  setAutoRun(false);
                 } finally {
                   setBusy(false);
                 }
@@ -1179,10 +1182,10 @@ function ReviewContent({ batchId }: { batchId: string }) {
     </div>
   );
 }
-export default function ReviewPage({ batchId }: { batchId: string }) {
+export default function ReviewPage(props: ReviewPageProps) {
   return (
     <PageGate>
-      <ReviewContent batchId={batchId} />
+      <ReviewContent {...props} />
     </PageGate>
   );
 }

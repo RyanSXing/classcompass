@@ -105,7 +105,7 @@ test("complete teacher-controlled baseline → correction → selected lesson �
     page.getByText("Prepared reading", { exact: true }),
   ).toBeVisible();
   await expect(page.getByText("Live reading", { exact: true })).toHaveCount(0);
-  await page.unroute("**/api/classroom");
+  await page.unrouteAll({ behavior: "wait" });
 
   // Correct one extraction, preserving the image and original extraction.
   await page

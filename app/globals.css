@@ -106,6 +106,9 @@ svg {
   outline: 3px solid #1899a8;
   outline-offset: 4px;
 }
+.sidebar :focus-visible {
+  outline-color: #fff;
+}
 hr {
   border: 0;
   border-top: 1px solid var(--line);

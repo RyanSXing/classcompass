@@ -1,6 +1,6 @@
 # Validation and delivery plan
 
-This is the **future implementation verification contract**. The documentation task does not establish that an application, generated assets, model evaluation, browser test, or connected deployment exists. Record documentation checks separately from application checks. Report each implementation check as passed, failed, or not run with its reason and evidence.
+This is the **authored implementation verification contract**. Its requirements alone do not establish that a check has passed. Actual build, browser, connected and live-provider outcomes are recorded separately in [verification results](verification-results.md), with remaining limitations stated explicitly.
 
 ## Build as coherent vertical slices
 
