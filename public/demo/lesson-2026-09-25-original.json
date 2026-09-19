@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "lessonId": "lesson-2026-09-25",
+  "unitId": "unit-fractions-v1",
+  "date": "2026-09-25",
+  "title": "Compare strategies and check reasonableness",
+  "objectiveIds": [
+    "obj-equivalent-fractions",
+    "obj-add-unlike-fractions",
+    "obj-explain-fraction-context"
+  ],
+  "totalMinutes": 45,
+  "blocks": [
+    {
+      "id": "warmup",
+      "title": "Compare equivalent totals",
+      "minutes": 5,
+      "instructions": "Recognize that 3/6 and 1/2 name the same amount and explain why.",
+      "mode": "whole_class"
+    },
+    {
+      "id": "model",
+      "title": "Compare two valid methods",
+      "minutes": 8,
+      "instructions": "Teacher models unlike-denominator addition with two common denominators and checks the total against the addends and one whole.",
+      "mode": "whole_class"
+    },
+    {
+      "id": "practice",
+      "title": "Ordinary paired strategy practice",
+      "minutes": 12,
+      "instructions": "All pairs solve two new fraction-addition calculations, compare methods, and justify whether each answer is reasonable.",
+      "mode": "whole_class"
+    },
+    {
+      "id": "application",
+      "title": "Apply and explain",
+      "minutes": 15,
+      "instructions": "Students solve fresh fraction-addition word problems and explain one method to a partner while the teacher circulates.",
+      "mode": "whole_class"
+    },
+    {
+      "id": "exit",
+      "title": "Independent explanation",
+      "minutes": 5,
+      "instructions": "Students complete a fresh sum and explain how they know the answer is reasonable.",
+      "mode": "whole_class"
+    }
+  ]
+}

@@ -14,6 +14,9 @@ out/
 coverage/
 playwright-report/
 test-results/
+tmp/
+*.tsbuildinfo
+public/pdf.worker.min.mjs
 __pycache__/
 *.py[cod]
 *.log

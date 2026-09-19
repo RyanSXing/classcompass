@@ -51,7 +51,7 @@ Teaching content is designed to exercise inspectable product behavior. The denom
 
 | Item | Current status | Implementation response |
 | --- | --- | --- |
-| OpenRouter credentials | Not provided in this package | Finish adapter/mocked tests; run local fixture mode; live evaluation remains not run until configured. |
+| OpenRouter credentials | Configured in the build workspace's Git-ignored `.env.local`; read-only authentication verified September 19, 2026, with zero model-generation requests | Use the existing local key for live adapter tests during implementation. Do not print, commit, or include it in prompts. Live model/handwriting evaluation remains not run. Other clones require their own local configuration. |
 | Supabase project/account | Installed CLI authenticated and project listing verified September 19, 2026; no ClassCompass project linked/selected yet | Use the existing CLI session after project selection. Deliver migrations, RLS and authenticated adapter; validate connected application behavior against the selected test project. Avoid printing retrieved secrets. |
 | Model handwriting quality | Unmeasured on actual assets | Generate/obtain scans, measure all 48 responses, expose uncertainty and corrections; report results. |
 | Free model capacity/availability | Time-sensitive, no guarantee | Recheck exact IDs/parameters/limits, persist progress and errors, allow explicit retry; never silently charge or switch. |

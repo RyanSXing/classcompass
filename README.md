@@ -4,7 +4,7 @@
 
 Public repository: [RyanSXing/classcompass](https://github.com/RyanSXing/classcompass).
 
-This repository currently contains the complete implementation specification and fictional classroom content. **The app is not built yet.** The next task is to implement the full workflow from these documents, including a credential-free local demonstration and real OpenRouter/Supabase adapters.
+Implementation is underway. The repository now includes the application foundation, versioned evidence/review/planning domain, generated fictional worksheets, OpenRouter boundary, and Supabase migration. UI integration and end-to-end verification are in progress; this checkpoint is not the final verified release.
 
 The demonstration covers Grade 5 fraction addition: import a lesson, upload known worksheets, inspect and correct findings, approve specific lesson changes, print activities, preview the calendar, and use follow-up work to revise the next lesson. Original evidence stays beside each instructional decision.
 
@@ -43,8 +43,10 @@ Local mode persists the complete demonstration without credentials. Fixture anal
 ## Implementation status
 
 - Product, technical contracts, curriculum and verification requirements: specified.
-- Worksheet images/PDFs, application code, migrations and automated application tests: to be created during implementation.
-- Live handwriting quality, provider availability, connected storage/auth and deployment: not yet tested.
+- Worksheet images/PDFs: generated and visually inspected; see [asset generation](docs/asset-generation.md).
+- Core domain and AI boundary: 27 automated checks passing at the first implementation checkpoint.
+- UI, connected persistence and full workflow verification: in progress.
+- Live handwriting evaluation: the selected free Gemma endpoint returned rate limits during initial checks; no successful handwriting measurement yet.
 - Grade 5 teacher participation: possible, unconfirmed.
 
-There is no `package.json` or runnable setup command yet. Document 06 defines the scripts the implementation must provide. Once built, replace this status section with verified setup/run instructions while retaining the specification links and honest integration status.
+Use Node 22.13 or later, `npm install`, copy `.env.example` to `.env.local`, and run `npm run dev`. The default is a local workspace with explicitly labeled prepared AI outputs. Final verified setup and demo instructions will accompany the completed application.

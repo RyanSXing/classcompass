@@ -1,0 +1,74 @@
+import { z } from 'zod';
+
+export const idSchema = z.string().min(1).max(160);
+export const revisionSchema = z.number().int().positive();
+export const supportSchema = z.object({ level: z.enum(['independent', 'supported', 'unknown']), source: z.enum(['teacher-recorded', 'teacher-corrected', 'not-recorded']), note: z.string().max(2000) }).strict();
+export type SupportContext = z.infer<typeof supportSchema>;
+export const rationalSchema = z.object({ numerator: z.number().int().min(-10000).max(10000), denominator: z.number().int().min(1).max(10000) }).strict();
+export type Rational = z.infer<typeof rationalSchema>;
+export const evidenceRefSchema = z.object({ responseId: idSchema, responseRevision: revisionSchema }).strict();
+export type EvidenceRef = z.infer<typeof evidenceRefSchema>;
+export type Rect = { x: number; y: number; width: number; height: number };
+export type Provenance = { mode: 'fixture' | 'live'; modelId: string; promptVersion: string; generatedAt: string; inputFingerprint: string };
+export const extractionSchema = z.object({ templateId: idSchema, responses: z.array(z.object({ questionId: idSchema, workingText: z.string().max(2000), answerText: z.string().max(200).nullable(), legibility: z.enum(['clear', 'uncertain', 'blank']), alternatives: z.array(z.string().max(200)).max(3), uncertaintyNote: z.string().max(500).nullable() }).strict()).min(1).max(4) }).strict();
+export type ExtractionDraft = z.infer<typeof extractionSchema>;
+export type ExtractedAnswer = ExtractionDraft['responses'][number];
+export type MathCheck = { status: 'correct' | 'incorrect' | 'unresolved' | 'blank'; parsed: Rational | null; expected: Rational; unitStatus: 'correct' | 'missing' | 'not_required' | 'unresolved'; contradictions: string[]; denominatorAddition: boolean; equivalentReasoning: boolean };
+export const findingCodeSchema = z.enum(['denominator_addition', 'equivalent_fraction_reasoning', 'correct_with_support', 'needs_independent_check', 'ambiguous_transcription', 'insufficient_evidence', 'other_teacher_finding']);
+export type FindingCode = z.infer<typeof findingCodeSchema>;
+export const claimScopeSchema = z.enum(['mathematics', 'independent_performance', 'evidence_quality']);
+export const nextStepSchema = z.enum(['targeted_equal_parts', 'independent_application', 'extension', 'independent_check', 'gather_evidence']);
+export const candidateFindingSchema = z.object({ studentId: idSchema, objectiveId: idSchema, code: findingCodeSchema, claimScope: claimScopeSchema, explanation: z.string().min(1).max(2000), evidence: z.array(evidenceRefSchema).min(1).max(8), limitations: z.array(z.string().max(500)).max(10), suggestedNextStep: nextStepSchema }).strict();
+export const analysisSchema = z.object({ findings: z.array(candidateFindingSchema).max(24) }).strict();
+export type CandidateFindingDraft = z.infer<typeof candidateFindingSchema>;
+export type SupportSnapshot = { submissionId: string; submissionRevision: number; support: SupportContext };
+export type BaseEntity = { id: string; ownerId: string; createdAt: string };
+export type MutableEntity = BaseEntity & { revision: number; updatedAt: string };
+export type Classroom = MutableEntity & { name: string; grade: number; subject: string; timezone: string; evidenceRevision: number; calendarRevision: number; unitId: string };
+export type Student = BaseEntity & { classroomId: string; displayName: string; active: boolean };
+export type Asset = MutableEntity & { purpose: 'worksheet' | 'lesson'; name: string; status: 'pending' | 'ready' | 'rejected'; mimeType: string; byteCount: number; originalObjectKey: string; normalizedObjectKey?: string; sha256?: string; normalizedSha256?: string; width?: number; height?: number; pageCount?: number; templateId?: string; studentId?: string; source?: 'upload' | 'demo'; normalizedMimeType?: string; normalizedByteCount?: number };
+export type Batch = MutableEntity & { classroomId: string; templateId: string; activityDate: string; kind: 'baseline' | 'followup'; title: string; submissionIds: string[]; sourcePlanVersionId?: string; previousBatchId?: string; latestJobId?: string };
+export type Submission = MutableEntity & { batchId: string; studentId: string; assetId: string; support: SupportContext; supersedesSubmissionId?: string };
+export type Extraction = BaseEntity & { submissionId: string; assetHash: string; templateId: string; raw: ExtractionDraft; provenance: Provenance };
+export type Response = MutableEntity & ExtractedAnswer & { submissionId: string; extractionId: string; mathCheck: MathCheck; readingStatus: 'unreviewed' | 'resolved' };
+export type ReadingReview = BaseEntity & { responseId: string; responseRevision: number; actorId: string; note: string };
+export type ResponseRevision = BaseEntity & { responseId: string; before: Response; after: Response; actorId: string; reason: string };
+export type ObservationStatus = 'independent' | 'supported' | 'not_demonstrated' | 'insufficient' | 'unknown_support';
+export type Finding = MutableEntity & CandidateFindingDraft & { batchId: string; status: 'candidate' | 'confirmed' | 'rejected' | 'stale'; observationStatus: ObservationStatus; supportSnapshots: SupportSnapshot[]; source: 'ai' | 'teacher'; provenance: Provenance | null; originalDraft: CandidateFindingDraft; priorVersions: CandidateFindingDraft[]; eligibilityWarnings: string[]; reviewedAt?: string; reviewedBy?: string };
+export type Observation = BaseEntity & { findingId: string; findingRevision: number; studentId: string; objectiveId: string; date: string; templateId: string; difficulty: string; evidence: EvidenceRef[]; supportSnapshots: SupportSnapshot[]; interpretation: string; observationStatus: ObservationStatus; suggestedNextStep: CandidateFindingDraft['suggestedNextStep']; reviewEventId: string; superseded: boolean; supersededReason?: string };
+export const laneSchema = z.object({ id: idSchema, title: z.string().min(1).max(150), studentIds: z.array(idSchema).max(8), teacherLed: z.boolean(), minutes: z.number().int().positive(), instructions: z.string().min(1).max(4000), materialIds: z.array(idSchema).max(10), entryCheckStudentIds: z.array(idSchema).max(8) }).strict();
+export type LessonLane = z.infer<typeof laneSchema>;
+export const lessonBlockSchema = z.object({ id: idSchema, title: z.string().min(1).max(150), minutes: z.number().int().positive(), instructions: z.string().min(1).max(4000), mode: z.enum(['whole_class', 'concurrent']), lanes: z.array(laneSchema).optional(), materialIds: z.array(idSchema).optional() }).strict();
+export type LessonBlock = z.infer<typeof lessonBlockSchema>;
+export const lessonSchema = z.object({ schemaVersion: z.literal(1), lessonId: idSchema, unitId: idSchema, date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), title: z.string().min(1).max(200), objectiveIds: z.array(idSchema).min(1), totalMinutes: z.literal(45), blocks: z.array(lessonBlockSchema).length(5) }).strict();
+export type LessonSnapshot = z.infer<typeof lessonSchema>;
+export type LessonPlan = MutableEntity & { unitId: string; date: string; title: string; currentVersionId: string };
+export type PlanVersion = BaseEntity & { lessonId: string; versionNumber: number; previousVersionId: string | null; snapshot: LessonSnapshot; proposalId: string | null; selectedChangeIds: string[]; evidence: EvidenceRef[]; actorId: string; sourceAssetId?: string };
+const changeCommon = { id: idSchema, rationale: z.string().min(1).max(3000), findingIds: z.array(idSchema).max(24), evidence: z.array(evidenceRefSchema).max(100), affectedStudentIds: z.array(idSchema).max(8), dependsOnChangeIds: z.array(idSchema).max(3) };
+export const proposalChangeSchema = z.discriminatedUnion('operation', [
+ z.object({ ...changeCommon, operation: z.literal('replace_practice'), payload: z.object({ block: lessonBlockSchema }).strict() }).strict(),
+ z.object({ ...changeCommon, operation: z.literal('replace_exit'), payload: z.object({ block: lessonBlockSchema }).strict() }).strict(),
+ z.object({ ...changeCommon, operation: z.literal('schedule_checkpoint'), payload: z.object({ calendarEntryId: idSchema, offsetMinutes: z.number().int().nonnegative(), minutes: z.number().int().positive(), templateId: idSchema, title: z.string().min(1).max(200), materialIds: z.array(idSchema).max(10) }).strict() }).strict(),
+]);
+export type ProposalChange = z.infer<typeof proposalChangeSchema>;
+export type Proposal = MutableEntity & { lessonId: string; basePlanVersionId: string; evidenceRevision: number; calendarRevision: number; inputFingerprint: string; status: 'draft' | 'stale' | 'applied' | 'discarded'; changes: ProposalChange[]; originalChanges: ProposalChange[]; provenance: Provenance; teacherEdited: boolean; selectedChangeIds: string[]; appliedVersionId?: string };
+export type MaterialPrompt = { id: string; prompt: string; canonicalFraction: string | null; answerKey: string; expectedRational: Rational | null; answerUnit: string | null; validationKind: string; operands: Rational[]; examplePairs?: Rational[][]; requiresTeacherReview?: boolean };
+export type Material = { id: string; title: string; suggestedMinutes: number; prompts: MaterialPrompt[]; teacherPrompts?: string[]; scaffolds?: string; conditions?: string; note?: string };
+export type MaterialSet = BaseEntity & { planVersionId: string; materials: Material[]; studentIds: string[] };
+export type CalendarEntry = MutableEntity & { unitId: string; date: string; endDate?: string; title: string; instructions: string; kind: string; minutes: number; locked: boolean; objectiveIds: string[]; prerequisiteEntryIds: string[]; lessonId?: string; planVersionId?: string; checkpoint?: { templateId: string; offsetMinutes: number; minutes: number; title: string; proposalId: string }; preview?: boolean };
+export type JobStep = { id: string; kind: 'extract' | 'analyze' | 'propose'; submissionId?: string; status: 'pending' | 'running' | 'waiting_retry' | 'completed' | 'failed' | 'cancelled'; attempts: number; nextAttemptAt?: string; leaseToken?: string; leaseExpiresAt?: string; inputFingerprint: string; error?: string; outputId?: string };
+export type Job = MutableEntity & { type: 'analysis' | 'proposal'; batchId?: string; lessonId?: string; status: 'queued' | 'running' | 'waiting_retry' | 'blocked' | 'completed' | 'failed' | 'cancelled'; inputFingerprint: string; steps: JobStep[]; error?: string; errorCode?: string; nextAttemptAt?: string; resultId?: string; request?: Record<string, unknown>; cancelledAt?: string };
+export type AuditEvent = BaseEntity & { actorId: string; action: string; entityId: string; details: Record<string, unknown> };
+export type MutationKey = BaseEntity & { operation: string; key: string; requestHash: string; result: unknown };
+export type LessonImport = MutableEntity & { assetId: string; status: 'draft' | 'confirmed'; draft: LessonSnapshot | null; errors: string[]; planVersionId?: string; extractedText?: string };
+export type AppState = { schemaVersion: 1; ownerId: string; revision: number; classroom: Classroom; students: Student[]; batches: Batch[]; submissions: Submission[]; assets: Asset[]; extractions: Extraction[]; responses: Response[]; readingReviews: ReadingReview[]; responseRevisions: ResponseRevision[]; findings: Finding[]; observations: Observation[]; plans: LessonPlan[]; planVersions: PlanVersion[]; proposals: Proposal[]; materialSets: MaterialSet[]; calendarEntries: CalendarEntry[]; jobs: Job[]; auditEvents: AuditEvent[]; mutationKeys: MutationKey[]; lessonImports: LessonImport[]; lastDispatchAt?: string };
+
+export const createBatchSchema = z.object({ templateId: idSchema, activityDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), kind: z.enum(['baseline', 'followup']), title: z.string().min(1).max(200).optional(), submissions: z.array(z.object({ studentId: idSchema, assetId: idSchema, support: supportSchema }).strict()).min(1).max(8), sourcePlanVersionId: idSchema.optional(), previousBatchId: idSchema.optional() }).strict();
+export const correctResponseSchema = z.object({ expectedRevision: revisionSchema, workingText: z.string().max(2000), answerText: z.string().max(200).nullable(), legibility: z.enum(['clear', 'uncertain', 'blank']), readingStatus: z.enum(['unreviewed', 'resolved']), reason: z.string().min(1).max(1000) }).strict();
+export const correctSupportSchema = z.object({ expectedRevision: revisionSchema, support: supportSchema, reason: z.string().min(1).max(1000) }).strict();
+export const reviewFindingsSchema = z.object({ items: z.array(z.object({ findingId: idSchema, expectedRevision: revisionSchema, decision: z.enum(['confirm', 'reject']) }).strict()).min(1).max(24), acknowledgeClearReadings: z.boolean(), reason: z.string().max(1000).optional() }).strict();
+export const generateProposalSchema = z.object({ basePlanVersionId: idSchema, expectedEvidenceRevision: revisionSchema, expectedCalendarRevision: revisionSchema }).strict();
+export const editFindingSchema = candidateFindingSchema.omit({ studentId: true }).extend({ expectedRevision: revisionSchema, reason: z.string().min(1).max(1000) }).strict();
+export const editProposalSchema = z.object({ expectedRevision: revisionSchema, changes: z.array(proposalChangeSchema).min(1).max(3), reason: z.string().min(1).max(1000) }).strict();
+export const applyProposalSchema = z.object({ expectedRevision: revisionSchema, basePlanVersionId: idSchema, expectedEvidenceRevision: revisionSchema, expectedCalendarRevision: revisionSchema, selectedChangeIds: z.array(idSchema).max(3) }).strict();
+export const confirmLessonImportSchema = z.object({ expectedRevision: revisionSchema, lesson: lessonSchema, expectedPlanVersionId: idSchema.optional() }).strict();

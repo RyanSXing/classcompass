@@ -1,0 +1,188 @@
+{
+  "assets": [
+    {
+      "id": "baseline-blank",
+      "filename": "baseline-template-v1.pdf",
+      "sha256": "0fb04ba1f419a9f25f726a2a80e45fb67b45a161f754ca65c178196e50c1457f",
+      "type": "blank-template",
+      "templateId": "baseline-template-v1"
+    },
+    {
+      "id": "baseline-stu-01",
+      "filename": "baseline-stu-01.png",
+      "sha256": "04ce6ae41cf111eab3ff9c794a2844248f3c7da4205d4a95d7e01587bae1ef94",
+      "type": "fictional-handwritten-scan",
+      "templateId": "baseline-template-v1",
+      "studentId": "stu-01"
+    },
+    {
+      "id": "baseline-stu-02",
+      "filename": "baseline-stu-02.png",
+      "sha256": "47fe92c54ebaec8651ec8cd7bf699a1f12f646d4c9cdab451ca708dfaf823f62",
+      "type": "fictional-handwritten-scan",
+      "templateId": "baseline-template-v1",
+      "studentId": "stu-02"
+    },
+    {
+      "id": "baseline-stu-03",
+      "filename": "baseline-stu-03.png",
+      "sha256": "8d61a83b1458eeffe8e57dc2db208ec638154b2916fb509a55b5deffc05293e4",
+      "type": "fictional-handwritten-scan",
+      "templateId": "baseline-template-v1",
+      "studentId": "stu-03"
+    },
+    {
+      "id": "baseline-stu-04",
+      "filename": "baseline-stu-04.png",
+      "sha256": "31bcc145314e79f4a9c5e8a9bf80db4d98f3f3ab1723d6ca7de35215972ed5b0",
+      "type": "fictional-handwritten-scan",
+      "templateId": "baseline-template-v1",
+      "studentId": "stu-04"
+    },
+    {
+      "id": "baseline-stu-05",
+      "filename": "baseline-stu-05.png",
+      "sha256": "ee123605d36a6ca6b1ebfa6395162416a8d188188fa62c4cc405a2256d4eea72",
+      "type": "fictional-handwritten-scan",
+      "templateId": "baseline-template-v1",
+      "studentId": "stu-05"
+    },
+    {
+      "id": "baseline-stu-06",
+      "filename": "baseline-stu-06.png",
+      "sha256": "0d45f4291da53bc3222deac95d3624ccabfb296d40dd9e1803baf101ece52b4b",
+      "type": "fictional-handwritten-scan",
+      "templateId": "baseline-template-v1",
+      "studentId": "stu-06"
+    },
+    {
+      "id": "baseline-stu-07",
+      "filename": "baseline-stu-07.png",
+      "sha256": "39bd909b6744c3da3e9c699e0f2568bdea2fdda74a47560b6a8e0d81af7c9c75",
+      "type": "fictional-handwritten-scan",
+      "templateId": "baseline-template-v1",
+      "studentId": "stu-07"
+    },
+    {
+      "id": "baseline-stu-08",
+      "filename": "baseline-stu-08.png",
+      "sha256": "93bd5f2553ccbec029aabd155afb9f8e07134b322e7e95455e20973bd856b07b",
+      "type": "fictional-handwritten-scan",
+      "templateId": "baseline-template-v1",
+      "studentId": "stu-08"
+    },
+    {
+      "id": "followup-blank",
+      "filename": "followup-template-v1.pdf",
+      "sha256": "77a34fcb6e96d5225a2fc37e24fd6f0dbf3704bfa5e4e9d28810a581154e70ef",
+      "type": "blank-template",
+      "templateId": "followup-template-v1"
+    },
+    {
+      "id": "followup-stu-01",
+      "filename": "followup-stu-01.png",
+      "sha256": "ae9044eae2c740ef327596e62a7a0a9a6eef4b353e0820a2fa2c70fdcd2bc6f1",
+      "type": "fictional-handwritten-scan",
+      "templateId": "followup-template-v1",
+      "studentId": "stu-01"
+    },
+    {
+      "id": "followup-stu-02",
+      "filename": "followup-stu-02.png",
+      "sha256": "fe9ccf33ee170583ff92282bb7a4fe6739cae334107a1c180aff9cb11126ff10",
+      "type": "fictional-handwritten-scan",
+      "templateId": "followup-template-v1",
+      "studentId": "stu-02"
+    },
+    {
+      "id": "followup-stu-03",
+      "filename": "followup-stu-03.png",
+      "sha256": "f14b2afd34654ca2f7c5166d7ad790b6db06811b8f4f42282cb765a7953d0483",
+      "type": "fictional-handwritten-scan",
+      "templateId": "followup-template-v1",
+      "studentId": "stu-03"
+    },
+    {
+      "id": "followup-stu-04",
+      "filename": "followup-stu-04.png",
+      "sha256": "80b3a1a7bbc03d5a6ce51e2f0491851efb0da4acdf1306183c9013538e7a274f",
+      "type": "fictional-handwritten-scan",
+      "templateId": "followup-template-v1",
+      "studentId": "stu-04"
+    },
+    {
+      "id": "followup-stu-05",
+      "filename": "followup-stu-05.png",
+      "sha256": "9b27e2c901dcdbc9af688be22a4279532f86b1ff083518c457daa62e9cd7426d",
+      "type": "fictional-handwritten-scan",
+      "templateId": "followup-template-v1",
+      "studentId": "stu-05"
+    },
+    {
+      "id": "followup-stu-06",
+      "filename": "followup-stu-06.png",
+      "sha256": "ed7ea504906bcf50d0ca6e4c6495d1e132e2815a45351abfb07cfe1d554170b7",
+      "type": "fictional-handwritten-scan",
+      "templateId": "followup-template-v1",
+      "studentId": "stu-06"
+    },
+    {
+      "id": "followup-stu-07",
+      "filename": "followup-stu-07.png",
+      "sha256": "d31b3b5826bb053b45b6e1948c29692abbd75c2d4507c6672dada8ea14da177a",
+      "type": "fictional-handwritten-scan",
+      "templateId": "followup-template-v1",
+      "studentId": "stu-07"
+    },
+    {
+      "id": "followup-stu-08",
+      "filename": "followup-stu-08.png",
+      "sha256": "dcc98e212ae07dfd57ff991d045c078794a32f0d6614af86e244216d6ee06d19",
+      "type": "fictional-handwritten-scan",
+      "templateId": "followup-template-v1",
+      "studentId": "stu-08"
+    },
+    {
+      "id": "lesson-2026-09-23-json",
+      "filename": "lesson-2026-09-23-original.json",
+      "sha256": "5d687d49491d572fe76c221cff8c5df62fe844bf2d0f3b64ec3c93c0b04e778d",
+      "type": "teacher-plan-import"
+    },
+    {
+      "id": "lesson-2026-09-25-json",
+      "filename": "lesson-2026-09-25-original.json",
+      "sha256": "e3eb2118153881eb3f662578dcc91cff637b3b1088be1e61ac63ea98662c2a45",
+      "type": "teacher-plan-import"
+    },
+    {
+      "id": "lesson-original",
+      "filename": "lesson-2026-09-23-original.pdf",
+      "sha256": "c6cf6fe871115561c4cf09fa2ac1f88a70aface49f91f06e133e35e497705989",
+      "type": "teacher-plan"
+    },
+    {
+      "id": "material-targeted",
+      "filename": "targeted-equal-parts-v1.pdf",
+      "sha256": "829069baf94bca75e635508f894193fac422ce4bf38776dd8fe5bb401c759cc7",
+      "type": "printable-activity"
+    },
+    {
+      "id": "material-extension",
+      "filename": "extension-explain-v1.pdf",
+      "sha256": "bd005bf5623158bf51be7b80edb0bab885075c2f8e1efbb594575036222abb60",
+      "type": "printable-activity"
+    },
+    {
+      "id": "material-exit",
+      "filename": "exit-equal-units-v1.pdf",
+      "sha256": "793974f9856d0c5171331db4e5a8661738c68609e293a65dd8c9d0e47895555d",
+      "type": "printable-activity"
+    },
+    {
+      "id": "teacher-answer-keys",
+      "filename": "classcompass-teacher-answer-keys.pdf",
+      "sha256": "3762b0c629819f89a90ba9d08ac2e4116269b3329cc24b2894841a4176adc48d",
+      "type": "answer-key"
+    }
+  ]
+}

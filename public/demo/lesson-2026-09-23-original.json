@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "lessonId": "lesson-2026-09-23",
+  "unitId": "unit-fractions-v1",
+  "date": "2026-09-23",
+  "title": "Apply fraction addition to word problems",
+  "objectiveIds": [
+    "obj-equivalent-fractions",
+    "obj-add-unlike-fractions",
+    "obj-explain-fraction-context"
+  ],
+  "totalMinutes": 45,
+  "blocks": [
+    {
+      "id": "warmup",
+      "title": "Recall equivalent fractions",
+      "minutes": 5,
+      "instructions": "Use an equal-whole model to connect 1/2 and 2/4, then explain why both have the same value.",
+      "mode": "whole_class"
+    },
+    {
+      "id": "model",
+      "title": "Model a word problem",
+      "minutes": 8,
+      "instructions": "Teacher models a new fraction-addition context using common-sized parts, adds, and checks the total against one whole.",
+      "mode": "whole_class"
+    },
+    {
+      "id": "practice",
+      "title": "General paired practice",
+      "minutes": 12,
+      "instructions": "All students complete the same two unlike-denominator fraction word problems in pairs.",
+      "mode": "whole_class"
+    },
+    {
+      "id": "application",
+      "title": "Apply to word problems",
+      "minutes": 15,
+      "instructions": "Students solve and explain fraction-addition contexts; the teacher circulates and records observations.",
+      "mode": "whole_class"
+    },
+    {
+      "id": "exit",
+      "title": "Explain an addition method",
+      "minutes": 5,
+      "instructions": "Students explain why equivalent fractions are needed and complete a short exit check.",
+      "mode": "whole_class"
+    }
+  ]
+}
