@@ -23,7 +23,7 @@ The migration creates the private `classcompass-evidence` bucket. Paths start wi
 
 ## Teacher account and environment
 
-Pre-provision a teacher in Supabase Authentication, using an email/password or the local admin SDK. Public signup is not part of the application. Put the project values in the Git-ignored `.env.local`:
+Pre-provision a teacher in Supabase Authentication, using an email/password or the local admin SDK. Public signup is disabled in the linked ClassCompass project through the narrow Management API setting `disable_signup: true`, and the local configuration disables both general and email signup. Other hosted auth settings are preserved. Put the project values in the Git-ignored `.env.local`:
 
 ```dotenv
 DATA_BACKEND=supabase

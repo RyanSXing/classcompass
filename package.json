@@ -9,7 +9,7 @@
   "scripts": {
     "postinstall": "node scripts/prepare.mjs",
     "dev": "next dev --hostname 127.0.0.1",
-    "build": "next build",
+    "build": "next build && node scripts/check-build.mjs",
     "start": "next start --hostname 127.0.0.1",
     "typecheck": "next typegen && tsc --noEmit",
     "lint": "eslint .",
@@ -21,6 +21,8 @@
     "demo:reset": "tsx scripts/demo.ts reset",
     "test:live": "tsx scripts/check-live.ts",
     "test:supabase": "tsx scripts/check-supabase.ts",
+    "teacher:provision": "tsx scripts/provision-teacher.ts",
+    "test:connected": "tsx scripts/check-connected.ts",
     "verify": "npm run fixtures:validate && npm run lint && npm run typecheck && npm test && npm run build"
   },
   "dependencies": {

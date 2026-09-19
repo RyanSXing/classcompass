@@ -7,16 +7,19 @@ import type { AppState } from '../lib/contracts';
 config({path:'.env.local',quiet:true});
 config({quiet:true});
 
+const boundedFetch:typeof fetch=(input,init={})=>fetch(input,{...init,signal:AbortSignal.any([...(init.signal?[init.signal]:[]),AbortSignal.timeout(20000)])});
+const clientOptions={auth:{persistSession:false,autoRefreshToken:false},db:{timeout:20000,retry:false},global:{fetch:boundedFetch}};
+const safeResult=(result:{status?:number;error?:{code?:string;message?:string}|null})=>JSON.stringify({status:result.status,code:result.error?.code,message:result.error?.message?.slice(0,250)});
 async function main() {
   const url=process.env.NEXT_PUBLIC_SUPABASE_URL, key=process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, secret=process.env.SUPABASE_SECRET_KEY;
   if(!url||!key||!secret){console.log('BLOCKED: Supabase isolation checks need project URL, publishable key and a local admin secret. No network calls or fixture substitutions performed.');process.exitCode=2;return;}
-  const admin=createClient(url,secret,{auth:{persistSession:false,autoRefreshToken:false}}), clients:SupabaseClient[]=[], userIds:string[]=[], paths:string[]=[];
+  const admin=createClient(url,secret,clientOptions), clients:SupabaseClient[]=[], userIds:string[]=[], paths:string[]=[];
   try {
     for(let i=0;i<2;i++){
       const email=`classcompass-check-${randomUUID()}@example.org`,password=`Cc!${randomBytes(24).toString('hex')}`;
       const created=await admin.auth.admin.createUser({email,password,email_confirm:true,user_metadata:{display_name:'Temporary isolation check'}});
       assert.ifError(created.error);assert(created.data.user);userIds.push(created.data.user.id);
-      const client=createClient(url,key,{auth:{persistSession:false,autoRefreshToken:false}});const session=await client.auth.signInWithPassword({email,password});assert.ifError(session.error);clients.push(client);
+      const client=createClient(url,key,clientOptions);const session=await client.auth.signInWithPassword({email,password});assert.ifError(session.error);clients.push(client);
     }
     const [a,b]=clients,[ownerA,ownerB]=userIds;
     for(let i=0;i<2;i++){
@@ -26,11 +29,13 @@ async function main() {
       const loaded=await clients[i].rpc('load_classcompass_state');assert.ifError(loaded.error);assert.equal(loaded.data.ownerId,userIds[i]);assert.equal(loaded.data.students.length,8);assert.equal(loaded.data.planVersions.length,2);assert.equal(loaded.data.revision,2);
     }
     console.log('PASS: authenticated normalized state round-trip for two independent owners.');
+    console.log('CHECK: stale revision rejection (20-second request limit).');
     const stateA=(await a.rpc('load_classcompass_state')).data as AppState;
-    const stale=await a.rpc('commit_classcompass_state',{p_expected_revision:1,p_state:stateA});assert.equal(stale.error?.code,'40001');
+    const stale=await a.rpc('commit_classcompass_state',{p_expected_revision:1,p_state:stateA});assert.equal(stale.error?.code,'PT409',`Stale revision result: ${safeResult(stale)}`);
+    console.log('CHECK: simultaneous revision commits (20-second request limit).');
     const concurrentA=structuredClone(stateA),concurrentB=structuredClone(stateA);concurrentA.revision=3;concurrentB.revision=3;
     const outcomes=await Promise.all([a.rpc('commit_classcompass_state',{p_expected_revision:2,p_state:concurrentA}),a.rpc('commit_classcompass_state',{p_expected_revision:2,p_state:concurrentB})]);
-    assert.equal(outcomes.filter(r=>!r.error).length,1);assert.equal(outcomes.find(r=>r.error)?.error?.code,'40001');
+    assert.equal(outcomes.filter(r=>!r.error).length,1);assert.equal(outcomes.find(r=>r.error)?.error?.code,'PT409',`Concurrent results: ${outcomes.map(safeResult).join('; ')}`);
     console.log('PASS: stale and simultaneous revision commits are rejected atomically.');
     const current=(await a.rpc('load_classcompass_state')).data as AppState;current.revision=4;
     const injected=structuredClone(current);injected.ownerId=ownerB;
@@ -51,7 +56,7 @@ async function main() {
     assert((await b.storage.from('classcompass-evidence').createSignedUrl(ownPath,60)).error);
     const injectedPath=`${ownerA}/injected-${randomUUID()}.json`;paths.push(injectedPath);
     assert((await b.storage.from('classcompass-evidence').upload(injectedPath,Buffer.from('{}'),{contentType:'application/json'})).error);
-    const anonymous=createClient(url,key,{auth:{persistSession:false,autoRefreshToken:false}});
+    const anonymous=createClient(url,key,clientOptions);
     assert((await anonymous.rpc('load_classcompass_state')).error);
     assert((await anonymous.storage.from('classcompass-evidence').download(ownPath)).error);
     console.log('PASS: private storage reads, signed URLs and uploads enforce owner prefixes; anonymous access is denied.');

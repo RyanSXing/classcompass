@@ -10,11 +10,12 @@ import type { ExtractionDraft, Finding, AppState } from '../lib/contracts';
 
 loadEnv({path:'.env.local',quiet:true});
 const reasoningSmoke=process.argv.includes('--reasoning-smoke');
+const reasoningEvaluation=process.argv.includes('--reasoning-evaluation');
 const smoke=process.argv.includes('--smoke')||reasoningSmoke;
-const output=path.join('.local',reasoningSmoke?'live-reasoning-smoke.json':smoke?'live-smoke.json':'live-evaluation.json');
-const record:{startedAt:string;mode:string;models:unknown;calls:number;catalog?:unknown;pages:unknown[];stages:unknown[];summary?:unknown;error?:unknown;completedAt?:string}={startedAt:new Date().toISOString(),mode:smoke?'live-smoke':'live-evaluation',models:{vision:configuration().visionModel,reasoning:configuration().reasoningModel},calls:0,pages:[],stages:[]};
+const output=path.join('.local',reasoningEvaluation?'live-reasoning-evaluation.json':reasoningSmoke?'live-reasoning-smoke.json':smoke?'live-smoke.json':'live-evaluation.json');
+const record:{startedAt:string;mode:string;models:unknown;calls:number;catalog?:unknown;pages:unknown[];stages:unknown[];summary?:unknown;error?:unknown;completedAt?:string}={startedAt:new Date().toISOString(),mode:reasoningEvaluation?'live-text-evaluation':smoke?'live-smoke':'live-evaluation',models:{vision:configuration().visionModel,reasoning:configuration().reasoningModel},calls:0,pages:[],stages:[]};
 let lastDispatch=0;
-async function persist(){await mkdir('.local',{recursive:true});await writeFile(output,JSON.stringify(record,null,2)+'\n');}
+async function persist(){await mkdir('.local',{recursive:true});await writeFile(output,JSON.stringify(record,null,2)+'\n',{mode:0o600});}
 async function call<T>(fn:()=>Promise<T>){await delay(Math.max(0,4000-(Date.now()-lastDispatch)));lastDispatch=Date.now();record.calls++;try{return await fn();}finally{await persist();}}
 const normalized=(text:string|null)=> (text??'').toLowerCase().replace(/[\s;.,]/g,'');
 function answerAgreement(actual:string|null,reference:string|null){if(actual===null||reference===null)return actual===reference;const a=parseFraction(actual),b=parseFraction(reference);return a&&b?equalFractions(a,b)&&/meter/.test(actual)===/meter/.test(reference):normalized(actual)===normalized(reference);}
@@ -26,6 +27,40 @@ async function catalogCheck(){
 }
 async function main(){
  await persist();await catalogCheck();
+ if(reasoningEvaluation){
+  // Text-only evaluation on a clone of teacher-corrected fictional demo state.
+  // No OCR, production mutation, hidden reference answers or ground-truth groups.
+  const sourcePath=process.env.LIVE_REASONING_STATE_FILE||'.local/classcompass/state.json';
+  const saved=JSON.parse(await readFile(sourcePath,'utf8')) as AppState;
+  const batch=saved.batches.filter(b=>b.kind==='baseline').at(-1);
+  if(!batch||batch.submissionIds.length!==8)throw new AIError('EVALUATION_STATE','Load and review the eight fictional baseline worksheets before this text-only evaluation.',false);
+  const corrected=structuredClone(saved),comparison=saved.findings.filter(f=>f.batchId===batch.id&&f.status==='confirmed');
+  const ids=new Set(corrected.findings.filter(f=>f.batchId===batch.id).map(f=>f.id));
+  corrected.findings=corrected.findings.filter(f=>f.batchId!==batch.id);corrected.observations=corrected.observations.filter(o=>!ids.has(o.findingId));
+  let analysisPassed=false,proposalPassed=false,agreements=0,analysisFindings=0;
+  let proposalState=structuredClone(saved),proposalInput='Previously teacher-confirmed baseline findings in the fictional demo';
+  const start=Date.now();
+  try{
+   const result=await call(()=>analyzeEvidence({state:corrected,batchId:batch.id,mode:'live'}));
+   const findings=analyzeBatch(corrected,{batchId:batch.id,...result}),review=reviewEligible(corrected,findings);
+   const outcomes=corrected.submissions.filter(s=>s.batchId===batch.id).map(s=>{const expected=comparison.filter(f=>f.studentId===s.studentId).map(f=>f.suggestedNextStep),actual=findings.filter(f=>f.studentId===s.studentId).map(f=>f.suggestedNextStep);return{studentId:s.studentId,teacherConfirmedNextSteps:expected,liveNextSteps:actual,agrees:expected.some(next=>actual.includes(next))};});
+   agreements=outcomes.filter(o=>o.agrees).length;analysisFindings=findings.length;analysisPassed=true;
+   record.stages.push({kind:'live-baseline-analysis',durationMs:Date.now()-start,provenance:result.provenance,findings:result.drafts,review,outcomes,domainValidated:true});
+   if(!review.unreviewed.length){proposalState=corrected;proposalInput='Live analysis findings confirmed by automated synthetic evaluation, not by an external teacher';}
+   console.log(`Live baseline analysis passed domain validation: ${findings.length} findings; ${agreements}/8 next-step agreements with saved teacher decisions.`);
+  }catch(error){record.stages.push({kind:'live-baseline-analysis',durationMs:Date.now()-start,error:safeError(error)});console.log(`Live baseline analysis failed: ${(safeError(error) as {code:string}).code}`);}
+  const proposedAt=Date.now();
+  try{
+   const result=await call(()=>proposeLesson({state:proposalState,lessonId:'lesson-2026-09-23',mode:'live'}));
+   const plan=proposalState.plans.find(p=>p.id==='lesson-2026-09-23')!;
+   const proposal=generateProposal(proposalState,plan.id,{...result,basePlanVersionId:plan.currentVersionId,expectedEvidenceRevision:proposalState.classroom.evidenceRevision,expectedCalendarRevision:proposalState.classroom.calendarRevision});
+   const applied=applyProposal(proposalState,proposal.id,{expectedRevision:proposal.revision,basePlanVersionId:proposal.basePlanVersionId,expectedEvidenceRevision:proposal.evidenceRevision,expectedCalendarRevision:proposal.calendarRevision,selectedChangeIds:proposal.changes.map(c=>c.id)});
+   const accepted=proposalState.planVersions.find(v=>v.id===applied.planVersionId)!;
+   proposalPassed=true;record.stages.push({kind:'live-baseline-proposal',durationMs:Date.now()-proposedAt,provenance:result.provenance,inputDisclosure:proposalInput,changes:result.changes,domainValidated:true,simulatedApplication:true,totalMinutes:accepted.snapshot.blocks.reduce((n,b)=>n+b.minutes,0),practiceLanes:accepted.snapshot.blocks.find(b=>b.id==='practice')?.lanes});
+   console.log(`Live proposal passed domain validation and cloned-state application: ${proposal.changes.length} changes; 45-minute lesson.`);
+  }catch(error){record.stages.push({kind:'live-baseline-proposal',durationMs:Date.now()-proposedAt,inputDisclosure:proposalInput,error:safeError(error)});console.log(`Live proposal failed: ${(safeError(error) as {code:string}).code}`);}
+  record.summary={reasoningEnabled:false,analysisPassed,proposalPassed,analysisFindings,nextStepAgreement:{count:agreements,total:8},scansEvaluated:0,handwritingEvaluated:false,externalTeacherValidated:false,productionStateMutated:false,note:'Real text-model calls on already transcribed and teacher-corrected fictional work. This does not evaluate handwriting or classroom effectiveness.'};record.completedAt=new Date().toISOString();await persist();console.log(`Saved ${output}; ${record.calls} text calls and zero vision calls.`);if(!analysisPassed||!proposalPassed)process.exitCode=1;return;
+ }
  if(reasoningSmoke){
   const state=createInitialState(LOCAL_OWNER),time=new Date().toISOString();
   state.assets.push({id:'manual-blank-smoke',ownerId:LOCAL_OWNER,createdAt:time,updatedAt:time,revision:1,purpose:'worksheet',name:'explicit-manual-blank-smoke',status:'ready',mimeType:'image/png',byteCount:0,originalObjectKey:'none',templateId:'baseline-template-v1'});

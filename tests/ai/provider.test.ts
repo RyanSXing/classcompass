@@ -18,6 +18,16 @@ describe('AI provider boundary',()=>{
  it('rejects duplicate questions, invented blank writing, malformed and truncated JSON',async()=>{for(const [draft,finish,code] of [[{...good,responses:[good.responses[0],good.responses[0],good.responses[2],good.responses[3]]},'stop','AI_QUESTION_IDS'],[{...good,responses:good.responses.map(r=>({...r,workingText:'invented'}))},'stop','AI_BLANK_CONTRACT'],['{','stop','AI_INVALID_JSON'],[good,'length','AI_TRUNCATED']] as const){mockCompletion(draft,finish);await expect(extractWorksheet({...input,mode:'live'})).rejects.toMatchObject({code});}});
  it('does not send identity, private raw extraction or hidden state into analysis',()=>{const{state,batchId}=setup();(state as AppState&{groundTruth:string}).groundTruth='DO_NOT_SEND';state.students[7].displayName='Secret Name';state.assets[0].originalObjectKey='private-storage-secret';state.extractions[0].raw.responses[0].workingText='DISCARDED-RAW-READING';const body=JSON.stringify(buildAnalysisInput(state,batchId));for(const forbidden of ['DO_NOT_SEND','Secret Name','private-storage-secret','DISCARDED-RAW-READING','displayName','ownerId'])expect(body).not.toContain(forbidden);expect(body).toContain('No help');});
  it('fixture analysis delegates recomputation without mutating state',async()=>{const{state,batchId}=setup();const before=JSON.stringify(state);const fetcher=vi.fn();vi.stubGlobal('fetch',fetcher);const result=await analyzeEvidence({state,batchId,mode:'fixture'});expect(result.drafts).toBeUndefined();expect(result.provenance.modelId).toBe('deterministic-domain-fixture');expect(JSON.stringify(state)).toBe(before);expect(fetcher).not.toHaveBeenCalled();});
+ it('disables optional reasoning only for bounded text analysis while leaving vision unchanged',async()=>{
+  const{state,batchId}=setup();
+  const finding={studentId:'stu-08',objectiveId:'obj-add-unlike-fractions',code:'insufficient_evidence',claimScope:'evidence_quality',explanation:'The responses are blank; collect completed work.',evidence:state.responses.map(r=>({responseId:r.id,responseRevision:r.revision})),limitations:['No completed response.'],suggestedNextStep:'gather_evidence'};
+  const analysisFetch=mockCompletion({findings:[finding]});
+  await analyzeEvidence({state,batchId,mode:'live'});
+  const analysisRequest=JSON.parse(analysisFetch.mock.calls[0][1].body);
+  expect(analysisRequest.reasoning).toEqual({enabled:false});expect(analysisRequest.response_format.type).toBe('json_schema');
+  const visionFetch=mockCompletion(good);await extractWorksheet({...input,mode:'live'});
+  expect(JSON.parse(visionFetch.mock.calls[0][1].body)).not.toHaveProperty('reasoning');
+ });
  it('rejects live cross-student fabricated evidence without touching state',async()=>{const{state,batchId}=setup();const before=JSON.stringify(state);mockCompletion({findings:[{studentId:'stu-01',objectiveId:'obj-add-unlike-fractions',code:'insufficient_evidence',claimScope:'evidence_quality',explanation:'Missing work',evidence:[{responseId:state.responses[0].id,responseRevision:1}],limitations:[],suggestedNextStep:'gather_evidence'}]});await expect(analyzeEvidence({state,batchId,mode:'live'})).rejects.toMatchObject({code:'AI_FINDING_COVERAGE'});expect(JSON.stringify(state)).toBe(before);});
 });
 
@@ -37,7 +47,7 @@ describe('proposal model boundary',()=>{
   const fetcher=mockCompletion({changes:[{...common,operation:'replace_practice',payload:{block}}]});
   const result=await proposeLesson({state,lessonId:'lesson-2026-09-23',mode:'live'});
   expect(result.changes![0].id).toMatch(/^change-/);expect(result.changes![0].id).not.toBe(common.changeKey);expect(result.changes![0].evidence).toEqual(f.evidence);expect(JSON.stringify(state)).toBe(before);
-  const request=JSON.parse(fetcher.mock.calls[0][1].body);expect(request.response_format.type).toBe('json_schema');expect(request.provider.require_parameters).toBe(true);
+  const request=JSON.parse(fetcher.mock.calls[0][1].body);expect(request.response_format.type).toBe('json_schema');expect(request.provider.require_parameters).toBe(true);expect(request.reasoning).toEqual({enabled:false});
   const payload=JSON.stringify(buildProposalInput(state,'lesson-2026-09-23'));expect(payload).not.toContain('displayName');expect(payload).not.toContain('"raw":');
   block.lanes[1].studentIds=block.lanes[1].studentIds.slice(1);block.lanes[1].entryCheckStudentIds=block.lanes[1].studentIds;
   mockCompletion({changes:[{...common,operation:'replace_practice',payload:{block}}]});await expect(proposeLesson({state,lessonId:'lesson-2026-09-23',mode:'live'})).rejects.toMatchObject({code:'AI_INVALID_PLAN'});

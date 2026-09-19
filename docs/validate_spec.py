@@ -9,6 +9,7 @@ from fractions import Fraction
 import json
 from pathlib import Path
 import re
+from urllib.parse import unquote
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -191,7 +192,7 @@ for path in markdown_files:
         if re.match(r"[a-zA-Z][a-zA-Z0-9+.-]*:", target) or target.startswith("#"):
             continue
         local_links += 1
-        require((path.parent / target.split("#", 1)[0]).exists(), f"broken local link in {path.name}: {target}")
+        require((path.parent / unquote(target.split("#", 1)[0])).exists(), f"broken local link in {path.name}: {target}")
 
 print(f"PASS: {checks} specification assertions; {local_links} local links.")
 print("8 fictional students; 32 baseline + 16 follow-up responses; 6 worksheet questions; 12 material prompts.")

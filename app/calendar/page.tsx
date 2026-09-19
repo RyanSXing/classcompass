@@ -1,1 +1,1 @@
-export {default} from "@/components/pages/calendar";
+export { default } from "@/components/pages/calendar";

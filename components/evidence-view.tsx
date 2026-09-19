@@ -7,9 +7,178 @@ import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/shared";
 import { dateLabel } from "@/lib/utils";
 
-export function EvidenceView({submissionId,questionId,onQuestionChange,compact=false}:{submissionId:string;questionId:string;compact?:boolean;onQuestionChange?:(id:string)=>void}) {
-  const {data}=useWorkspace();const [zoom,setZoom]=useState(1);const [full,setFull]=useState(false);if(!data)return null;const submission=data.state.submissions.find(s=>s.id===submissionId);const batch=data.state.batches.find(b=>b.id===submission?.batchId);const asset=data.state.assets.find(a=>a.id===submission?.assetId);const student=data.state.students.find(s=>s.id===submission?.studentId);const template=data.curriculum.templates.find(t=>t.id===batch?.templateId);const region=template?.questionRegions.find(r=>r.questionId===questionId)?.rect;const question=data.curriculum.questions.find(q=>q.id===questionId);
-  if(!submission||!asset)return <Card><EmptyState title="Original work will appear here" text="Choose a student response to inspect the source worksheet."/></Card>;
-  const ratio=(asset.width??1700)/(asset.height??2200);
-  return <Card className={`evidence-card ${compact?'compact-evidence':''}`}><div className="evidence-header"><div><strong>{student?.displayName}’s original work</strong><small>{batch?dateLabel(batch.activityDate):''} · {asset.source==='demo'?'Synthetic handwritten sample':'Uploaded worksheet'}</small></div><div className="evidence-tools"><Button variant="ghost" size="icon" aria-label="Zoom out" onClick={()=>setZoom(Math.max(1,zoom-.25))} disabled={zoom<=1}><ZoomOut size={17}/></Button><Button variant="ghost" size="icon" aria-label="Zoom in" onClick={()=>setZoom(Math.min(3,zoom+.25))} disabled={zoom>=3}><ZoomIn size={17}/></Button><Button variant="ghost" size="icon" aria-label={full?'Show question crop':'Show full worksheet'} onClick={()=>{setFull(!full);setZoom(1);}}><Maximize2 size={17}/></Button></div></div>{onQuestionChange&&<div className="question-strip">{template?.questionIds.map((id,i)=><button className={`question-button ${id===questionId?'active':''}`} key={id} onClick={()=>onQuestionChange(id)} aria-label={`Show question ${i+1}`}>Q{i+1}</button>)}<span className="muted text-small" style={{alignSelf:'center',marginLeft:'auto'}}>{full?'Full page':'Question crop'} · {Math.round(zoom*100)}%</span></div>}<div className="scan-viewport" style={!full?{minHeight:compact?110:230}:undefined}><div className="scan-paper" style={{width:`${zoom*100}%`,...(!full&&region?{aspectRatio:String(ratio*region.width/region.height),overflow:'hidden'}:{})}}><img src={`/api/assets/${asset.id}`} alt={`${student?.displayName}’s handwritten worksheet. Transcription is provided beside this image.`} style={!full&&region?{position:'absolute',width:`${100/region.width}%`,maxWidth:'none',left:`${-region.x/region.width*100}%`,top:`${-region.y/region.height*100}%`}:undefined}/>{full&&region&&<div className="scan-region" style={{left:`${region.x*100}%`,top:`${region.y*100}%`,width:`${region.width*100}%`,height:`${region.height*100}%`}}><span>Selected question</span></div>}</div></div><div className="evidence-caption"><strong>{question?.prompt}</strong>{!compact&&<p style={{marginTop:8}}>Source pixels stay unchanged. The highlighted region comes from the known worksheet template.</p>}<a href={`/api/assets/${asset.id}?variant=original`} target="_blank" rel="noreferrer" className="text-link" style={{display:'inline-flex',alignItems:'center',gap:5,marginTop:10}}>Open original page<ExternalLink size={12}/></a></div></Card>;
+export function EvidenceView({
+  submissionId,
+  questionId,
+  onQuestionChange,
+  compact = false,
+}: {
+  submissionId: string;
+  questionId: string;
+  compact?: boolean;
+  onQuestionChange?: (id: string) => void;
+}) {
+  const { data } = useWorkspace();
+  const [zoom, setZoom] = useState(1);
+  const [full, setFull] = useState(false);
+  if (!data) return null;
+  const submission = data.state.submissions.find((s) => s.id === submissionId);
+  const batch = data.state.batches.find((b) => b.id === submission?.batchId);
+  const asset = data.state.assets.find((a) => a.id === submission?.assetId);
+  const student = data.state.students.find(
+    (s) => s.id === submission?.studentId,
+  );
+  const template = data.curriculum.templates.find(
+    (t) => t.id === batch?.templateId,
+  );
+  const region = template?.questionRegions.find(
+    (r) => r.questionId === questionId,
+  )?.rect;
+  const question = data.curriculum.questions.find((q) => q.id === questionId);
+  if (!submission || !asset)
+    return (
+      <Card>
+        <EmptyState
+          title="Original work will appear here"
+          text="Choose a student response to inspect the source worksheet."
+        />
+      </Card>
+    );
+  const ratio = (asset.width ?? 1700) / (asset.height ?? 2200);
+  return (
+    <Card className={`evidence-card ${compact ? "compact-evidence" : ""}`}>
+      <div className="evidence-header">
+        <div>
+          <strong>{student?.displayName}’s original work</strong>
+          <small>
+            {batch ? dateLabel(batch.activityDate) : ""} ·{" "}
+            {asset.source === "demo"
+              ? "Synthetic handwritten sample"
+              : "Uploaded worksheet"}
+          </small>
+        </div>
+        <div className="evidence-tools">
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label="Zoom out"
+            onClick={() => setZoom(Math.max(1, zoom - 0.25))}
+            disabled={zoom <= 1}
+          >
+            <ZoomOut size={17} />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label="Zoom in"
+            onClick={() => setZoom(Math.min(3, zoom + 0.25))}
+            disabled={zoom >= 3}
+          >
+            <ZoomIn size={17} />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label={full ? "Show question crop" : "Show full worksheet"}
+            onClick={() => {
+              setFull(!full);
+              setZoom(1);
+            }}
+          >
+            <Maximize2 size={17} />
+          </Button>
+        </div>
+      </div>
+      {onQuestionChange && (
+        <div className="question-strip">
+          {template?.questionIds.map((id, i) => (
+            <button
+              className={`question-button ${id === questionId ? "active" : ""}`}
+              key={id}
+              onClick={() => onQuestionChange(id)}
+              aria-label={`Show question ${i + 1}`}
+            >
+              Q{i + 1}
+            </button>
+          ))}
+          <span
+            className="muted text-small"
+            style={{ alignSelf: "center", marginLeft: "auto" }}
+          >
+            {full ? "Full page" : "Question crop"} · {Math.round(zoom * 100)}%
+          </span>
+        </div>
+      )}
+      <div
+        className="scan-viewport"
+        style={!full ? { minHeight: compact ? 110 : 230 } : undefined}
+      >
+        <div
+          className="scan-paper"
+          style={{
+            width: `${zoom * 100}%`,
+            ...(!full && region
+              ? {
+                  aspectRatio: String((ratio * region.width) / region.height),
+                  overflow: "hidden",
+                }
+              : {}),
+          }}
+        >
+          <img
+            src={`/api/assets/${asset.id}`}
+            alt={`${student?.displayName}’s handwritten worksheet. Transcription is provided beside this image.`}
+            style={
+              !full && region
+                ? {
+                    position: "absolute",
+                    width: `${100 / region.width}%`,
+                    maxWidth: "none",
+                    left: `${(-region.x / region.width) * 100}%`,
+                    top: `${(-region.y / region.height) * 100}%`,
+                  }
+                : undefined
+            }
+          />
+          {full && region && (
+            <div
+              className="scan-region"
+              style={{
+                left: `${region.x * 100}%`,
+                top: `${region.y * 100}%`,
+                width: `${region.width * 100}%`,
+                height: `${region.height * 100}%`,
+              }}
+            >
+              <span>Selected question</span>
+            </div>
+          )}
+        </div>
+      </div>
+      <div className="evidence-caption">
+        <strong>{question?.prompt}</strong>
+        {!compact && (
+          <p style={{ marginTop: 8 }}>
+            Source pixels stay unchanged. The highlighted region comes from the
+            known worksheet template.
+          </p>
+        )}
+        <a
+          href={`/api/assets/${asset.id}?variant=original`}
+          target="_blank"
+          rel="noreferrer"
+          className="text-link"
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 5,
+            marginTop: 10,
+          }}
+        >
+          Open original page
+          <ExternalLink size={12} />
+        </a>
+      </div>
+    </Card>
+  );
 }

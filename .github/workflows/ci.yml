@@ -1,0 +1,95 @@
+name: ClassCompass CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CI: 'true'
+  NEXT_TELEMETRY_DISABLED: '1'
+  APP_DEPLOYMENT: local
+  DATA_BACKEND: local
+  AI_MODE: fixture
+  LOCAL_DATA_DIR: .local/ci
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  verify:
+    name: Validate, test and build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Prepare log directory
+        run: mkdir -p ci-logs
+      - name: Install locked dependencies
+        run: npm ci 2>&1 | tee ci-logs/install.log
+      - name: Validate authored fixtures
+        run: npm run fixtures:validate 2>&1 | tee ci-logs/fixtures.log
+      - name: Lint
+        run: npm run lint 2>&1 | tee ci-logs/lint.log
+      - name: Check types
+        run: npm run typecheck 2>&1 | tee ci-logs/typecheck.log
+      - name: Run domain and service tests
+        run: npm test 2>&1 | tee ci-logs/tests.log
+      - name: Build production application
+        run: npm run build 2>&1 | tee ci-logs/build.log
+      - name: Retain failure logs
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: verification-failure-${{ github.run_attempt }}
+          path: ci-logs/
+          retention-days: 7
+          if-no-files-found: ignore
+
+  e2e:
+    name: Chromium teacher workflow
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Prepare log directory
+        run: mkdir -p ci-logs
+      - name: Install locked dependencies
+        run: npm ci 2>&1 | tee ci-logs/install.log
+      - name: Install Chromium and Linux dependencies
+        run: npx playwright install --with-deps chromium 2>&1 | tee ci-logs/browser-install.log
+      - name: Run isolated browser acceptance tests
+        # playwright.config.ts owns port 3001, .local/e2e and .next-e2e.
+        # No OpenRouter or Supabase secrets are provided to either CI job.
+        run: npm run test:e2e -- --project=chromium 2>&1 | tee ci-logs/e2e.log
+      - name: Retain failure logs, report and traces
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: chromium-failure-${{ github.run_attempt }}
+          path: |
+            ci-logs/
+            playwright-report/
+            test-results/
+          retention-days: 7
+          if-no-files-found: ignore

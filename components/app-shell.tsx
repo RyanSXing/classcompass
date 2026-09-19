@@ -2,18 +2,204 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import { LayoutGrid, BookOpen, CalendarDays, Upload, ChevronDown, Menu, LogOut, Sparkles, School, X } from "lucide-react";
+import {
+  LayoutGrid,
+  BookOpen,
+  CalendarDays,
+  Upload,
+  ChevronDown,
+  Menu,
+  LogOut,
+  Sparkles,
+  School,
+  X,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useWorkspace } from "@/components/workspace-provider";
 import { api } from "@/lib/client/api";
 
-export function CompassMark() { return <svg className="brand-symbol" viewBox="0 0 40 40" fill="none" aria-hidden="true"><circle cx="20" cy="20" r="17" stroke="currentColor" strokeWidth="2.5"/><path d="M26 11 23 24 11 29 16 16Z" fill="currentColor"/><path d="m26 11-10 5 7 8Z" fill="#58d3d8"/><circle cx="20" cy="20" r="2" fill="#6b3db8"/></svg>; }
-export function Brand() { return <Link href="/classroom" className="brand"><CompassMark/><span className="brand-name">ClassCompass<span className="brand-caption">A clearer next step</span></span></Link>; }
-export function AppShell({children}:{children:React.ReactNode}) {
-  const path = usePathname(); const router = useRouter(); const [open, setOpen] = useState(false); const { data } = useWorkspace();
-  if(path === "/login") return <>{children}</>;
-  const latestLesson = data?.state.batches.some(b => b.kind === 'followup') ? 'lesson-2026-09-25' : 'lesson-2026-09-23';
-  const links = [{href:"/classroom",label:"Classroom",icon:LayoutGrid,active:path==='/classroom'||path.startsWith('/review')||path.startsWith('/students')},{href:`/plans/${latestLesson}`,label:"Lesson plan",icon:BookOpen,active:path.startsWith('/plans')||path.startsWith('/materials')},{href:"/calendar",label:"Calendar",icon:CalendarDays,active:path==='/calendar'}];
-  return <div className="app-shell"><a className="sr-only" href="#main-content">Skip to main content</a>{open && <button className="mobile-scrim" aria-label="Close navigation" onClick={()=>setOpen(false)}/>}<aside className={`sidebar ${open?'open':''}`} aria-label="Main navigation"><Brand/><Button variant="aqua" className="sidebar-upload" asChild><Link href="/classroom?upload=work" onClick={()=>setOpen(false)}><Upload size={19}/>Upload work</Link></Button><p className="nav-label">YOUR WORKSPACE</p><nav>{links.map(link=><Link key={link.label} className={`nav-item ${link.active?'active':''}`} href={link.href} onClick={()=>setOpen(false)} aria-current={link.active?'page':undefined}><link.icon size={20}/>{link.label}</Link>)}</nav><div className="sidebar-bottom"><div className="sidebar-note"><Sparkles size={21} style={{marginBottom:8}}/><strong>Your classroom. Your call.</strong>AI connects the dots.<br/>You choose the next step.</div><div className="teacher"><div className="teacher-avatar">T</div><div><strong>{data?.config.teacher || "Teacher workspace"}</strong><small>Grade 5 · Mathematics</small></div>{data?.config.dataBackend==='supabase' && <button aria-label="Sign out" className="button button-ghost button-icon" style={{color:'white',minWidth:28,width:28,padding:4}} onClick={async()=>{await api('/api/auth/logout',{});router.push('/login');}}><LogOut size={16}/></button>}</div></div></aside><div className="workspace"><header className="utility-bar"><Button variant="ghost" size="icon" className="mobile-menu-button" aria-label={open?'Close navigation':'Open navigation'} onClick={()=>setOpen(!open)}>{open?<X/>:<Menu/>}</Button><div className="utility-class"><School size={18} color="#927cae"/>Grade 5 <span className="muted">/</span> Mathematics</div><div className="utility-tags"><Badge tone="neutral" className="fiction-badge">Fictional student data</Badge><details className="info-disclosure"><summary><Badge tone={data?.config.aiMode==='live'?'aqua':'violet'}>{data?.config.aiMode==='live'?'Live analysis':'Fixture analysis'}<ChevronDown size={12}/></Badge></summary><div className="info-panel"><strong>{data?.config.aiMode==='live'?'Connected model analysis':'Prepared demonstration outputs'}</strong><p>{data?.config.aiMode==='live'?'Uploaded work is analyzed through OpenRouter. Every interpretation remains yours to review.':'Fixture results are prepared for known sample worksheets. They are not current live model output.'}</p><p>Data: <b>{data?.config.dataBackend==='supabase'?'Supabase private storage':'Local workspace'}</b><br/>All eight student identities are fictional.</p></div></details></div></header><main id="main-content">{children}</main></div></div>;
+export function CompassMark() {
+  return (
+    <svg
+      className="brand-symbol"
+      viewBox="0 0 40 40"
+      fill="none"
+      aria-hidden="true"
+    >
+      <circle cx="20" cy="20" r="17" stroke="currentColor" strokeWidth="2.5" />
+      <path d="M26 11 23 24 11 29 16 16Z" fill="currentColor" />
+      <path d="m26 11-10 5 7 8Z" fill="#58d3d8" />
+      <circle cx="20" cy="20" r="2" fill="#6b3db8" />
+    </svg>
+  );
+}
+export function Brand() {
+  return (
+    <Link href="/classroom" className="brand">
+      <CompassMark />
+      <span className="brand-name">
+        ClassCompass<span className="brand-caption">A clearer next step</span>
+      </span>
+    </Link>
+  );
+}
+export function AppShell({ children }: { children: React.ReactNode }) {
+  const path = usePathname();
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const { data } = useWorkspace();
+  if (path === "/login") return <>{children}</>;
+  const latestLesson = data?.state.batches.some((b) => b.kind === "followup")
+    ? "lesson-2026-09-25"
+    : "lesson-2026-09-23";
+  const links = [
+    {
+      href: "/classroom",
+      label: "Classroom",
+      icon: LayoutGrid,
+      active:
+        path === "/classroom" ||
+        path.startsWith("/review") ||
+        path.startsWith("/students"),
+    },
+    {
+      href: `/plans/${latestLesson}`,
+      label: "Lesson plan",
+      icon: BookOpen,
+      active: path.startsWith("/plans") || path.startsWith("/materials"),
+    },
+    {
+      href: "/calendar",
+      label: "Calendar",
+      icon: CalendarDays,
+      active: path === "/calendar",
+    },
+  ];
+  return (
+    <div className="app-shell">
+      <a className="sr-only" href="#main-content">
+        Skip to main content
+      </a>
+      {open && (
+        <button
+          className="mobile-scrim"
+          aria-label="Close navigation"
+          onClick={() => setOpen(false)}
+        />
+      )}
+      <aside
+        className={`sidebar ${open ? "open" : ""}`}
+        aria-label="Main navigation"
+      >
+        <Brand />
+        <Button variant="aqua" className="sidebar-upload" asChild>
+          <Link href="/classroom?upload=work" onClick={() => setOpen(false)}>
+            <Upload size={19} />
+            Upload work
+          </Link>
+        </Button>
+        <p className="nav-label">YOUR WORKSPACE</p>
+        <nav>
+          {links.map((link) => (
+            <Link
+              key={link.label}
+              className={`nav-item ${link.active ? "active" : ""}`}
+              href={link.href}
+              onClick={() => setOpen(false)}
+              aria-current={link.active ? "page" : undefined}
+            >
+              <link.icon size={20} />
+              {link.label}
+            </Link>
+          ))}
+        </nav>
+        <div className="sidebar-bottom">
+          <div className="sidebar-note">
+            <Sparkles size={21} style={{ marginBottom: 8 }} />
+            <strong>Your classroom. Your call.</strong>AI connects the dots.
+            <br />
+            You choose the next step.
+          </div>
+          <div className="teacher">
+            <div className="teacher-avatar">T</div>
+            <div>
+              <strong>{data?.config.teacher || "Teacher workspace"}</strong>
+              <small>Grade 5 · Mathematics</small>
+            </div>
+            {data?.config.dataBackend === "supabase" && (
+              <button
+                aria-label="Sign out"
+                className="button button-ghost button-icon"
+                style={{ color: "white", minWidth: 28, width: 28, padding: 4 }}
+                onClick={async () => {
+                  await api("/api/auth/logout", {});
+                  router.push("/login");
+                }}
+              >
+                <LogOut size={16} />
+              </button>
+            )}
+          </div>
+        </div>
+      </aside>
+      <div className="workspace">
+        <header className="utility-bar">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="mobile-menu-button"
+            aria-label={open ? "Close navigation" : "Open navigation"}
+            onClick={() => setOpen(!open)}
+          >
+            {open ? <X /> : <Menu />}
+          </Button>
+          <div className="utility-class">
+            <School size={18} color="#927cae" />
+            Grade 5 <span className="muted">/</span> Mathematics
+          </div>
+          <div className="utility-tags">
+            <Badge tone="neutral" className="fiction-badge">
+              Fictional student data
+            </Badge>
+            <details className="info-disclosure">
+              <summary>
+                <Badge
+                  tone={data?.config.aiMode === "live" ? "aqua" : "violet"}
+                >
+                  {data?.config.aiMode === "live"
+                    ? "Live analysis"
+                    : "Fixture analysis"}
+                  <ChevronDown size={12} />
+                </Badge>
+              </summary>
+              <div className="info-panel">
+                <strong>
+                  {data?.config.aiMode === "live"
+                    ? "Connected model analysis"
+                    : "Prepared demonstration outputs"}
+                </strong>
+                <p>
+                  {data?.config.aiMode === "live"
+                    ? "Uploaded work is analyzed through OpenRouter. Every interpretation remains yours to review."
+                    : "Fixture results are prepared for known sample worksheets. They are not current live model output."}
+                </p>
+                <p>
+                  Data:{" "}
+                  <b>
+                    {data?.config.dataBackend === "supabase"
+                      ? "Supabase private storage"
+                      : "Local workspace"}
+                  </b>
+                  <br />
+                  All eight student identities are fictional.
+                </p>
+              </div>
+            </details>
+          </div>
+        </header>
+        <main id="main-content">{children}</main>
+      </div>
+    </div>
+  );
 }
