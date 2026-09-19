@@ -1,16 +1,35 @@
 {
   "schemaVersion": "1.0.0",
-  "fixtureId": "classcompass-grade5-fractions-v1",
+  "fixtureId": "classcompass-five-assignments-v2",
   "fictional": true,
-  "purpose": "Human-authored curriculum, reference transcripts, and regression expectations for the agreed hackathon demonstration. These are specifications, not model-generated findings.",
+  "purpose": "Five authored, fictional Grade 5 assignments for an inspectable teacher-controlled demonstration. Prepared readings are not live-model evaluations.",
   "fixtureUsage": {
-    "generatedAssetsPresent": false,
+    "generatedAssetsPresent": true,
     "liveMode": "Extraction receives the uploaded image, template prompts, question IDs, objective IDs, criteria and known page regions. It never receives these reference writtenAnswer values, expected findings, intended groups, correction targets, or future follow-up answers.",
     "reasoningInput": "Use the actual extracted transcript and teacher corrections, known question/rubric context, recorded support, deterministic arithmetic checks, current lesson and constraints. Do not feed intended scenario categories or expected grouping as student evidence.",
     "fixturePlayback": "May seed the reference transcripts and explicitly labeled simulated extraction for offline development or recording a disclosed replay. Every seeded/replayed result must show fixture provenance and must not be presented as a successful live model call.",
     "groundTruth": "Expected answers, reference writtenAnswer values, actual support, intended scenarios and expected outcomes are instructor/test ground truth. The answer key may be used by deterministic arithmetic checks and teacher materials; it does not prove a student's work or interpretation.",
     "support": "Independence is a teacher-recorded task condition, never an inference from correct work. A correction adds an audit event and revises interpretation without replacing the original scan.",
-    "typedMath": "validationKind distinguishes fraction-addition, construct-addition, and explanation. Fixed operands and expected rationals are instructor/checker data, not student evidence. Canonical strings are retained for display. Do not infer open-response correctness by matching the examplePairs verbatim."
+    "typedMath": "validationKind distinguishes fraction-addition, construct-addition, and explanation. Fixed operands and expected rationals are instructor/checker data, not student evidence. Canonical strings are retained for display. Do not infer open-response correctness by matching the examplePairs verbatim.",
+    "preservedSourceHashes": {
+      "baseline-stu-01": "04ce6ae41cf111eab3ff9c794a2844248f3c7da4205d4a95d7e01587bae1ef94",
+      "baseline-stu-02": "47fe92c54ebaec8651ec8cd7bf699a1f12f646d4c9cdab451ca708dfaf823f62",
+      "baseline-stu-03": "8d61a83b1458eeffe8e57dc2db208ec638154b2916fb509a55b5deffc05293e4",
+      "baseline-stu-04": "31bcc145314e79f4a9c5e8a9bf80db4d98f3f3ab1723d6ca7de35215972ed5b0",
+      "baseline-stu-05": "ee123605d36a6ca6b1ebfa6395162416a8d188188fa62c4cc405a2256d4eea72",
+      "baseline-stu-06": "0d45f4291da53bc3222deac95d3624ccabfb296d40dd9e1803baf101ece52b4b",
+      "baseline-stu-07": "39bd909b6744c3da3e9c699e0f2568bdea2fdda74a47560b6a8e0d81af7c9c75",
+      "baseline-stu-08": "93bd5f2553ccbec029aabd155afb9f8e07134b322e7e95455e20973bd856b07b",
+      "followup-stu-01": "ae9044eae2c740ef327596e62a7a0a9a6eef4b353e0820a2fa2c70fdcd2bc6f1",
+      "followup-stu-02": "fe9ccf33ee170583ff92282bb7a4fe6739cae334107a1c180aff9cb11126ff10",
+      "followup-stu-03": "f14b2afd34654ca2f7c5166d7ad790b6db06811b8f4f42282cb765a7953d0483",
+      "followup-stu-04": "80b3a1a7bbc03d5a6ce51e2f0491851efb0da4acdf1306183c9013538e7a274f",
+      "followup-stu-05": "9b27e2c901dcdbc9af688be22a4279532f86b1ff083518c457daa62e9cd7426d",
+      "followup-stu-06": "ed7ea504906bcf50d0ca6e4c6495d1e132e2815a45351abfb07cfe1d554170b7",
+      "followup-stu-07": "d31b3b5826bb053b45b6e1948c29692abbd75c2d4507c6672dada8ea14da177a",
+      "followup-stu-08": "dcc98e212ae07dfd57ff991d045c078794a32f0d6614af86e244216d6ee06d19"
+    },
+    "comparisonLimit": "Tasks, difficulty and help differ. These authored examples are not a validated growth measure or a real classroom study."
   },
   "class": {
     "id": "class-grade5-demo",
@@ -421,6 +440,129 @@
           }
         }
       ]
+    },
+    {
+      "id": "fraction-practice-template-v1",
+      "title": "Fraction practice",
+      "date": "2026-09-25",
+      "questionIds": [
+        "fp01",
+        "fp02",
+        "fp03"
+      ],
+      "instructions": "Show your working. Use the same-sized whole in models. Equivalent unreduced answers are accepted. Teacher records any help provided.",
+      "pageSize": "US-Letter",
+      "questionRegions": [
+        {
+          "questionId": "fp01",
+          "rect": {
+            "x": 0.06,
+            "y": 0.17,
+            "width": 0.88,
+            "height": 0.25
+          }
+        },
+        {
+          "questionId": "fp02",
+          "rect": {
+            "x": 0.06,
+            "y": 0.435,
+            "width": 0.88,
+            "height": 0.25
+          }
+        },
+        {
+          "questionId": "fp03",
+          "rect": {
+            "x": 0.06,
+            "y": 0.7,
+            "width": 0.88,
+            "height": 0.25
+          }
+        }
+      ]
+    },
+    {
+      "id": "word-problems-template-v1",
+      "title": "Word problems",
+      "date": "2026-09-28",
+      "questionIds": [
+        "wp01",
+        "wp02",
+        "wp03"
+      ],
+      "instructions": "Show your working. Use the same-sized whole in models. Equivalent unreduced answers are accepted. Teacher records any help provided.",
+      "pageSize": "US-Letter",
+      "questionRegions": [
+        {
+          "questionId": "wp01",
+          "rect": {
+            "x": 0.06,
+            "y": 0.17,
+            "width": 0.88,
+            "height": 0.25
+          }
+        },
+        {
+          "questionId": "wp02",
+          "rect": {
+            "x": 0.06,
+            "y": 0.435,
+            "width": 0.88,
+            "height": 0.25
+          }
+        },
+        {
+          "questionId": "wp03",
+          "rect": {
+            "x": 0.06,
+            "y": 0.7,
+            "width": 0.88,
+            "height": 0.25
+          }
+        }
+      ]
+    },
+    {
+      "id": "independent-check-template-v1",
+      "title": "Independent check",
+      "date": "2026-09-30",
+      "questionIds": [
+        "ic01",
+        "ic02",
+        "ic03"
+      ],
+      "instructions": "Show your working. Use the same-sized whole in models. Equivalent unreduced answers are accepted. Teacher records any help provided.",
+      "pageSize": "US-Letter",
+      "questionRegions": [
+        {
+          "questionId": "ic01",
+          "rect": {
+            "x": 0.06,
+            "y": 0.17,
+            "width": 0.88,
+            "height": 0.25
+          }
+        },
+        {
+          "questionId": "ic02",
+          "rect": {
+            "x": 0.06,
+            "y": 0.435,
+            "width": 0.88,
+            "height": 0.25
+          }
+        },
+        {
+          "questionId": "ic03",
+          "rect": {
+            "x": 0.06,
+            "y": 0.7,
+            "width": 0.88,
+            "height": 0.25
+          }
+        }
+      ]
     }
   ],
   "students": [
@@ -441,19 +583,23 @@
         "responses": [
           {
             "questionId": "q-01",
-            "writtenAnswer": "1/2 + 1/3 = (1 + 1)/(2 + 3) = 2/5"
+            "writtenAnswer": "1/2 + 1/3 = (1 + 1)/(2 + 3) = 2/5",
+            "answerText": "2/5"
           },
           {
             "questionId": "q-02",
-            "writtenAnswer": "1/4 + 2/3 = 3/7"
+            "writtenAnswer": "1/4 + 2/3 = 3/7",
+            "answerText": "3/7"
           },
           {
             "questionId": "q-03",
-            "writtenAnswer": "2/5 + 1/10 = 3/15 = 1/5"
+            "writtenAnswer": "2/5 + 1/10 = 3/15 = 1/5",
+            "answerText": "1/5"
           },
           {
             "questionId": "q-04",
-            "writtenAnswer": "3/8 + 1/4 = 4/12 = 1/3 meter"
+            "writtenAnswer": "3/8 + 1/4 = 4/12 = 1/3 meter",
+            "answerText": "1/3 meter"
           }
         ]
       },
@@ -470,11 +616,13 @@
         "responses": [
           {
             "questionId": "fq01",
-            "writtenAnswer": "1/3 = 4/12; 1/4 = 3/12; 4/12 + 3/12 = 7/12"
+            "writtenAnswer": "1/3 = 4/12; 1/4 = 3/12; 4/12 + 3/12 = 7/12",
+            "answerText": "7/12"
           },
           {
             "questionId": "fq02",
-            "writtenAnswer": "1/3 = 2/6; 1/6 + 2/6 = 3/6 = 1/2 meter"
+            "writtenAnswer": "1/3 = 2/6; 1/6 + 2/6 = 3/6 = 1/2 meter",
+            "answerText": "1/2 meter"
           }
         ]
       }
@@ -496,19 +644,23 @@
         "responses": [
           {
             "questionId": "q-01",
-            "writtenAnswer": "1 + 1 = 2; 2 + 3 = 5; answer 2/5"
+            "writtenAnswer": "1 + 1 = 2; 2 + 3 = 5; answer 2/5",
+            "answerText": "2/5"
           },
           {
             "questionId": "q-02",
-            "writtenAnswer": "1 + 2 = 3; 4 + 3 = 7; answer 3/7"
+            "writtenAnswer": "1 + 2 = 3; 4 + 3 = 7; answer 3/7",
+            "answerText": "3/7"
           },
           {
             "questionId": "q-03",
-            "writtenAnswer": "2 + 1 = 3; 5 + 10 = 15; answer 3/15"
+            "writtenAnswer": "2 + 1 = 3; 5 + 10 = 15; answer 3/15",
+            "answerText": "3/15"
           },
           {
             "questionId": "q-04",
-            "writtenAnswer": "3 + 1 = 4; 8 + 4 = 12; answer 4/12 meter"
+            "writtenAnswer": "3 + 1 = 4; 8 + 4 = 12; answer 4/12 meter",
+            "answerText": "4/12 meter"
           }
         ]
       },
@@ -525,11 +677,13 @@
         "responses": [
           {
             "questionId": "fq01",
-            "writtenAnswer": "1/3 = 4/12; 1/4 = 3/12; answer 7/12"
+            "writtenAnswer": "1/3 = 4/12; 1/4 = 3/12; answer 7/12",
+            "answerText": "7/12"
           },
           {
             "questionId": "fq02",
-            "writtenAnswer": "1/6 + 1/3 = 1/6 + 2/6 = 3/6 meter"
+            "writtenAnswer": "1/6 + 1/3 = 1/6 + 2/6 = 3/6 meter",
+            "answerText": "3/6 meter"
           }
         ]
       }
@@ -551,19 +705,23 @@
         "responses": [
           {
             "questionId": "q-01",
-            "writtenAnswer": "1/2 + 1/3 = 2/5. I added the tops and the bottoms."
+            "writtenAnswer": "1/2 + 1/3 = 2/5. I added the tops and the bottoms.",
+            "answerText": "2/5"
           },
           {
             "questionId": "q-02",
-            "writtenAnswer": "1/4 + 2/3 = (1 + 2)/(4 + 3) = 3/7"
+            "writtenAnswer": "1/4 + 2/3 = (1 + 2)/(4 + 3) = 3/7",
+            "answerText": "3/7"
           },
           {
             "questionId": "q-03",
-            "writtenAnswer": "2/5 + 1/10 = (2 + 1)/(5 + 10) = 3/15"
+            "writtenAnswer": "2/5 + 1/10 = (2 + 1)/(5 + 10) = 3/15",
+            "answerText": "3/15"
           },
           {
             "questionId": "q-04",
-            "writtenAnswer": "3/8 + 1/4 = (3 + 1)/(8 + 4) = 4/12 meter"
+            "writtenAnswer": "3/8 + 1/4 = (3 + 1)/(8 + 4) = 4/12 meter",
+            "answerText": "4/12 meter"
           }
         ]
       },
@@ -580,11 +738,13 @@
         "responses": [
           {
             "questionId": "fq01",
-            "writtenAnswer": "1/3 + 1/4 = (1 + 1)/(3 + 4) = 2/7"
+            "writtenAnswer": "1/3 + 1/4 = (1 + 1)/(3 + 4) = 2/7",
+            "answerText": "2/7"
           },
           {
             "questionId": "fq02",
-            "writtenAnswer": "1/6 + 1/3 = (1 + 1)/(6 + 3) = 2/9 meter"
+            "writtenAnswer": "1/6 + 1/3 = (1 + 1)/(6 + 3) = 2/9 meter",
+            "answerText": "2/9 meter"
           }
         ]
       }
@@ -606,19 +766,23 @@
         "responses": [
           {
             "questionId": "q-01",
-            "writtenAnswer": "1/2 = 3/6; 1/3 = 2/6; 3/6 + 2/6 = 5/6"
+            "writtenAnswer": "1/2 = 3/6; 1/3 = 2/6; 3/6 + 2/6 = 5/6",
+            "answerText": "5/6"
           },
           {
             "questionId": "q-02",
-            "writtenAnswer": "1/4 = 3/12; 2/3 = 8/12; 3/12 + 8/12 = 11/12"
+            "writtenAnswer": "1/4 = 3/12; 2/3 = 8/12; 3/12 + 8/12 = 11/12",
+            "answerText": "11/12"
           },
           {
             "questionId": "q-03",
-            "writtenAnswer": "2/5 = 4/10; 4/10 + 1/10 = 5/10 = 1/2"
+            "writtenAnswer": "2/5 = 4/10; 4/10 + 1/10 = 5/10 = 1/2",
+            "answerText": "1/2"
           },
           {
             "questionId": "q-04",
-            "writtenAnswer": "1/4 = 2/8; 3/8 + 2/8 = 5/8 meter"
+            "writtenAnswer": "1/4 = 2/8; 3/8 + 2/8 = 5/8 meter",
+            "answerText": "5/8 meter"
           }
         ]
       },
@@ -635,11 +799,13 @@
         "responses": [
           {
             "questionId": "fq01",
-            "writtenAnswer": "1/3 = 4/12; 1/4 = 3/12; 4/12 + 3/12 = 7/12"
+            "writtenAnswer": "1/3 = 4/12; 1/4 = 3/12; 4/12 + 3/12 = 7/12",
+            "answerText": "7/12"
           },
           {
             "questionId": "fq02",
-            "writtenAnswer": "1/6 + 1/3 = 1/6 + 2/6 = 3/6 = 1/2 meter"
+            "writtenAnswer": "1/6 + 1/3 = 1/6 + 2/6 = 3/6 = 1/2 meter",
+            "answerText": "1/2 meter"
           }
         ]
       }
@@ -661,19 +827,23 @@
         "responses": [
           {
             "questionId": "q-01",
-            "writtenAnswer": "1/2 = 6/12; 1/3 = 4/12; 6/12 + 4/12 = 10/12 = 5/6"
+            "writtenAnswer": "1/2 = 6/12; 1/3 = 4/12; 6/12 + 4/12 = 10/12 = 5/6",
+            "answerText": "5/6"
           },
           {
             "questionId": "q-02",
-            "writtenAnswer": "1/4 = 3/12; 2/3 = 8/12; 3/12 + 8/12 = 11/12"
+            "writtenAnswer": "1/4 = 3/12; 2/3 = 8/12; 3/12 + 8/12 = 11/12",
+            "answerText": "11/12"
           },
           {
             "questionId": "q-03",
-            "writtenAnswer": "2/5 = 8/20; 1/10 = 2/20; 8/20 + 2/20 = 10/20 = 1/2"
+            "writtenAnswer": "2/5 = 8/20; 1/10 = 2/20; 8/20 + 2/20 = 10/20 = 1/2",
+            "answerText": "1/2"
           },
           {
             "questionId": "q-04",
-            "writtenAnswer": "3/8 + 1/4 = 3/8 + 2/8 = 5/8 meter. Both fractions use eighths of the same meter."
+            "writtenAnswer": "3/8 + 1/4 = 3/8 + 2/8 = 5/8 meter. Both fractions use eighths of the same meter.",
+            "answerText": "5/8 meter"
           }
         ]
       },
@@ -690,11 +860,13 @@
         "responses": [
           {
             "questionId": "fq01",
-            "writtenAnswer": "1/3 = 8/24; 1/4 = 6/24; 8/24 + 6/24 = 14/24 = 7/12"
+            "writtenAnswer": "1/3 = 8/24; 1/4 = 6/24; 8/24 + 6/24 = 14/24 = 7/12",
+            "answerText": "7/12"
           },
           {
             "questionId": "fq02",
-            "writtenAnswer": "1/6 = 2/12; 1/3 = 4/12; 2/12 + 4/12 = 6/12 = 1/2 meter"
+            "writtenAnswer": "1/6 = 2/12; 1/3 = 4/12; 2/12 + 4/12 = 6/12 = 1/2 meter",
+            "answerText": "1/2 meter"
           }
         ]
       }
@@ -716,19 +888,23 @@
         "responses": [
           {
             "questionId": "q-01",
-            "writtenAnswer": "1/2 = 3/6; 1/3 = 2/6; 3/6 + 2/6 = 5/6"
+            "writtenAnswer": "1/2 = 3/6; 1/3 = 2/6; 3/6 + 2/6 = 5/6",
+            "answerText": "5/6"
           },
           {
             "questionId": "q-02",
-            "writtenAnswer": "1/4 = 3/12; 2/3 = 8/12; 3/12 + 8/12 = 11/12"
+            "writtenAnswer": "1/4 = 3/12; 2/3 = 8/12; 3/12 + 8/12 = 11/12",
+            "answerText": "11/12"
           },
           {
             "questionId": "q-03",
-            "writtenAnswer": "2/5 = 4/10; 4/10 + 1/10 = 5/10 = 1/2"
+            "writtenAnswer": "2/5 = 4/10; 4/10 + 1/10 = 5/10 = 1/2",
+            "answerText": "1/2"
           },
           {
             "questionId": "q-04",
-            "writtenAnswer": "1/4 = 2/8; 3/8 + 2/8 = 5/8 meter"
+            "writtenAnswer": "1/4 = 2/8; 3/8 + 2/8 = 5/8 meter",
+            "answerText": "5/8 meter"
           }
         ]
       },
@@ -745,11 +921,13 @@
         "responses": [
           {
             "questionId": "fq01",
-            "writtenAnswer": "1/3 = 4/12; 1/4 = 3/12; 4/12 + 3/12 = 7/12"
+            "writtenAnswer": "1/3 = 4/12; 1/4 = 3/12; 4/12 + 3/12 = 7/12",
+            "answerText": "7/12"
           },
           {
             "questionId": "fq02",
-            "writtenAnswer": "1/3 = 2/6; 1/6 + 2/6 = 3/6 = 1/2 meter"
+            "writtenAnswer": "1/3 = 2/6; 1/6 + 2/6 = 3/6 = 1/2 meter",
+            "answerText": "1/2 meter"
           }
         ]
       }
@@ -771,19 +949,23 @@
         "responses": [
           {
             "questionId": "q-01",
-            "writtenAnswer": "1/2 = 3/6; 1/3 = 2/6; 3/6 + 2/6 = 5/6"
+            "writtenAnswer": "1/2 = 3/6; 1/3 = 2/6; 3/6 + 2/6 = 5/6",
+            "answerText": "5/6"
           },
           {
             "questionId": "q-02",
-            "writtenAnswer": "1/4 = 3/12; 2/3 = 8/12; 3/12 + 8/12 = 11/12"
+            "writtenAnswer": "1/4 = 3/12; 2/3 = 8/12; 3/12 + 8/12 = 11/12",
+            "answerText": "11/12"
           },
           {
             "questionId": "q-03",
-            "writtenAnswer": "2/5 = 4/10; 4/10 + 1/10 = 5/10 = 1/2"
+            "writtenAnswer": "2/5 = 4/10; 4/10 + 1/10 = 5/10 = 1/2",
+            "answerText": "1/2"
           },
           {
             "questionId": "q-04",
-            "writtenAnswer": "1/4 = 2/8; 3/8 + 2/8 = 5/8 meter"
+            "writtenAnswer": "1/4 = 2/8; 3/8 + 2/8 = 5/8 meter",
+            "answerText": "5/8 meter"
           }
         ]
       },
@@ -800,11 +982,13 @@
         "responses": [
           {
             "questionId": "fq01",
-            "writtenAnswer": "1/3 = 4/12; 1/4 = 3/12; 4/12 + 3/12 = 7/12"
+            "writtenAnswer": "1/3 = 4/12; 1/4 = 3/12; 4/12 + 3/12 = 7/12",
+            "answerText": "7/12"
           },
           {
             "questionId": "fq02",
-            "writtenAnswer": "1/3 = 2/6; 1/6 + 2/6 = 3/6 = 1/2 meter"
+            "writtenAnswer": "1/3 = 2/6; 1/6 + 2/6 = 3/6 = 1/2 meter",
+            "answerText": "1/2 meter"
           }
         ]
       }
@@ -826,19 +1010,23 @@
         "responses": [
           {
             "questionId": "q-01",
-            "writtenAnswer": "1/2 = 3/6"
+            "writtenAnswer": "1/2 = 3/6",
+            "answerText": null
           },
           {
             "questionId": "q-02",
-            "writtenAnswer": null
+            "writtenAnswer": null,
+            "answerText": null
           },
           {
             "questionId": "q-03",
-            "writtenAnswer": null
+            "writtenAnswer": null,
+            "answerText": null
           },
           {
             "questionId": "q-04",
-            "writtenAnswer": null
+            "writtenAnswer": null,
+            "answerText": null
           }
         ]
       },
@@ -855,11 +1043,13 @@
         "responses": [
           {
             "questionId": "fq01",
-            "writtenAnswer": "1/3 = 4/12; 1/4 = 3/12; 4/12 + 3/12 = 7/12"
+            "writtenAnswer": "1/3 = 4/12; 1/4 = 3/12; 4/12 + 3/12 = 7/12",
+            "answerText": "7/12"
           },
           {
             "questionId": "fq02",
-            "writtenAnswer": null
+            "writtenAnswer": null,
+            "answerText": null
           }
         ]
       }
@@ -1080,7 +1270,17 @@
         "nextStep": "Keep the valid fq01 observation; request one more word-problem response. Do not infer a misconception from the blank."
       }
     ],
-    "expectedFollowupProposalLessonId": "lesson-2026-09-25"
+    "expectedFollowupProposalLessonId": "lesson-2026-09-25",
+    "additionalCaseNotes": {
+      "stu-01": "Later independent work can newly justify extension; one omitted unit does not change arithmetic correctness.",
+      "stu-02": "One addition slip, then correct unreduced totals; one unit omitted.",
+      "stu-03": "Supported success followed by repeated independent denominator addition, then two correct responses and a blank.",
+      "stu-04": "Occasional arithmetic slips coexist with correct working on other tasks.",
+      "stu-05": "Correct nonleast common denominators and unreduced answers.",
+      "stu-06": "Original correction retained; later explicit simulated reading flag.",
+      "stu-07": "Unknown help in practice, followed by clearly recorded independent work.",
+      "stu-08": "Partial/blank work, supported success and later two independent successes; no permanent label."
+    }
   },
   "lesson": {
     "id": "lesson-2026-09-23",
@@ -1268,7 +1468,7 @@
     {
       "date": "2026-09-25",
       "title": "Compare strategies and check reasonableness",
-      "content": "Original 45-minute lesson comparing strategies and checking reasonableness. Any targeted revisit depends on reviewed follow-up evidence and a separately accepted proposal.",
+      "content": "Original 45-minute lesson comparing strategies and checking reasonableness. Any targeted revisit depends on reviewed follow-up evidence and a separately accepted proposal. Fraction practice may use ten minutes of the application block; record actual help.",
       "eventType": "planned-lesson",
       "lessonId": "lesson-2026-09-25",
       "minutes": 45,
@@ -1297,8 +1497,8 @@
       "date": "2026-09-28",
       "title": "Connect models to written methods",
       "content": "Continue unlike-denominator addition with equal-whole models and calculation explanations.",
-      "eventType": "none",
-      "lessonId": null,
+      "eventType": "planned-lesson",
+      "lessonId": "lesson-2026-09-28",
       "minutes": 45,
       "locked": false,
       "learningObjectiveIds": [
@@ -1322,10 +1522,10 @@
     },
     {
       "date": "2026-09-29",
-      "title": "Select and justify a common denominator",
+      "title": "Choose and justify a common denominator",
       "content": "Compare valid denominators and accept equivalent unreduced sums.",
-      "eventType": "none",
-      "lessonId": null,
+      "eventType": "planned-lesson",
+      "lessonId": "lesson-2026-09-29",
       "minutes": 45,
       "locked": false,
       "learningObjectiveIds": [
@@ -1350,7 +1550,7 @@
     {
       "date": "2026-09-30",
       "title": "Explain fraction-addition contexts",
-      "content": "Use fresh word problems and units; collect additional observations where needed.",
+      "content": "Use fresh word problems and units; collect additional observations where needed. Collect the three-question Independent check during ten minutes of application; use it to plan October 1.",
       "eventType": "none",
       "lessonId": null,
       "minutes": 45,
@@ -1376,10 +1576,10 @@
     },
     {
       "date": "2026-10-01",
-      "title": "Review and short conferences",
+      "title": "Review evidence and prepare for assessment",
       "content": "Review required objectives; use brief checks to address unresolved evidence.",
-      "eventType": "review",
-      "lessonId": null,
+      "eventType": "planned-lesson",
+      "lessonId": "lesson-2026-10-01",
       "minutes": 45,
       "locked": false,
       "learningObjectiveIds": [
@@ -1580,7 +1780,8 @@
           ]
         }
       ],
-      "nextAction": "Teacher inspects what was shown and selects application or additional information gathering; no runtime automatic reassignment during teaching is required."
+      "nextAction": "Teacher inspects what was shown and selects application or additional information gathering; no runtime automatic reassignment during teaching is required.",
+      "title": "Independent entry check"
     },
     "independentApplication": {
       "id": "application-practice-v1",
@@ -1631,7 +1832,8 @@
           ]
         }
       ],
-      "note": "Students who do not need an entry check may spend the whole 12-minute block on application and explaining their methods."
+      "note": "Students who do not need an entry check may spend the whole 12-minute block on application and explaining their methods.",
+      "title": "Independent application"
     },
     "extension": {
       "id": "extension-explain-v1",
@@ -1762,7 +1964,7 @@
     }
   },
   "assetManifest": {
-    "status": "Specifications only; no PDFs, images, or handwritten scans have been created by this documentation task.",
+    "status": "Generated synthetic classroom assets. Exact delivered filenames and hashes are in public/demo/manifest.json.",
     "page": {
       "paper": "US-Letter",
       "widthPoints": 612,
@@ -1774,207 +1976,506 @@
       "pageIndex": 0
     },
     "coordinateSystem": "Normalized 0\u20131 coordinates from the top-left of an upright, deskewed page. Rectangles contain both prompt and student response; source images must match the registered template before these regions are used.",
-    "scanPreparation": "Render the blank template first, complete it by hand following the reference transcripts, scan upright with every page edge visible, and verify region alignment. Keep all work inside its question region. If alignment fails, request replacement or flag the page; never fabricate a crop.",
+    "scanPreparation": "Render registered templates at 1700 x 2200 pixels using the licensed synthetic handwriting font. Visibly label every page fictional, preserve the literal authored working, and inspect region alignment.",
     "sourceIdentity": "Match student ID and template ID using explicit upload selection or manifest. Do not rely on handwritten-name recognition.",
     "assets": [
       {
         "id": "baseline-blank",
         "filename": "baseline-template-v1.pdf",
+        "sha256": "0fb04ba1f419a9f25f726a2a80e45fb67b45a161f754ca65c178196e50c1457f",
         "type": "blank-template",
         "templateId": "baseline-template-v1",
-        "pageCount": 1,
-        "status": "specified-not-generated"
-      },
-      {
-        "id": "followup-blank",
-        "filename": "followup-template-v1.pdf",
-        "type": "blank-template",
-        "templateId": "followup-template-v1",
-        "pageCount": 1,
-        "status": "specified-not-generated"
+        "status": "generated"
       },
       {
         "id": "baseline-stu-01",
         "filename": "baseline-stu-01.png",
+        "sha256": "04ce6ae41cf111eab3ff9c794a2844248f3c7da4205d4a95d7e01587bae1ef94",
         "type": "fictional-handwritten-scan",
         "templateId": "baseline-template-v1",
         "studentId": "stu-01",
-        "pageCount": 1,
-        "status": "specified-not-generated"
-      },
-      {
-        "id": "followup-stu-01",
-        "filename": "followup-stu-01.png",
-        "type": "fictional-handwritten-scan",
-        "templateId": "followup-template-v1",
-        "studentId": "stu-01",
-        "pageCount": 1,
-        "status": "specified-not-generated"
+        "status": "generated"
       },
       {
         "id": "baseline-stu-02",
         "filename": "baseline-stu-02.png",
+        "sha256": "47fe92c54ebaec8651ec8cd7bf699a1f12f646d4c9cdab451ca708dfaf823f62",
         "type": "fictional-handwritten-scan",
         "templateId": "baseline-template-v1",
         "studentId": "stu-02",
-        "pageCount": 1,
-        "status": "specified-not-generated"
-      },
-      {
-        "id": "followup-stu-02",
-        "filename": "followup-stu-02.png",
-        "type": "fictional-handwritten-scan",
-        "templateId": "followup-template-v1",
-        "studentId": "stu-02",
-        "pageCount": 1,
-        "status": "specified-not-generated"
+        "status": "generated"
       },
       {
         "id": "baseline-stu-03",
         "filename": "baseline-stu-03.png",
+        "sha256": "8d61a83b1458eeffe8e57dc2db208ec638154b2916fb509a55b5deffc05293e4",
         "type": "fictional-handwritten-scan",
         "templateId": "baseline-template-v1",
         "studentId": "stu-03",
-        "pageCount": 1,
-        "status": "specified-not-generated"
-      },
-      {
-        "id": "followup-stu-03",
-        "filename": "followup-stu-03.png",
-        "type": "fictional-handwritten-scan",
-        "templateId": "followup-template-v1",
-        "studentId": "stu-03",
-        "pageCount": 1,
-        "status": "specified-not-generated"
+        "status": "generated"
       },
       {
         "id": "baseline-stu-04",
         "filename": "baseline-stu-04.png",
+        "sha256": "31bcc145314e79f4a9c5e8a9bf80db4d98f3f3ab1723d6ca7de35215972ed5b0",
         "type": "fictional-handwritten-scan",
         "templateId": "baseline-template-v1",
         "studentId": "stu-04",
-        "pageCount": 1,
-        "status": "specified-not-generated"
-      },
-      {
-        "id": "followup-stu-04",
-        "filename": "followup-stu-04.png",
-        "type": "fictional-handwritten-scan",
-        "templateId": "followup-template-v1",
-        "studentId": "stu-04",
-        "pageCount": 1,
-        "status": "specified-not-generated"
+        "status": "generated"
       },
       {
         "id": "baseline-stu-05",
         "filename": "baseline-stu-05.png",
+        "sha256": "ee123605d36a6ca6b1ebfa6395162416a8d188188fa62c4cc405a2256d4eea72",
         "type": "fictional-handwritten-scan",
         "templateId": "baseline-template-v1",
         "studentId": "stu-05",
-        "pageCount": 1,
-        "status": "specified-not-generated"
-      },
-      {
-        "id": "followup-stu-05",
-        "filename": "followup-stu-05.png",
-        "type": "fictional-handwritten-scan",
-        "templateId": "followup-template-v1",
-        "studentId": "stu-05",
-        "pageCount": 1,
-        "status": "specified-not-generated"
+        "status": "generated"
       },
       {
         "id": "baseline-stu-06",
         "filename": "baseline-stu-06.png",
+        "sha256": "0d45f4291da53bc3222deac95d3624ccabfb296d40dd9e1803baf101ece52b4b",
         "type": "fictional-handwritten-scan",
         "templateId": "baseline-template-v1",
         "studentId": "stu-06",
-        "pageCount": 1,
-        "status": "specified-not-generated"
-      },
-      {
-        "id": "followup-stu-06",
-        "filename": "followup-stu-06.png",
-        "type": "fictional-handwritten-scan",
-        "templateId": "followup-template-v1",
-        "studentId": "stu-06",
-        "pageCount": 1,
-        "status": "specified-not-generated"
+        "status": "generated"
       },
       {
         "id": "baseline-stu-07",
         "filename": "baseline-stu-07.png",
+        "sha256": "39bd909b6744c3da3e9c699e0f2568bdea2fdda74a47560b6a8e0d81af7c9c75",
         "type": "fictional-handwritten-scan",
         "templateId": "baseline-template-v1",
         "studentId": "stu-07",
-        "pageCount": 1,
-        "status": "specified-not-generated"
-      },
-      {
-        "id": "followup-stu-07",
-        "filename": "followup-stu-07.png",
-        "type": "fictional-handwritten-scan",
-        "templateId": "followup-template-v1",
-        "studentId": "stu-07",
-        "pageCount": 1,
-        "status": "specified-not-generated"
+        "status": "generated"
       },
       {
         "id": "baseline-stu-08",
         "filename": "baseline-stu-08.png",
+        "sha256": "93bd5f2553ccbec029aabd155afb9f8e07134b322e7e95455e20973bd856b07b",
         "type": "fictional-handwritten-scan",
         "templateId": "baseline-template-v1",
         "studentId": "stu-08",
-        "pageCount": 1,
-        "status": "specified-not-generated"
+        "status": "generated"
+      },
+      {
+        "id": "followup-blank",
+        "filename": "followup-template-v1.pdf",
+        "sha256": "77a34fcb6e96d5225a2fc37e24fd6f0dbf3704bfa5e4e9d28810a581154e70ef",
+        "type": "blank-template",
+        "templateId": "followup-template-v1",
+        "status": "generated"
+      },
+      {
+        "id": "followup-stu-01",
+        "filename": "followup-stu-01.png",
+        "sha256": "ae9044eae2c740ef327596e62a7a0a9a6eef4b353e0820a2fa2c70fdcd2bc6f1",
+        "type": "fictional-handwritten-scan",
+        "templateId": "followup-template-v1",
+        "studentId": "stu-01",
+        "status": "generated"
+      },
+      {
+        "id": "followup-stu-02",
+        "filename": "followup-stu-02.png",
+        "sha256": "fe9ccf33ee170583ff92282bb7a4fe6739cae334107a1c180aff9cb11126ff10",
+        "type": "fictional-handwritten-scan",
+        "templateId": "followup-template-v1",
+        "studentId": "stu-02",
+        "status": "generated"
+      },
+      {
+        "id": "followup-stu-03",
+        "filename": "followup-stu-03.png",
+        "sha256": "f14b2afd34654ca2f7c5166d7ad790b6db06811b8f4f42282cb765a7953d0483",
+        "type": "fictional-handwritten-scan",
+        "templateId": "followup-template-v1",
+        "studentId": "stu-03",
+        "status": "generated"
+      },
+      {
+        "id": "followup-stu-04",
+        "filename": "followup-stu-04.png",
+        "sha256": "80b3a1a7bbc03d5a6ce51e2f0491851efb0da4acdf1306183c9013538e7a274f",
+        "type": "fictional-handwritten-scan",
+        "templateId": "followup-template-v1",
+        "studentId": "stu-04",
+        "status": "generated"
+      },
+      {
+        "id": "followup-stu-05",
+        "filename": "followup-stu-05.png",
+        "sha256": "9b27e2c901dcdbc9af688be22a4279532f86b1ff083518c457daa62e9cd7426d",
+        "type": "fictional-handwritten-scan",
+        "templateId": "followup-template-v1",
+        "studentId": "stu-05",
+        "status": "generated"
+      },
+      {
+        "id": "followup-stu-06",
+        "filename": "followup-stu-06.png",
+        "sha256": "ed7ea504906bcf50d0ca6e4c6495d1e132e2815a45351abfb07cfe1d554170b7",
+        "type": "fictional-handwritten-scan",
+        "templateId": "followup-template-v1",
+        "studentId": "stu-06",
+        "status": "generated"
+      },
+      {
+        "id": "followup-stu-07",
+        "filename": "followup-stu-07.png",
+        "sha256": "d31b3b5826bb053b45b6e1948c29692abbd75c2d4507c6672dada8ea14da177a",
+        "type": "fictional-handwritten-scan",
+        "templateId": "followup-template-v1",
+        "studentId": "stu-07",
+        "status": "generated"
       },
       {
         "id": "followup-stu-08",
         "filename": "followup-stu-08.png",
+        "sha256": "dcc98e212ae07dfd57ff991d045c078794a32f0d6614af86e244216d6ee06d19",
         "type": "fictional-handwritten-scan",
         "templateId": "followup-template-v1",
         "studentId": "stu-08",
-        "pageCount": 1,
-        "status": "specified-not-generated"
+        "status": "generated"
+      },
+      {
+        "id": "fraction-practice-blank",
+        "filename": "fraction-practice-template-v1.pdf",
+        "sha256": "0eddd1656fcb3bef5a0b57f41bff0d3d69864d6b946b223a1ca26bfd9a4fd653",
+        "type": "blank-template",
+        "templateId": "fraction-practice-template-v1",
+        "status": "generated"
+      },
+      {
+        "id": "fraction-practice-stu-01",
+        "filename": "fraction-practice-stu-01.png",
+        "sha256": "15038cdc43db2f20b54ff1912db4828dfa9fa1ea1f65259eb65fec5d6da5f8c2",
+        "type": "fictional-handwritten-scan",
+        "templateId": "fraction-practice-template-v1",
+        "studentId": "stu-01",
+        "status": "generated"
+      },
+      {
+        "id": "fraction-practice-stu-02",
+        "filename": "fraction-practice-stu-02.png",
+        "sha256": "469383cf7471a80eff90184e35041dccb983403fab09eb0e75401e9b364cca9a",
+        "type": "fictional-handwritten-scan",
+        "templateId": "fraction-practice-template-v1",
+        "studentId": "stu-02",
+        "status": "generated"
+      },
+      {
+        "id": "fraction-practice-stu-03",
+        "filename": "fraction-practice-stu-03.png",
+        "sha256": "1e5da9f722b53e4ab29cc7513fe45c149a54550938d4fe2d71a74c905c23e128",
+        "type": "fictional-handwritten-scan",
+        "templateId": "fraction-practice-template-v1",
+        "studentId": "stu-03",
+        "status": "generated"
+      },
+      {
+        "id": "fraction-practice-stu-04",
+        "filename": "fraction-practice-stu-04.png",
+        "sha256": "a1e7b75a363e6f9370a200496b21dec2ea9d3a6baff7c2f856231c69005979b9",
+        "type": "fictional-handwritten-scan",
+        "templateId": "fraction-practice-template-v1",
+        "studentId": "stu-04",
+        "status": "generated"
+      },
+      {
+        "id": "fraction-practice-stu-05",
+        "filename": "fraction-practice-stu-05.png",
+        "sha256": "4759e4d4b18bbf8b0620cf7a141148d8d3b372685f0406c47ecc5b30a39a80d1",
+        "type": "fictional-handwritten-scan",
+        "templateId": "fraction-practice-template-v1",
+        "studentId": "stu-05",
+        "status": "generated"
+      },
+      {
+        "id": "fraction-practice-stu-06",
+        "filename": "fraction-practice-stu-06.png",
+        "sha256": "189cbed6943124a119791a0f39a46554ec84949c24863f1b62f93ea023bf6108",
+        "type": "fictional-handwritten-scan",
+        "templateId": "fraction-practice-template-v1",
+        "studentId": "stu-06",
+        "status": "generated"
+      },
+      {
+        "id": "fraction-practice-stu-07",
+        "filename": "fraction-practice-stu-07.png",
+        "sha256": "acf2b30500f47a08ab213a4549289611c36d28dc3048523c8c85fb23ef7667b6",
+        "type": "fictional-handwritten-scan",
+        "templateId": "fraction-practice-template-v1",
+        "studentId": "stu-07",
+        "status": "generated"
+      },
+      {
+        "id": "fraction-practice-stu-08",
+        "filename": "fraction-practice-stu-08.png",
+        "sha256": "80d1db4f5b524e830a12b1896c886a0d035f5f25fdbde552d8f2e8a75a24d4b8",
+        "type": "fictional-handwritten-scan",
+        "templateId": "fraction-practice-template-v1",
+        "studentId": "stu-08",
+        "status": "generated"
+      },
+      {
+        "id": "word-problems-blank",
+        "filename": "word-problems-template-v1.pdf",
+        "sha256": "33d98696e7a610505205099ba2027c6a3b9c09828ebaef8572da492aa45108c1",
+        "type": "blank-template",
+        "templateId": "word-problems-template-v1",
+        "status": "generated"
+      },
+      {
+        "id": "word-problems-stu-01",
+        "filename": "word-problems-stu-01.png",
+        "sha256": "07e32de55562df90a8e0f00d436a1aa8631230767c1d113d8d0f77264bb2402b",
+        "type": "fictional-handwritten-scan",
+        "templateId": "word-problems-template-v1",
+        "studentId": "stu-01",
+        "status": "generated"
+      },
+      {
+        "id": "word-problems-stu-02",
+        "filename": "word-problems-stu-02.png",
+        "sha256": "beaa829dab4d12bd9a8dbfd66f762e7aadd339d658da4d87a0778ccf2b3cf7fc",
+        "type": "fictional-handwritten-scan",
+        "templateId": "word-problems-template-v1",
+        "studentId": "stu-02",
+        "status": "generated"
+      },
+      {
+        "id": "word-problems-stu-03",
+        "filename": "word-problems-stu-03.png",
+        "sha256": "ddf697d6f071076890a503b715b8ef290f634d0bcc0de094fa13d0d1349bb615",
+        "type": "fictional-handwritten-scan",
+        "templateId": "word-problems-template-v1",
+        "studentId": "stu-03",
+        "status": "generated"
+      },
+      {
+        "id": "word-problems-stu-04",
+        "filename": "word-problems-stu-04.png",
+        "sha256": "c6f74e70b042f57bc95a77446e0e29ef956db4c79981473714887de31f7d65a0",
+        "type": "fictional-handwritten-scan",
+        "templateId": "word-problems-template-v1",
+        "studentId": "stu-04",
+        "status": "generated"
+      },
+      {
+        "id": "word-problems-stu-05",
+        "filename": "word-problems-stu-05.png",
+        "sha256": "5540120e196035c0f2c376bdc1bffe655bc6f3b4f49820b2d603d896b8100dfe",
+        "type": "fictional-handwritten-scan",
+        "templateId": "word-problems-template-v1",
+        "studentId": "stu-05",
+        "status": "generated"
+      },
+      {
+        "id": "word-problems-stu-06",
+        "filename": "word-problems-stu-06.png",
+        "sha256": "25321f47e11107a01b8851acad050d1524fa2793c4ab6dba4c79c82e263e6e3e",
+        "type": "fictional-handwritten-scan",
+        "templateId": "word-problems-template-v1",
+        "studentId": "stu-06",
+        "status": "generated"
+      },
+      {
+        "id": "word-problems-stu-07",
+        "filename": "word-problems-stu-07.png",
+        "sha256": "8a94e8a7abd60b95936e325ea1982c2c4c7085c8f4584d68477902cbb99106fb",
+        "type": "fictional-handwritten-scan",
+        "templateId": "word-problems-template-v1",
+        "studentId": "stu-07",
+        "status": "generated"
+      },
+      {
+        "id": "word-problems-stu-08",
+        "filename": "word-problems-stu-08.png",
+        "sha256": "72a19ef9dd16713e85f8df7fd177785f2d22b2f007084d2b9eaf280018ddd8e0",
+        "type": "fictional-handwritten-scan",
+        "templateId": "word-problems-template-v1",
+        "studentId": "stu-08",
+        "status": "generated"
+      },
+      {
+        "id": "independent-check-blank",
+        "filename": "independent-check-template-v1.pdf",
+        "sha256": "d3bfb929262d2e952cb614bd41d4a2ef14ff5433629d00cf946a3fa1f12400ff",
+        "type": "blank-template",
+        "templateId": "independent-check-template-v1",
+        "status": "generated"
+      },
+      {
+        "id": "independent-check-stu-01",
+        "filename": "independent-check-stu-01.png",
+        "sha256": "b5695a4d04d251491a1360daf51052d72cda265b2d5f8138783178a58290ac62",
+        "type": "fictional-handwritten-scan",
+        "templateId": "independent-check-template-v1",
+        "studentId": "stu-01",
+        "status": "generated"
+      },
+      {
+        "id": "independent-check-stu-02",
+        "filename": "independent-check-stu-02.png",
+        "sha256": "eb18b9a75f515058b6670c834e6faf9dc4de0fb98aee36ebabb6c51b369997e0",
+        "type": "fictional-handwritten-scan",
+        "templateId": "independent-check-template-v1",
+        "studentId": "stu-02",
+        "status": "generated"
+      },
+      {
+        "id": "independent-check-stu-03",
+        "filename": "independent-check-stu-03.png",
+        "sha256": "38586d784c55f4d1185f81a25b1edd5e73883af9f416eb5fba8ed79c9cc8ef4c",
+        "type": "fictional-handwritten-scan",
+        "templateId": "independent-check-template-v1",
+        "studentId": "stu-03",
+        "status": "generated"
+      },
+      {
+        "id": "independent-check-stu-04",
+        "filename": "independent-check-stu-04.png",
+        "sha256": "cf65a6835e96cbebd89f15c38ca42f3eb2395a16afae6463d4879d8c7b7982c7",
+        "type": "fictional-handwritten-scan",
+        "templateId": "independent-check-template-v1",
+        "studentId": "stu-04",
+        "status": "generated"
+      },
+      {
+        "id": "independent-check-stu-05",
+        "filename": "independent-check-stu-05.png",
+        "sha256": "c292949ed0c1c54be5e9a566183240d79cf965706024c70f28646373e624d462",
+        "type": "fictional-handwritten-scan",
+        "templateId": "independent-check-template-v1",
+        "studentId": "stu-05",
+        "status": "generated"
+      },
+      {
+        "id": "independent-check-stu-06",
+        "filename": "independent-check-stu-06.png",
+        "sha256": "dbec9d3bdf97fdfe19a8c7aac2d107143945b2d2f6fbe1f7d28155b3ba7c6f0f",
+        "type": "fictional-handwritten-scan",
+        "templateId": "independent-check-template-v1",
+        "studentId": "stu-06",
+        "status": "generated"
+      },
+      {
+        "id": "independent-check-stu-07",
+        "filename": "independent-check-stu-07.png",
+        "sha256": "bf1d5ad73f3a112d46fcd0fe8ac5027ba0b600b373d4a6ebf2b1a6f365b2f1d7",
+        "type": "fictional-handwritten-scan",
+        "templateId": "independent-check-template-v1",
+        "studentId": "stu-07",
+        "status": "generated"
+      },
+      {
+        "id": "independent-check-stu-08",
+        "filename": "independent-check-stu-08.png",
+        "sha256": "870545fb21d1a3dde33d2febf473c4417c595126716102ba3b9f8a7cf00e76ed",
+        "type": "fictional-handwritten-scan",
+        "templateId": "independent-check-template-v1",
+        "studentId": "stu-08",
+        "status": "generated"
+      },
+      {
+        "id": "lesson-2026-09-23-json",
+        "filename": "lesson-2026-09-23-original.json",
+        "sha256": "5d687d49491d572fe76c221cff8c5df62fe844bf2d0f3b64ec3c93c0b04e778d",
+        "type": "teacher-plan-import",
+        "status": "generated"
+      },
+      {
+        "id": "lesson-2026-09-25-json",
+        "filename": "lesson-2026-09-25-original.json",
+        "sha256": "e3eb2118153881eb3f662578dcc91cff637b3b1088be1e61ac63ea98662c2a45",
+        "type": "teacher-plan-import",
+        "status": "generated"
+      },
+      {
+        "id": "lesson-2026-09-28-json",
+        "filename": "lesson-2026-09-28-original.json",
+        "sha256": "da6f05e9f5a6869b044ad24ba16aafe5a937606b01200267e61414aae39ed753",
+        "type": "teacher-plan-import",
+        "status": "generated"
+      },
+      {
+        "id": "lesson-2026-09-29-json",
+        "filename": "lesson-2026-09-29-original.json",
+        "sha256": "bed348eabd64030d692263d28361f7946022ca6de2c2ea5e5b311ca889f4f15b",
+        "type": "teacher-plan-import",
+        "status": "generated"
+      },
+      {
+        "id": "lesson-2026-10-01-json",
+        "filename": "lesson-2026-10-01-original.json",
+        "sha256": "d41a1b9ff4c207454a577ff3471053ecb26939ba219eb62e890b7f1a250632b8",
+        "type": "teacher-plan-import",
+        "status": "generated"
       },
       {
         "id": "lesson-original",
         "filename": "lesson-2026-09-23-original.pdf",
+        "sha256": "c6cf6fe871115561c4cf09fa2ac1f88a70aface49f91f06e133e35e497705989",
         "type": "teacher-plan",
-        "lessonId": "lesson-2026-09-23",
-        "pageCount": 1,
-        "status": "specified-not-generated"
+        "status": "generated"
+      },
+      {
+        "id": "lesson-2026-09-25-pdf",
+        "filename": "lesson-2026-09-25-original.pdf",
+        "sha256": "9d8bc67a134f47d792e42d209ccc59f4df4bc8ed3440cbe27670d0750cef573c",
+        "type": "teacher-plan",
+        "status": "generated"
+      },
+      {
+        "id": "lesson-2026-09-28-pdf",
+        "filename": "lesson-2026-09-28-original.pdf",
+        "sha256": "562387d893a4459323e11e0b557784269296c6b95e72076290fdcc97d73ab581",
+        "type": "teacher-plan",
+        "status": "generated"
+      },
+      {
+        "id": "lesson-2026-09-29-pdf",
+        "filename": "lesson-2026-09-29-original.pdf",
+        "sha256": "1f373116a93e121e924d1f6462473f961e1d5d9b1fe9bc6a897461ba0f8e79b2",
+        "type": "teacher-plan",
+        "status": "generated"
+      },
+      {
+        "id": "lesson-2026-10-01-pdf",
+        "filename": "lesson-2026-10-01-original.pdf",
+        "sha256": "c61f1789f73b684020be4526293bf4eff3da17848bfcabd8c104428aecd9c113",
+        "type": "teacher-plan",
+        "status": "generated"
       },
       {
         "id": "material-targeted",
         "filename": "targeted-equal-parts-v1.pdf",
+        "sha256": "829069baf94bca75e635508f894193fac422ce4bf38776dd8fe5bb401c759cc7",
         "type": "printable-activity",
-        "materialId": "targeted-equal-parts-v1",
-        "pageCount": 1,
-        "status": "specified-not-generated"
+        "status": "generated"
       },
       {
         "id": "material-extension",
         "filename": "extension-explain-v1.pdf",
+        "sha256": "bd005bf5623158bf51be7b80edb0bab885075c2f8e1efbb594575036222abb60",
         "type": "printable-activity",
-        "materialId": "extension-explain-v1",
-        "pageCount": 1,
-        "status": "specified-not-generated"
+        "status": "generated"
       },
       {
         "id": "material-exit",
         "filename": "exit-equal-units-v1.pdf",
+        "sha256": "793974f9856d0c5171331db4e5a8661738c68609e293a65dd8c9d0e47895555d",
         "type": "printable-activity",
-        "materialId": "exit-equal-units-v1",
-        "pageCount": 1,
-        "status": "specified-not-generated"
+        "status": "generated"
       },
       {
         "id": "teacher-answer-keys",
         "filename": "classcompass-teacher-answer-keys.pdf",
+        "sha256": "f55fb0d77656a80a6b54692438da8ccb21441a2a9498b9f68286c383e9302566",
         "type": "answer-key",
-        "pageCount": null,
-        "status": "specified-not-generated"
+        "status": "generated"
       }
     ]
   },
@@ -2018,5 +2519,1289 @@
       }
     ],
     "proposalRule": "After teacher review of September 24 follow-up work, create a new proposal against this future lesson. Do not change the taught September 23 lesson or pre-accept follow-up groups."
-  }
+  },
+  "additionalQuestions": [
+    {
+      "id": "fp01",
+      "prompt": "Calculate 1/4 + 1/8. Show equivalent fractions and your sum.",
+      "learningObjectiveIds": [
+        "obj-equivalent-fractions",
+        "obj-add-unlike-fractions"
+      ],
+      "assessmentCriterionIds": [
+        "crit-equivalence",
+        "crit-common-unit",
+        "crit-addition",
+        "crit-reasoning"
+      ],
+      "taskDifficulty": "core",
+      "expectedAnswer": {
+        "canonicalFraction": "3/8",
+        "acceptEquivalentUnreducedFractions": true,
+        "rational": {
+          "numerator": 3,
+          "denominator": 8
+        }
+      },
+      "answerWorking": [
+        "1/4 = 2/8",
+        "2/8 + 1/8 = 3/8"
+      ],
+      "validationKind": "fraction-addition",
+      "operands": [
+        {
+          "numerator": 1,
+          "denominator": 4
+        },
+        {
+          "numerator": 1,
+          "denominator": 8
+        }
+      ],
+      "answerUnit": null
+    },
+    {
+      "id": "fp02",
+      "prompt": "Calculate 1/3 + 1/5. Show how the addends use equal-sized parts.",
+      "learningObjectiveIds": [
+        "obj-equivalent-fractions",
+        "obj-add-unlike-fractions"
+      ],
+      "assessmentCriterionIds": [
+        "crit-equivalence",
+        "crit-common-unit",
+        "crit-addition",
+        "crit-reasoning"
+      ],
+      "taskDifficulty": "core",
+      "expectedAnswer": {
+        "canonicalFraction": "8/15",
+        "acceptEquivalentUnreducedFractions": true,
+        "rational": {
+          "numerator": 8,
+          "denominator": 15
+        }
+      },
+      "answerWorking": [
+        "1/3 = 5/15",
+        "1/5 = 3/15",
+        "5/15 + 3/15 = 8/15"
+      ],
+      "validationKind": "fraction-addition",
+      "operands": [
+        {
+          "numerator": 1,
+          "denominator": 3
+        },
+        {
+          "numerator": 1,
+          "denominator": 5
+        }
+      ],
+      "answerUnit": null
+    },
+    {
+      "id": "fp03",
+      "prompt": "Calculate 2/9 + 1/3. Explain the common unit in your working.",
+      "learningObjectiveIds": [
+        "obj-equivalent-fractions",
+        "obj-add-unlike-fractions"
+      ],
+      "assessmentCriterionIds": [
+        "crit-equivalence",
+        "crit-common-unit",
+        "crit-addition",
+        "crit-reasoning"
+      ],
+      "taskDifficulty": "core",
+      "expectedAnswer": {
+        "canonicalFraction": "5/9",
+        "acceptEquivalentUnreducedFractions": true,
+        "rational": {
+          "numerator": 5,
+          "denominator": 9
+        }
+      },
+      "answerWorking": [
+        "1/3 = 3/9",
+        "2/9 + 3/9 = 5/9",
+        "Both addends now count ninths."
+      ],
+      "validationKind": "fraction-addition",
+      "operands": [
+        {
+          "numerator": 2,
+          "denominator": 9
+        },
+        {
+          "numerator": 1,
+          "denominator": 3
+        }
+      ],
+      "answerUnit": null
+    },
+    {
+      "id": "wp01",
+      "prompt": "A display uses 1/5 meter of blue ribbon and 3/10 meter of green ribbon. Find the total length. Show working and units.",
+      "learningObjectiveIds": [
+        "obj-equivalent-fractions",
+        "obj-add-unlike-fractions",
+        "obj-explain-fraction-context"
+      ],
+      "assessmentCriterionIds": [
+        "crit-equivalence",
+        "crit-common-unit",
+        "crit-addition",
+        "crit-reasoning",
+        "crit-context"
+      ],
+      "taskDifficulty": "core-transfer",
+      "expectedAnswer": {
+        "canonicalFraction": "1/2",
+        "acceptEquivalentUnreducedFractions": true,
+        "rational": {
+          "numerator": 1,
+          "denominator": 2
+        }
+      },
+      "answerWorking": [
+        "1/5 = 2/10",
+        "2/10 + 3/10 = 5/10 = 1/2 meter"
+      ],
+      "validationKind": "fraction-addition",
+      "operands": [
+        {
+          "numerator": 1,
+          "denominator": 5
+        },
+        {
+          "numerator": 3,
+          "denominator": 10
+        }
+      ],
+      "answerUnit": "meter"
+    },
+    {
+      "id": "wp02",
+      "prompt": "Two strings measure 2/5 meter and 1/3 meter. What is their total length? Show equivalent fractions and include the unit.",
+      "learningObjectiveIds": [
+        "obj-equivalent-fractions",
+        "obj-add-unlike-fractions",
+        "obj-explain-fraction-context"
+      ],
+      "assessmentCriterionIds": [
+        "crit-equivalence",
+        "crit-common-unit",
+        "crit-addition",
+        "crit-reasoning",
+        "crit-context"
+      ],
+      "taskDifficulty": "core-transfer",
+      "expectedAnswer": {
+        "canonicalFraction": "11/15",
+        "acceptEquivalentUnreducedFractions": true,
+        "rational": {
+          "numerator": 11,
+          "denominator": 15
+        }
+      },
+      "answerWorking": [
+        "2/5 = 6/15",
+        "1/3 = 5/15",
+        "6/15 + 5/15 = 11/15 meter"
+      ],
+      "validationKind": "fraction-addition",
+      "operands": [
+        {
+          "numerator": 2,
+          "denominator": 5
+        },
+        {
+          "numerator": 1,
+          "denominator": 3
+        }
+      ],
+      "answerUnit": "meter"
+    },
+    {
+      "id": "wp03",
+      "prompt": "A class joins 1/4 meter of paper border to 1/10 meter more. How long is the border? Show your method and units.",
+      "learningObjectiveIds": [
+        "obj-equivalent-fractions",
+        "obj-add-unlike-fractions",
+        "obj-explain-fraction-context"
+      ],
+      "assessmentCriterionIds": [
+        "crit-equivalence",
+        "crit-common-unit",
+        "crit-addition",
+        "crit-reasoning",
+        "crit-context"
+      ],
+      "taskDifficulty": "core-transfer",
+      "expectedAnswer": {
+        "canonicalFraction": "7/20",
+        "acceptEquivalentUnreducedFractions": true,
+        "rational": {
+          "numerator": 7,
+          "denominator": 20
+        }
+      },
+      "answerWorking": [
+        "1/4 = 5/20",
+        "1/10 = 2/20",
+        "5/20 + 2/20 = 7/20 meter"
+      ],
+      "validationKind": "fraction-addition",
+      "operands": [
+        {
+          "numerator": 1,
+          "denominator": 4
+        },
+        {
+          "numerator": 1,
+          "denominator": 10
+        }
+      ],
+      "answerUnit": "meter"
+    },
+    {
+      "id": "ic01",
+      "prompt": "Calculate 1/2 + 3/10. Show equivalent fractions and your sum.",
+      "learningObjectiveIds": [
+        "obj-equivalent-fractions",
+        "obj-add-unlike-fractions"
+      ],
+      "assessmentCriterionIds": [
+        "crit-equivalence",
+        "crit-common-unit",
+        "crit-addition",
+        "crit-reasoning"
+      ],
+      "taskDifficulty": "core",
+      "expectedAnswer": {
+        "canonicalFraction": "4/5",
+        "acceptEquivalentUnreducedFractions": true,
+        "rational": {
+          "numerator": 4,
+          "denominator": 5
+        }
+      },
+      "answerWorking": [
+        "1/2 = 5/10",
+        "5/10 + 3/10 = 8/10 = 4/5"
+      ],
+      "validationKind": "fraction-addition",
+      "operands": [
+        {
+          "numerator": 1,
+          "denominator": 2
+        },
+        {
+          "numerator": 3,
+          "denominator": 10
+        }
+      ],
+      "answerUnit": null
+    },
+    {
+      "id": "ic02",
+      "prompt": "Calculate 1/5 + 2/3. Show your steps. A correct unreduced answer is allowed.",
+      "learningObjectiveIds": [
+        "obj-equivalent-fractions",
+        "obj-add-unlike-fractions"
+      ],
+      "assessmentCriterionIds": [
+        "crit-equivalence",
+        "crit-common-unit",
+        "crit-addition",
+        "crit-reasoning"
+      ],
+      "taskDifficulty": "core",
+      "expectedAnswer": {
+        "canonicalFraction": "13/15",
+        "acceptEquivalentUnreducedFractions": true,
+        "rational": {
+          "numerator": 13,
+          "denominator": 15
+        }
+      },
+      "answerWorking": [
+        "1/5 = 3/15",
+        "2/3 = 10/15",
+        "3/15 + 10/15 = 13/15"
+      ],
+      "validationKind": "fraction-addition",
+      "operands": [
+        {
+          "numerator": 1,
+          "denominator": 5
+        },
+        {
+          "numerator": 2,
+          "denominator": 3
+        }
+      ],
+      "answerUnit": null
+    },
+    {
+      "id": "ic03",
+      "prompt": "A ribbon is 1/4 meter long. Another is 1/12 meter long. Find their total length with working and units.",
+      "learningObjectiveIds": [
+        "obj-equivalent-fractions",
+        "obj-add-unlike-fractions",
+        "obj-explain-fraction-context"
+      ],
+      "assessmentCriterionIds": [
+        "crit-equivalence",
+        "crit-common-unit",
+        "crit-addition",
+        "crit-reasoning",
+        "crit-context"
+      ],
+      "taskDifficulty": "core-transfer",
+      "expectedAnswer": {
+        "canonicalFraction": "1/3",
+        "acceptEquivalentUnreducedFractions": true,
+        "rational": {
+          "numerator": 1,
+          "denominator": 3
+        }
+      },
+      "answerWorking": [
+        "1/4 = 3/12",
+        "3/12 + 1/12 = 4/12 = 1/3 meter"
+      ],
+      "validationKind": "fraction-addition",
+      "operands": [
+        {
+          "numerator": 1,
+          "denominator": 4
+        },
+        {
+          "numerator": 1,
+          "denominator": 12
+        }
+      ],
+      "answerUnit": "meter"
+    }
+  ],
+  "additionalSubmissions": {
+    "fraction-practice-template-v1": [
+      {
+        "studentId": "stu-01",
+        "templateId": "fraction-practice-template-v1",
+        "date": "2026-09-25",
+        "assetId": "fraction-practice-stu-01",
+        "recordedSupport": {
+          "level": "independent",
+          "source": "teacher-recorded",
+          "note": "Fictional teacher record: completed without hints, checking or peer help during this task.",
+          "appliesTo": "all-responses-in-this-submission"
+        },
+        "responses": [
+          {
+            "questionId": "fp01",
+            "writtenAnswer": "1/4 = 2/8; 2/8 + 1/8 = 3/8",
+            "answerText": "3/8"
+          },
+          {
+            "questionId": "fp02",
+            "writtenAnswer": "1/3 = 5/15; 1/5 = 3/15; 5/15 + 3/15 = 8/15",
+            "answerText": "8/15"
+          },
+          {
+            "questionId": "fp03",
+            "writtenAnswer": "1/3 = 3/9; Both fractions count ninths. 2/9 + 3/9 = 5/9",
+            "answerText": "5/9"
+          }
+        ]
+      },
+      {
+        "studentId": "stu-02",
+        "templateId": "fraction-practice-template-v1",
+        "date": "2026-09-25",
+        "assetId": "fraction-practice-stu-02",
+        "recordedSupport": {
+          "level": "independent",
+          "source": "teacher-recorded",
+          "note": "Fictional teacher record: completed without hints, checking or peer help during this task.",
+          "appliesTo": "all-responses-in-this-submission"
+        },
+        "responses": [
+          {
+            "questionId": "fp01",
+            "writtenAnswer": "1/4 = 2/8; 2/8 + 1/8 = 3/8",
+            "answerText": "3/8"
+          },
+          {
+            "questionId": "fp02",
+            "writtenAnswer": "1/3 = 5/15; 1/5 = 3/15; 5/15 + 3/15 = 7/15",
+            "answerText": "7/15"
+          },
+          {
+            "questionId": "fp03",
+            "writtenAnswer": "1/3 = 3/9; 2/9 + 3/9 = 5/9",
+            "answerText": "5/9"
+          }
+        ]
+      },
+      {
+        "studentId": "stu-03",
+        "templateId": "fraction-practice-template-v1",
+        "date": "2026-09-25",
+        "assetId": "fraction-practice-stu-03",
+        "recordedSupport": {
+          "level": "supported",
+          "source": "teacher-recorded",
+          "note": "Fictional teacher record: supplied a common-denominator prompt and fraction strips during this page.",
+          "appliesTo": "all-responses-in-this-submission"
+        },
+        "responses": [
+          {
+            "questionId": "fp01",
+            "writtenAnswer": "1/4 = 2/8; 2/8 + 1/8 = 3/8",
+            "answerText": "3/8"
+          },
+          {
+            "questionId": "fp02",
+            "writtenAnswer": "1/3 = 5/15; 1/5 = 3/15; 5/15 + 3/15 = 8/15",
+            "answerText": "8/15"
+          },
+          {
+            "questionId": "fp03",
+            "writtenAnswer": "1/3 = 3/9; 2/9 + 3/9 = 5/9",
+            "answerText": "5/9"
+          }
+        ]
+      },
+      {
+        "studentId": "stu-04",
+        "templateId": "fraction-practice-template-v1",
+        "date": "2026-09-25",
+        "assetId": "fraction-practice-stu-04",
+        "recordedSupport": {
+          "level": "independent",
+          "source": "teacher-recorded",
+          "note": "Fictional teacher record: completed without hints, checking or peer help during this task.",
+          "appliesTo": "all-responses-in-this-submission"
+        },
+        "responses": [
+          {
+            "questionId": "fp01",
+            "writtenAnswer": "1/4 = 2/8; 2/8 + 1/8 = 3/8",
+            "answerText": "3/8"
+          },
+          {
+            "questionId": "fp02",
+            "writtenAnswer": "1/3 = 5/15; 1/5 = 3/15; 5/15 + 3/15 = 8/15",
+            "answerText": "8/15"
+          },
+          {
+            "questionId": "fp03",
+            "writtenAnswer": "1/3 = 3/9; 2/9 + 3/9 = 4/9",
+            "answerText": "4/9"
+          }
+        ]
+      },
+      {
+        "studentId": "stu-05",
+        "templateId": "fraction-practice-template-v1",
+        "date": "2026-09-25",
+        "assetId": "fraction-practice-stu-05",
+        "recordedSupport": {
+          "level": "independent",
+          "source": "teacher-recorded",
+          "note": "Fictional teacher record: completed without hints, checking or peer help during this task.",
+          "appliesTo": "all-responses-in-this-submission"
+        },
+        "responses": [
+          {
+            "questionId": "fp01",
+            "writtenAnswer": "1/4 = 4/16; 1/8 = 2/16; 4/16 + 2/16 = 6/16",
+            "answerText": "6/16"
+          },
+          {
+            "questionId": "fp02",
+            "writtenAnswer": "1/3 = 10/30; 1/5 = 6/30; 10/30 + 6/30 = 16/30",
+            "answerText": "16/30"
+          },
+          {
+            "questionId": "fp03",
+            "writtenAnswer": "2/9 = 4/18; 1/3 = 6/18; Both fractions count eighteenths. 4/18 + 6/18 = 10/18",
+            "answerText": "10/18"
+          }
+        ]
+      },
+      {
+        "studentId": "stu-06",
+        "templateId": "fraction-practice-template-v1",
+        "date": "2026-09-25",
+        "assetId": "fraction-practice-stu-06",
+        "recordedSupport": {
+          "level": "independent",
+          "source": "teacher-recorded",
+          "note": "Fictional teacher record: completed without hints, checking or peer help during this task.",
+          "appliesTo": "all-responses-in-this-submission"
+        },
+        "responses": [
+          {
+            "questionId": "fp01",
+            "writtenAnswer": "1/4 = 2/8; 2/8 + 1/8 = 3/8",
+            "answerText": "3/8"
+          },
+          {
+            "questionId": "fp02",
+            "writtenAnswer": "1/3 = 5/15; 1/5 = 3/15; 5/15 + 3/15 = 8/15",
+            "answerText": "8/15"
+          },
+          {
+            "questionId": "fp03",
+            "writtenAnswer": "1/3 = 3/9; Both fractions count ninths. 2/9 + 3/9 = 5/9",
+            "answerText": "5/9"
+          }
+        ]
+      },
+      {
+        "studentId": "stu-07",
+        "templateId": "fraction-practice-template-v1",
+        "date": "2026-09-25",
+        "assetId": "fraction-practice-stu-07",
+        "recordedSupport": {
+          "level": "unknown",
+          "source": "teacher-recorded",
+          "note": "Fictional teacher record: assistance during this practice page was not recorded. Ask before claiming independence.",
+          "appliesTo": "all-responses-in-this-submission"
+        },
+        "responses": [
+          {
+            "questionId": "fp01",
+            "writtenAnswer": "1/4 = 2/8; 2/8 + 1/8 = 3/8",
+            "answerText": "3/8"
+          },
+          {
+            "questionId": "fp02",
+            "writtenAnswer": "1/3 = 5/15; 1/5 = 3/15; 5/15 + 3/15 = 8/15",
+            "answerText": "8/15"
+          },
+          {
+            "questionId": "fp03",
+            "writtenAnswer": "1/3 = 3/9; 2/9 + 3/9 = 5/9",
+            "answerText": "5/9"
+          }
+        ]
+      },
+      {
+        "studentId": "stu-08",
+        "templateId": "fraction-practice-template-v1",
+        "date": "2026-09-25",
+        "assetId": "fraction-practice-stu-08",
+        "recordedSupport": {
+          "level": "supported",
+          "source": "teacher-recorded",
+          "note": "Fictional teacher record: supplied a common-denominator prompt and fraction strips during this page.",
+          "appliesTo": "all-responses-in-this-submission"
+        },
+        "responses": [
+          {
+            "questionId": "fp01",
+            "writtenAnswer": "1/4 = 2/8; 2/8 + 1/8 = 3/8",
+            "answerText": "3/8"
+          },
+          {
+            "questionId": "fp02",
+            "writtenAnswer": "1/3 = 5/15",
+            "answerText": null
+          },
+          {
+            "questionId": "fp03",
+            "writtenAnswer": null,
+            "answerText": null
+          }
+        ]
+      }
+    ],
+    "word-problems-template-v1": [
+      {
+        "studentId": "stu-01",
+        "templateId": "word-problems-template-v1",
+        "date": "2026-09-28",
+        "assetId": "word-problems-stu-01",
+        "recordedSupport": {
+          "level": "independent",
+          "source": "teacher-recorded",
+          "note": "Fictional teacher record: completed without hints, checking or peer help during this task.",
+          "appliesTo": "all-responses-in-this-submission"
+        },
+        "responses": [
+          {
+            "questionId": "wp01",
+            "writtenAnswer": "1/5 = 2/10; 2/10 + 3/10 = 5/10 = 1/2 meter",
+            "answerText": "1/2 meter"
+          },
+          {
+            "questionId": "wp02",
+            "writtenAnswer": "2/5 = 6/15; 1/3 = 5/15; 6/15 + 5/15 = 11/15 meter",
+            "answerText": "11/15 meter"
+          },
+          {
+            "questionId": "wp03",
+            "writtenAnswer": "1/4 = 5/20; 1/10 = 2/20; 5/20 + 2/20 = 7/20",
+            "answerText": "7/20"
+          }
+        ]
+      },
+      {
+        "studentId": "stu-02",
+        "templateId": "word-problems-template-v1",
+        "date": "2026-09-28",
+        "assetId": "word-problems-stu-02",
+        "recordedSupport": {
+          "level": "independent",
+          "source": "teacher-recorded",
+          "note": "Fictional teacher record: completed without hints, checking or peer help during this task.",
+          "appliesTo": "all-responses-in-this-submission"
+        },
+        "responses": [
+          {
+            "questionId": "wp01",
+            "writtenAnswer": "1/5 = 2/10; 2/10 + 3/10 = 5/10 meter",
+            "answerText": "5/10 meter"
+          },
+          {
+            "questionId": "wp02",
+            "writtenAnswer": "2/5 = 6/15; 1/3 = 5/15; 6/15 + 5/15 = 11/15",
+            "answerText": "11/15"
+          },
+          {
+            "questionId": "wp03",
+            "writtenAnswer": "1/4 = 10/40; 1/10 = 4/40; 10/40 + 4/40 = 14/40 meter",
+            "answerText": "14/40 meter"
+          }
+        ]
+      },
+      {
+        "studentId": "stu-03",
+        "templateId": "word-problems-template-v1",
+        "date": "2026-09-28",
+        "assetId": "word-problems-stu-03",
+        "recordedSupport": {
+          "level": "independent",
+          "source": "teacher-recorded",
+          "note": "Fictional teacher record: completed without hints, checking or peer help during this task.",
+          "appliesTo": "all-responses-in-this-submission"
+        },
+        "responses": [
+          {
+            "questionId": "wp01",
+            "writtenAnswer": "1/5 = 2/10; 2/10 + 3/10 = 5/10 meter",
+            "answerText": "5/10 meter"
+          },
+          {
+            "questionId": "wp02",
+            "writtenAnswer": "2/5 + 1/3 = 3/8 meter",
+            "answerText": "3/8 meter"
+          },
+          {
+            "questionId": "wp03",
+            "writtenAnswer": "1/4 + 1/10 = 2/14 = 1/7 meter",
+            "answerText": "1/7 meter"
+          }
+        ]
+      },
+      {
+        "studentId": "stu-04",
+        "templateId": "word-problems-template-v1",
+        "date": "2026-09-28",
+        "assetId": "word-problems-stu-04",
+        "recordedSupport": {
+          "level": "independent",
+          "source": "teacher-recorded",
+          "note": "Fictional teacher record: completed without hints, checking or peer help during this task.",
+          "appliesTo": "all-responses-in-this-submission"
+        },
+        "responses": [
+          {
+            "questionId": "wp01",
+            "writtenAnswer": "1/5 = 2/10; 2/10 + 3/10 = 5/10 = 1/2 meter",
+            "answerText": "1/2 meter"
+          },
+          {
+            "questionId": "wp02",
+            "writtenAnswer": "2/5 = 6/15; 1/3 = 5/15; 6/15 + 5/15 = 11/15 meter",
+            "answerText": "11/15 meter"
+          },
+          {
+            "questionId": "wp03",
+            "writtenAnswer": "1/4 = 5/20; 1/10 = 2/20; 5/20 + 2/20 = 7/20 meter",
+            "answerText": "7/20 meter"
+          }
+        ]
+      },
+      {
+        "studentId": "stu-05",
+        "templateId": "word-problems-template-v1",
+        "date": "2026-09-28",
+        "assetId": "word-problems-stu-05",
+        "recordedSupport": {
+          "level": "independent",
+          "source": "teacher-recorded",
+          "note": "Fictional teacher record: completed without hints, checking or peer help during this task.",
+          "appliesTo": "all-responses-in-this-submission"
+        },
+        "responses": [
+          {
+            "questionId": "wp01",
+            "writtenAnswer": "1/5 = 4/20; 3/10 = 6/20; 4/20 + 6/20 = 10/20 meter",
+            "answerText": "10/20 meter"
+          },
+          {
+            "questionId": "wp02",
+            "writtenAnswer": "2/5 = 12/30; 1/3 = 10/30; 12/30 + 10/30 = 22/30 meter",
+            "answerText": "22/30 meter"
+          },
+          {
+            "questionId": "wp03",
+            "writtenAnswer": "1/4 = 10/40; 1/10 = 4/40; 10/40 + 4/40 = 14/40 meter",
+            "answerText": "14/40 meter"
+          }
+        ]
+      },
+      {
+        "studentId": "stu-06",
+        "templateId": "word-problems-template-v1",
+        "date": "2026-09-28",
+        "assetId": "word-problems-stu-06",
+        "recordedSupport": {
+          "level": "independent",
+          "source": "teacher-recorded",
+          "note": "Fictional teacher record: completed without hints, checking or peer help during this task.",
+          "appliesTo": "all-responses-in-this-submission"
+        },
+        "responses": [
+          {
+            "questionId": "wp01",
+            "writtenAnswer": "1/5 = 2/10; 2/10 + 3/10 = 5/10 = 1/2 meter",
+            "answerText": "1/2 meter"
+          },
+          {
+            "questionId": "wp02",
+            "writtenAnswer": "2/5 = 6/15; 1/3 = 5/15; 6/15 + 5/15 = 11/15 meter",
+            "answerText": "11/15 meter"
+          },
+          {
+            "questionId": "wp03",
+            "writtenAnswer": "1/4 = 5/20; 1/10 = 2/20; 5/20 + 2/20 = 7/20 meter",
+            "answerText": "7/20 meter",
+            "preparedExtraction": {
+              "workingText": "1/4 = 5/20; 1/10 = 2/20; 5/20 + 2/20 = 7/30 meter",
+              "answerText": "7/30 meter",
+              "legibility": "uncertain",
+              "alternatives": [
+                "7/20 meter"
+              ],
+              "uncertaintyNote": "Prepared reading flag: simulated denominator misread. The synthetic source says 7/20 meter. Inspect the original before correcting."
+            }
+          }
+        ]
+      },
+      {
+        "studentId": "stu-07",
+        "templateId": "word-problems-template-v1",
+        "date": "2026-09-28",
+        "assetId": "word-problems-stu-07",
+        "recordedSupport": {
+          "level": "independent",
+          "source": "teacher-recorded",
+          "note": "Fictional teacher record: completed without hints, checking or peer help during this task.",
+          "appliesTo": "all-responses-in-this-submission"
+        },
+        "responses": [
+          {
+            "questionId": "wp01",
+            "writtenAnswer": "1/5 = 2/10; 2/10 + 3/10 = 5/10 = 1/2 meter",
+            "answerText": "1/2 meter"
+          },
+          {
+            "questionId": "wp02",
+            "writtenAnswer": "2/5 = 6/15; 1/3 = 5/15; 6/15 + 5/15 = 11/15 meter",
+            "answerText": "11/15 meter"
+          },
+          {
+            "questionId": "wp03",
+            "writtenAnswer": "1/4 = 5/20; 1/10 = 2/20; 5/20 + 2/20 = 7/20 meter",
+            "answerText": "7/20 meter"
+          }
+        ]
+      },
+      {
+        "studentId": "stu-08",
+        "templateId": "word-problems-template-v1",
+        "date": "2026-09-28",
+        "assetId": "word-problems-stu-08",
+        "recordedSupport": {
+          "level": "independent",
+          "source": "teacher-recorded",
+          "note": "Fictional teacher record: completed without hints, checking or peer help during this task.",
+          "appliesTo": "all-responses-in-this-submission"
+        },
+        "responses": [
+          {
+            "questionId": "wp01",
+            "writtenAnswer": "1/5 = 2/10; 2/10 + 3/10 = 5/10 meter",
+            "answerText": "5/10 meter"
+          },
+          {
+            "questionId": "wp02",
+            "writtenAnswer": "2/5 = 6/15",
+            "answerText": null
+          },
+          {
+            "questionId": "wp03",
+            "writtenAnswer": null,
+            "answerText": null
+          }
+        ]
+      }
+    ],
+    "independent-check-template-v1": [
+      {
+        "studentId": "stu-01",
+        "templateId": "independent-check-template-v1",
+        "date": "2026-09-30",
+        "assetId": "independent-check-stu-01",
+        "recordedSupport": {
+          "level": "independent",
+          "source": "teacher-recorded",
+          "note": "Fictional teacher record: completed without hints, checking or peer help during this task.",
+          "appliesTo": "all-responses-in-this-submission"
+        },
+        "responses": [
+          {
+            "questionId": "ic01",
+            "writtenAnswer": "1/2 = 5/10; 5/10 + 3/10 = 8/10 = 4/5",
+            "answerText": "4/5"
+          },
+          {
+            "questionId": "ic02",
+            "writtenAnswer": "1/5 = 3/15; 2/3 = 10/15; 3/15 + 10/15 = 13/15",
+            "answerText": "13/15"
+          },
+          {
+            "questionId": "ic03",
+            "writtenAnswer": "1/4 = 3/12; 3/12 + 1/12 = 4/12 = 1/3 meter",
+            "answerText": "1/3 meter"
+          }
+        ]
+      },
+      {
+        "studentId": "stu-02",
+        "templateId": "independent-check-template-v1",
+        "date": "2026-09-30",
+        "assetId": "independent-check-stu-02",
+        "recordedSupport": {
+          "level": "independent",
+          "source": "teacher-recorded",
+          "note": "Fictional teacher record: completed without hints, checking or peer help during this task.",
+          "appliesTo": "all-responses-in-this-submission"
+        },
+        "responses": [
+          {
+            "questionId": "ic01",
+            "writtenAnswer": "1/2 = 5/10; 5/10 + 3/10 = 8/10",
+            "answerText": "8/10"
+          },
+          {
+            "questionId": "ic02",
+            "writtenAnswer": "1/5 = 6/30; 2/3 = 20/30; 6/30 + 20/30 = 26/30",
+            "answerText": "26/30"
+          },
+          {
+            "questionId": "ic03",
+            "writtenAnswer": "1/4 = 3/12; 3/12 + 1/12 = 4/12 meter",
+            "answerText": "4/12 meter"
+          }
+        ]
+      },
+      {
+        "studentId": "stu-03",
+        "templateId": "independent-check-template-v1",
+        "date": "2026-09-30",
+        "assetId": "independent-check-stu-03",
+        "recordedSupport": {
+          "level": "independent",
+          "source": "teacher-recorded",
+          "note": "Fictional teacher record: completed without hints, checking or peer help during this task.",
+          "appliesTo": "all-responses-in-this-submission"
+        },
+        "responses": [
+          {
+            "questionId": "ic01",
+            "writtenAnswer": "1/2 = 5/10; 5/10 + 3/10 = 8/10",
+            "answerText": "8/10"
+          },
+          {
+            "questionId": "ic02",
+            "writtenAnswer": "1/5 = 3/15; 2/3 = 10/15; 3/15 + 10/15 = 13/15",
+            "answerText": "13/15"
+          },
+          {
+            "questionId": "ic03",
+            "writtenAnswer": null,
+            "answerText": null
+          }
+        ]
+      },
+      {
+        "studentId": "stu-04",
+        "templateId": "independent-check-template-v1",
+        "date": "2026-09-30",
+        "assetId": "independent-check-stu-04",
+        "recordedSupport": {
+          "level": "independent",
+          "source": "teacher-recorded",
+          "note": "Fictional teacher record: completed without hints, checking or peer help during this task.",
+          "appliesTo": "all-responses-in-this-submission"
+        },
+        "responses": [
+          {
+            "questionId": "ic01",
+            "writtenAnswer": "1/2 = 5/10; 5/10 + 3/10 = 8/10 = 4/5",
+            "answerText": "4/5"
+          },
+          {
+            "questionId": "ic02",
+            "writtenAnswer": "1/5 = 3/15; 2/3 = 10/15; 3/15 + 10/15 = 12/15",
+            "answerText": "12/15"
+          },
+          {
+            "questionId": "ic03",
+            "writtenAnswer": "1/4 = 3/12; 3/12 + 1/12 = 4/12 = 1/3 meter",
+            "answerText": "1/3 meter"
+          }
+        ]
+      },
+      {
+        "studentId": "stu-05",
+        "templateId": "independent-check-template-v1",
+        "date": "2026-09-30",
+        "assetId": "independent-check-stu-05",
+        "recordedSupport": {
+          "level": "independent",
+          "source": "teacher-recorded",
+          "note": "Fictional teacher record: completed without hints, checking or peer help during this task.",
+          "appliesTo": "all-responses-in-this-submission"
+        },
+        "responses": [
+          {
+            "questionId": "ic01",
+            "writtenAnswer": "1/2 = 10/20; 3/10 = 6/20; 10/20 + 6/20 = 16/20",
+            "answerText": "16/20"
+          },
+          {
+            "questionId": "ic02",
+            "writtenAnswer": "1/5 = 6/30; 2/3 = 20/30; 6/30 + 20/30 = 26/30",
+            "answerText": "26/30"
+          },
+          {
+            "questionId": "ic03",
+            "writtenAnswer": "1/4 = 6/24; 1/12 = 2/24; 6/24 + 2/24 = 8/24 meter",
+            "answerText": "8/24 meter"
+          }
+        ]
+      },
+      {
+        "studentId": "stu-06",
+        "templateId": "independent-check-template-v1",
+        "date": "2026-09-30",
+        "assetId": "independent-check-stu-06",
+        "recordedSupport": {
+          "level": "independent",
+          "source": "teacher-recorded",
+          "note": "Fictional teacher record: completed without hints, checking or peer help during this task.",
+          "appliesTo": "all-responses-in-this-submission"
+        },
+        "responses": [
+          {
+            "questionId": "ic01",
+            "writtenAnswer": "1/2 = 5/10; 5/10 + 3/10 = 8/10 = 4/5",
+            "answerText": "4/5"
+          },
+          {
+            "questionId": "ic02",
+            "writtenAnswer": "1/5 = 3/15; 2/3 = 10/15; 3/15 + 10/15 = 13/15",
+            "answerText": "13/15"
+          },
+          {
+            "questionId": "ic03",
+            "writtenAnswer": "1/4 = 3/12; 3/12 + 1/12 = 4/12 = 1/3 meter",
+            "answerText": "1/3 meter"
+          }
+        ]
+      },
+      {
+        "studentId": "stu-07",
+        "templateId": "independent-check-template-v1",
+        "date": "2026-09-30",
+        "assetId": "independent-check-stu-07",
+        "recordedSupport": {
+          "level": "independent",
+          "source": "teacher-recorded",
+          "note": "Fictional teacher record: completed without hints, checking or peer help during this task.",
+          "appliesTo": "all-responses-in-this-submission"
+        },
+        "responses": [
+          {
+            "questionId": "ic01",
+            "writtenAnswer": "1/2 = 5/10; 5/10 + 3/10 = 8/10 = 4/5",
+            "answerText": "4/5"
+          },
+          {
+            "questionId": "ic02",
+            "writtenAnswer": "1/5 = 3/15; 2/3 = 10/15; 3/15 + 10/15 = 13/15",
+            "answerText": "13/15"
+          },
+          {
+            "questionId": "ic03",
+            "writtenAnswer": "1/4 = 3/12; 3/12 + 1/12 = 4/12 = 1/3 meter",
+            "answerText": "1/3 meter"
+          }
+        ]
+      },
+      {
+        "studentId": "stu-08",
+        "templateId": "independent-check-template-v1",
+        "date": "2026-09-30",
+        "assetId": "independent-check-stu-08",
+        "recordedSupport": {
+          "level": "independent",
+          "source": "teacher-recorded",
+          "note": "Fictional teacher record: completed without hints, checking or peer help during this task.",
+          "appliesTo": "all-responses-in-this-submission"
+        },
+        "responses": [
+          {
+            "questionId": "ic01",
+            "writtenAnswer": "1/2 = 5/10; 5/10 + 3/10 = 8/10",
+            "answerText": "8/10"
+          },
+          {
+            "questionId": "ic02",
+            "writtenAnswer": "1/5 = 3/15",
+            "answerText": null
+          },
+          {
+            "questionId": "ic03",
+            "writtenAnswer": "1/4 = 3/12; 3/12 + 1/12 = 4/12 meter",
+            "answerText": "4/12 meter"
+          }
+        ]
+      }
+    ]
+  },
+  "assignments": [
+    {
+      "id": "first-check",
+      "templateId": "baseline-template-v1",
+      "date": "2026-09-22",
+      "sequence": 1,
+      "title": "First check",
+      "purpose": "Adding unlike fractions",
+      "targetLessonId": "lesson-2026-09-23",
+      "comparisonGroupId": "fraction-addition-mixed",
+      "eligibilityPolicy": {
+        "extensionMinimum": 3,
+        "requiresPriorExtension": false
+      },
+      "kind": "baseline"
+    },
+    {
+      "id": "quick-check",
+      "templateId": "followup-template-v1",
+      "date": "2026-09-24",
+      "sequence": 2,
+      "title": "Quick check",
+      "purpose": "Short check after practice",
+      "sourceLessonId": "lesson-2026-09-23",
+      "targetLessonId": "lesson-2026-09-25",
+      "comparisonGroupId": "fraction-addition-mixed",
+      "eligibilityPolicy": {
+        "extensionMinimum": 2,
+        "requiresPriorExtension": true
+      },
+      "kind": "followup"
+    },
+    {
+      "id": "fraction-practice",
+      "templateId": "fraction-practice-template-v1",
+      "date": "2026-09-25",
+      "sequence": 3,
+      "title": "Fraction practice",
+      "purpose": "Calculations and explanations",
+      "targetLessonId": "lesson-2026-09-28",
+      "comparisonGroupId": "fraction-addition-calculation",
+      "eligibilityPolicy": {
+        "extensionMinimum": 3,
+        "requiresPriorExtension": false
+      },
+      "kind": "followup",
+      "sourceLessonId": "lesson-2026-09-25"
+    },
+    {
+      "id": "word-problems",
+      "templateId": "word-problems-template-v1",
+      "date": "2026-09-28",
+      "sequence": 4,
+      "title": "Word problems",
+      "purpose": "Working and units",
+      "targetLessonId": "lesson-2026-09-29",
+      "comparisonGroupId": "fraction-addition-context",
+      "eligibilityPolicy": {
+        "extensionMinimum": 3,
+        "requiresPriorExtension": false
+      },
+      "kind": "followup",
+      "sourceLessonId": "lesson-2026-09-28"
+    },
+    {
+      "id": "independent-check",
+      "templateId": "independent-check-template-v1",
+      "date": "2026-09-30",
+      "sequence": 5,
+      "title": "Independent check",
+      "purpose": "Work completed without help",
+      "targetLessonId": "lesson-2026-10-01",
+      "comparisonGroupId": "fraction-addition-mixed",
+      "eligibilityPolicy": {
+        "extensionMinimum": 3,
+        "requiresPriorExtension": false
+      },
+      "kind": "followup"
+    }
+  ],
+  "additionalLessons": [
+    {
+      "id": "lesson-2026-09-28",
+      "unitId": "unit-fractions-v1",
+      "date": "2026-09-28",
+      "title": "Connect models to written methods",
+      "version": "original",
+      "totalMinutes": 45,
+      "blocks": [
+        {
+          "id": "warmup",
+          "minutes": 5,
+          "title": "Recall equivalent parts",
+          "content": "Use an equal-whole bar to explain why changing both numerator and denominator preserves a fraction."
+        },
+        {
+          "id": "model",
+          "minutes": 8,
+          "title": "Connect a model and calculation",
+          "content": "Model a fresh unlike-denominator sum with strips, then write the matching equivalent-fraction steps."
+        },
+        {
+          "id": "practice",
+          "minutes": 12,
+          "title": "Practice matching representations",
+          "content": "Pairs solve fresh sums and connect each renamed fraction to equal-sized parts in their models."
+        },
+        {
+          "id": "application",
+          "minutes": 15,
+          "title": "Word problems",
+          "content": "Use ten minutes for the three-question Word problems assignment. Record actual help. Discuss the context and units in the remaining five minutes."
+        },
+        {
+          "id": "exit",
+          "minutes": 5,
+          "title": "Explain a common unit",
+          "content": "Students explain why the addends must count the same-sized parts before addition."
+        }
+      ],
+      "proposalRule": "Use current teacher-confirmed evidence from earlier authored assignments. Preserve accepted earlier lessons and the fixed assessment."
+    },
+    {
+      "id": "lesson-2026-09-29",
+      "unitId": "unit-fractions-v1",
+      "date": "2026-09-29",
+      "title": "Choose and justify a common denominator",
+      "version": "original",
+      "totalMinutes": 45,
+      "blocks": [
+        {
+          "id": "warmup",
+          "minutes": 5,
+          "title": "Recall two valid denominators",
+          "content": "Compare two representations of the same fraction and explain their equal value."
+        },
+        {
+          "id": "model",
+          "minutes": 8,
+          "title": "Justify a denominator choice",
+          "content": "Model two valid common denominators for a fresh sum. Explain why the smaller convenient denominator is optional."
+        },
+        {
+          "id": "practice",
+          "minutes": 12,
+          "title": "Compare methods in pairs",
+          "content": "Solve fresh sums using two valid methods. Explain why equivalent unreduced results count as correct."
+        },
+        {
+          "id": "application",
+          "minutes": 15,
+          "title": "Apply the chosen method",
+          "content": "Solve short ribbon-length problems with working and units. The teacher records help without supplying a group label."
+        },
+        {
+          "id": "exit",
+          "minutes": 5,
+          "title": "Check the reasoning",
+          "content": "Write one equivalent-fraction step and explain what the denominator counts."
+        }
+      ],
+      "proposalRule": "Use current teacher-confirmed evidence from earlier authored assignments. Preserve accepted earlier lessons and the fixed assessment."
+    },
+    {
+      "id": "lesson-2026-10-01",
+      "unitId": "unit-fractions-v1",
+      "date": "2026-10-01",
+      "title": "Review evidence and prepare for assessment",
+      "version": "original",
+      "totalMinutes": 45,
+      "blocks": [
+        {
+          "id": "warmup",
+          "minutes": 5,
+          "title": "Recall the common unit",
+          "content": "Use a short example to recall equal-sized wholes and equivalent fractional parts."
+        },
+        {
+          "id": "model",
+          "minutes": 8,
+          "title": "Explain a complete solution",
+          "content": "Model an inspectable calculation, a reasonable total and a word-problem unit without rehearsing assessment items."
+        },
+        {
+          "id": "practice",
+          "minutes": 12,
+          "title": "Review through practice",
+          "content": "Students work on fresh examples while the teacher uses reviewed September 30 work to select brief support or extension."
+        },
+        {
+          "id": "application",
+          "minutes": 15,
+          "title": "Apply and discuss",
+          "content": "Solve new fraction-addition contexts. Ask students to explain their method and record the help they receive."
+        },
+        {
+          "id": "exit",
+          "minutes": 5,
+          "title": "Name the next check",
+          "content": "Students show a short calculation or question for a teacher conference. Keep the October 2 assessment date fixed."
+        }
+      ],
+      "proposalRule": "Use current teacher-confirmed evidence from earlier authored assignments. Preserve accepted earlier lessons and the fixed assessment."
+    }
+  ]
 }

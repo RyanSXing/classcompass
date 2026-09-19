@@ -32,7 +32,7 @@ PAPER = '#FFFEFA'
 LINE = '#DCE5DE'
 ASSETS = []
 EXTRACTIONS = {}
-QUESTION_MAP = {q['id']: q for q in SOURCE['questions'] + SOURCE['followupQuestions']}
+QUESTION_MAP = {q['id']: q for q in SOURCE['questions'] + SOURCE['followupQuestions'] + SOURCE.get('additionalQuestions', [])}
 
 
 def clean(text):
@@ -149,25 +149,17 @@ def image_pdf(im, filename):
     c.save()
 
 
-BASELINE_FINAL = [
-    ['2/5','3/7','1/5','1/3 meter'],
-    ['2/5','3/7','3/15','4/12 meter'],
-    ['2/5','3/7','3/15','4/12 meter'],
-    ['5/6','11/12','1/2','5/8 meter'],
-    ['5/6','11/12','1/2','5/8 meter'],
-    ['5/6','11/12','1/2','5/8 meter'],
-    ['5/6','11/12','1/2','5/8 meter'],
-    [None,None,None,None],
-]
-FOLLOWUP_FINAL = [
-    ['7/12','1/2 meter'],['7/12','3/6 meter'],['2/7','2/9 meter'],
-    ['7/12','1/2 meter'],['7/12','1/2 meter'],['7/12','1/2 meter'],
-    ['7/12','1/2 meter'],['7/12',None],
-]
+def submission_for(template_id, student):
+    if template_id == 'baseline-template-v1':
+        return student['baseline']
+    if template_id == 'followup-template-v1':
+        return student['followup']
+    return next(s for s in SOURCE['additionalSubmissions'][template_id] if s['studentId'] == student['id'])
 
 
 def make_worksheets():
-    for template, stage, answers in zip(SOURCE['templates'], ['baseline','followup'], [BASELINE_FINAL,FOLLOWUP_FINAL]):
+    for template in SOURCE['templates']:
+        stage = template['id'].removesuffix('-template-v1')
         blank, _ = template_page(template)
         filename = template['id']+'.pdf'
         image_pdf(blank, filename)
@@ -176,12 +168,14 @@ def make_worksheets():
         for n, student in enumerate(SOURCE['students'], 1):
             im, boxes = template_page(template, student)
             responses = []
-            for i, r in enumerate(student[stage]['responses']):
+            for i, r in enumerate(submission_for(template['id'], student)['responses']):
                 text = r['writtenAnswer']
                 write_handwriting(im, text, boxes[r['questionId']], n, i)
-                extraction = {'questionId': r['questionId'], 'workingText': text or '', 'answerText': answers[n-1][i], 'legibility': 'blank' if text is None else 'clear', 'alternatives': [], 'uncertaintyNote': None}
+                extraction = {'questionId': r['questionId'], 'workingText': text or '', 'answerText': r['answerText'], 'legibility': 'blank' if text is None else 'clear', 'alternatives': [], 'uncertaintyNote': None}
                 if stage == 'baseline' and student['id'] == 'stu-06' and r['questionId'] == 'q-03':
                     extraction.update(workingText=text[:-3]+'1/5', answerText='1/5', legibility='uncertain', alternatives=['1/2'], uncertaintyNote='Prepared correction example: simulated final-denominator misread. The source image contains 1/2; inspect the image and the preceding 5/10 step.')
+                if r.get('preparedExtraction'):
+                    extraction.update(r['preparedExtraction'])
                 responses.append(extraction)
             filename = f"{stage}-{student['id']}.png"
             im.save(OUT/filename, optimize=True)
@@ -189,6 +183,8 @@ def make_worksheets():
             record = {'templateId': template['id'], 'studentId': student['id'], 'responses': responses}
             if stage == 'baseline' and student['id'] == 'stu-06':
                 record['preparedCorrection'] = 'Prepared correction example - simulated extraction error. Actual image answer is 1/2; fixture transcript deliberately reads 1/5.'
+            elif any(r.get('preparedExtraction') for r in submission_for(template['id'], student)['responses']):
+                record['preparedCorrection'] = 'Prepared reading flag - simulated extraction error. Actual image answer is 7/20 meter; fixture transcript deliberately reads 7/30 meter.'
             EXTRACTIONS[digest] = record
 
 
@@ -249,7 +245,7 @@ def lesson_json(lesson):
 
 
 def make_lessons():
-    for lesson in [SOURCE['lesson'], SOURCE['nextLesson']]:
+    for lesson in [SOURCE['lesson'], SOURCE['nextLesson'], *SOURCE.get('additionalLessons', [])]:
         filename = lesson['id']+'-original.json'
         (OUT/filename).write_text(json.dumps(lesson_json(lesson), indent=2)+'\n')
         asset(lesson['id']+'-json', filename, 'teacher-plan-import')
@@ -272,6 +268,24 @@ def make_lessons():
     pdf_text(c, 'Planning note: Review September 22 work before finalizing practice. The assessment remains fixed on October 2.', 38, y+2, 538, 10, 14, MUTED)
     c.showPage(); c.save()
     asset('lesson-original', filename, 'teacher-plan')
+    for lesson in [SOURCE['nextLesson'], *SOURCE.get('additionalLessons', [])]:
+        filename = lesson['id']+'-original.pdf'
+        c = new_pdf(filename, lesson['title'])
+        y = pdf_header(c, lesson['title'], 'Original teacher lesson', f"{lesson['date']}  |  Grade 5  |  45 minutes")
+        y = pdf_text(c, 'Learning focus', 38, y+5, 540, 12, 17, TEAL)
+        y = pdf_text(c, 'Use equivalent fractions to add unlike denominators. Explain calculations and context while recording actual help.', 38, y+5, 538, 11, 15)+21
+        elapsed = 0
+        for b in lesson['blocks']:
+            c.setFillColor(HexColor('#F1F5F0'))
+            c.roundRect(38, 792-y-84, 536, 84, 7, fill=1, stroke=0)
+            pdf_text(c, f"{elapsed:02d}-{elapsed+b['minutes']:02d} min", 49, y+11, 72, 10, 14, TEAL)
+            pdf_text(c, b['title'], 130, y+10, 425, 12, 16)
+            pdf_text(c, b['content'], 130, y+31, 425, 9.5, 12)
+            y += 91
+            elapsed += b['minutes']
+        pdf_text(c, 'Review current evidence before changing this plan. The assessment stays fixed on October 2.', 38, y+2, 538, 10, 14, MUTED)
+        c.showPage(); c.save()
+        asset(lesson['id']+'-pdf', filename, 'teacher-plan')
 
 
 def ruled_space(c, top, bottom, x=54, width=500):
@@ -317,6 +331,7 @@ def make_teacher_key():
     filename='classcompass-teacher-answer-keys.pdf'
     c=new_pdf(filename,'Teacher answer keys')
     groups=[('Baseline: show your thinking',SOURCE['questions']),('Targeted: equal parts before adding',SOURCE['materials']['targeted']['prompts']),('Independent entry check',SOURCE['materials']['independentEntryCheck']['prompts']),('Independent application',SOURCE['materials']['independentApplication']['prompts']),('Extension: two methods, one value',SOURCE['materials']['extension']['prompts']),('Lesson exit ticket',SOURCE['materials']['exit']['prompts']),('Follow-up: a fresh fraction check',SOURCE['followupQuestions'])]
+    groups += [(template['title'], [QUESTION_MAP[qid] for qid in template['questionIds']]) for template in SOURCE['templates'][2:]]
     page=1
     y=pdf_header(c,'Teacher answer keys','Teacher copy','Keep separate from student practice pages.',page)
     y=pdf_text(c,'Accept equivalent unreduced answers and valid nonleast common denominators. Numerical correctness, written method, and help provided are separate observations.',38,y,538,10.5,15)+14
@@ -342,7 +357,7 @@ def make_teacher_key():
 def contacts():
     scans=[a for a in ASSETS if a['type']=='fictional-handwritten-scan']
     # Order baseline row before follow-up row for convenient scenario inspection.
-    for stage in ['baseline','followup']:
+    for stage in [t['id'].removesuffix('-template-v1') for t in SOURCE['templates']]:
         sheet=Image.new('RGB',(4*425,2*575),'#EAF0EA')
         d=ImageDraw.Draw(sheet)
         for i,a in enumerate([x for x in scans if x['id'].startswith(stage)]):
@@ -354,8 +369,11 @@ def contacts():
 
 
 def verify():
-    assert len(EXTRACTIONS)==16
-    assert sum(len(v['responses']) for v in EXTRACTIONS.values())==48
+    assert len(EXTRACTIONS)==40
+    assert sum(len(v['responses']) for v in EXTRACTIONS.values())==120
+    declared = {a['id']: a['sha256'] for a in ASSETS}
+    for asset_id, digest in SOURCE['fixtureUsage']['preservedSourceHashes'].items():
+        assert declared[asset_id] == digest, f'Original source bytes changed: {asset_id}'
     for a in ASSETS:
         assert sha(OUT/a['filename']) == a['sha256']
         if a['filename'].endswith('.png'):
@@ -366,15 +384,31 @@ def verify():
     assert SOURCE['students'][5]['baseline']['responses'][2]['writtenAnswer'].endswith('1/2')
 
 
+def make_curriculum():
+    # Public teacher-authored context: never include fictional student responses,
+    # support records, expected groups or simulated extraction corrections.
+    materials = list(SOURCE['materials'].values())
+    for template in SOURCE['templates'][1:]:
+        questions = [QUESTION_MAP[qid] for qid in template['questionIds']]
+        materials.append({'id': template['id'], 'title': template['title'], 'suggestedMinutes': 8 if template['id'] == 'followup-template-v1' else 10, 'conditions': 'Complete independently; record any help.' if template['id'] == 'followup-template-v1' else 'Record actual assistance. Synthetic fictional assignment; teacher review required.', 'prompts': [{'id': q['id'], 'prompt': q['prompt'], 'canonicalFraction': q['expectedAnswer']['canonicalFraction'], 'answerKey': '; '.join(q['answerWorking']), 'expectedRational': q['expectedAnswer']['rational'], 'answerUnit': q['answerUnit'], 'validationKind': q['validationKind'], 'operands': q['operands']} for q in questions]})
+    public = {'classroom': SOURCE['class'], 'unit': SOURCE['unit'], 'objectives': SOURCE['learningObjectives'], 'criteria': SOURCE['assessmentCriteria'], 'questions': list(QUESTION_MAP.values()), 'templates': SOURCE['templates'], 'roster': [{'id': s['id'], 'displayName': s['displayName']} for s in SOURCE['students']], 'lessons': [lesson_json(lesson) for lesson in [SOURCE['lesson'], SOURCE['nextLesson'], *SOURCE.get('additionalLessons', [])]], 'calendar': SOURCE['unitCalendar'], 'widerCalendar': SOURCE['widerCalendarPreview'], 'materials': materials}
+    header = '// Public authored curriculum only. No reference student writing or scenario ground truth.\nimport type { LessonSnapshot, Material } from "./contracts";\nconst authored = '
+    footer = ';\nexport const curriculum = {...authored, lessons: authored.lessons as LessonSnapshot[], materials: authored.materials as Material[]};\nexport type Question = typeof curriculum.questions[number];\nexport function getQuestion(id: string): Question { const question = curriculum.questions.find(q => q.id === id); if (!question) throw new Error(`Unknown question: ${id}`); return question; }\nexport function getTemplate(id: string) { const template = curriculum.templates.find(t => t.id === id); if (!template) throw new Error(`Unknown template: ${id}`); return template; }\n'
+    (ROOT/'lib'/'curriculum.ts').write_text(header+json.dumps(public,indent=2)+footer)
+
+
 def main():
     OUT.mkdir(parents=True,exist_ok=True);QA.mkdir(parents=True,exist_ok=True)
     (ROOT/'lib'/'fixtures').mkdir(parents=True,exist_ok=True)
     register_pdf_fonts()
     make_worksheets();make_lessons();make_materials();make_teacher_key();contacts();verify()
+    make_curriculum()
+    SOURCE['assetManifest']['assets'] = [{**a, 'status': 'generated'} for a in ASSETS]
+    (ROOT/'docs'/'fixtures'/'classroom.json').write_text(json.dumps(SOURCE,indent=2)+'\n')
     (OUT/'manifest.json').write_text(json.dumps({'assets':ASSETS},indent=2)+'\n')
     (ROOT/'lib'/'fixtures'/'extractions.json').write_text(json.dumps(EXTRACTIONS,indent=2)+'\n')
-    print(f'Generated {len(ASSETS)} assets; {len(EXTRACTIONS)} scans; 48 server-only reference response records.')
-    print('QA images: tmp/pdfs/baseline-contact.png and tmp/pdfs/followup-contact.png')
+    print(f'Generated {len(ASSETS)} assets; {len(EXTRACTIONS)} scans; 120 server-only reference response records.')
+    print('QA images: tmp/pdfs/<assignment>-contact.png for all five assignments.')
 
 if __name__=='__main__':
     main()

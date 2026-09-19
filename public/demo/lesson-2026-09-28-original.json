@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "lessonId": "lesson-2026-09-28",
+  "unitId": "unit-fractions-v1",
+  "date": "2026-09-28",
+  "title": "Connect models to written methods",
+  "objectiveIds": [
+    "obj-equivalent-fractions",
+    "obj-add-unlike-fractions",
+    "obj-explain-fraction-context"
+  ],
+  "totalMinutes": 45,
+  "blocks": [
+    {
+      "id": "warmup",
+      "title": "Recall equivalent parts",
+      "minutes": 5,
+      "instructions": "Use an equal-whole bar to explain why changing both numerator and denominator preserves a fraction.",
+      "mode": "whole_class"
+    },
+    {
+      "id": "model",
+      "title": "Connect a model and calculation",
+      "minutes": 8,
+      "instructions": "Model a fresh unlike-denominator sum with strips, then write the matching equivalent-fraction steps.",
+      "mode": "whole_class"
+    },
+    {
+      "id": "practice",
+      "title": "Practice matching representations",
+      "minutes": 12,
+      "instructions": "Pairs solve fresh sums and connect each renamed fraction to equal-sized parts in their models.",
+      "mode": "whole_class"
+    },
+    {
+      "id": "application",
+      "title": "Word problems",
+      "minutes": 15,
+      "instructions": "Use ten minutes for the three-question Word problems assignment. Record actual help. Discuss the context and units in the remaining five minutes.",
+      "mode": "whole_class"
+    },
+    {
+      "id": "exit",
+      "title": "Explain a common unit",
+      "minutes": 5,
+      "instructions": "Students explain why the addends must count the same-sized parts before addition.",
+      "mode": "whole_class"
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "lessonId": "lesson-2026-10-01",
+  "unitId": "unit-fractions-v1",
+  "date": "2026-10-01",
+  "title": "Review evidence and prepare for assessment",
+  "objectiveIds": [
+    "obj-equivalent-fractions",
+    "obj-add-unlike-fractions",
+    "obj-explain-fraction-context"
+  ],
+  "totalMinutes": 45,
+  "blocks": [
+    {
+      "id": "warmup",
+      "title": "Recall the common unit",
+      "minutes": 5,
+      "instructions": "Use a short example to recall equal-sized wholes and equivalent fractional parts.",
+      "mode": "whole_class"
+    },
+    {
+      "id": "model",
+      "title": "Explain a complete solution",
+      "minutes": 8,
+      "instructions": "Model an inspectable calculation, a reasonable total and a word-problem unit without rehearsing assessment items.",
+      "mode": "whole_class"
+    },
+    {
+      "id": "practice",
+      "title": "Review through practice",
+      "minutes": 12,
+      "instructions": "Students work on fresh examples while the teacher uses reviewed September 30 work to select brief support or extension.",
+      "mode": "whole_class"
+    },
+    {
+      "id": "application",
+      "title": "Apply and discuss",
+      "minutes": 15,
+      "instructions": "Solve new fraction-addition contexts. Ask students to explain their method and record the help they receive.",
+      "mode": "whole_class"
+    },
+    {
+      "id": "exit",
+      "title": "Name the next check",
+      "minutes": 5,
+      "instructions": "Students show a short calculation or question for a teacher conference. Keep the October 2 assessment date fixed.",
+      "mode": "whole_class"
+    }
+  ]
+}

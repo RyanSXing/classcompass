@@ -3,14 +3,14 @@ import type { Finding } from "@/lib/contracts";
 /** A later analysis retains old candidates as history; surface the current review set. */
 export function currentFindings(findings: Finding[]) {
   return findings.filter(
-    (f) =>
+    (f, index) =>
       f.status !== "stale" ||
-      !findings.some(
+      !findings.slice(index + 1).some(
         (next) =>
           next.id !== f.id &&
           next.batchId === f.batchId &&
           next.studentId === f.studentId &&
-          next.createdAt > f.createdAt &&
+          next.objectiveId === f.objectiveId &&
           ["candidate", "confirmed"].includes(next.status),
       ),
   );

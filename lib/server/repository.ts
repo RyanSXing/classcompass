@@ -3,6 +3,7 @@ import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import type { AppState } from '@/lib/contracts';
 import { createInitialState } from '@/lib/domain';
+import { upgradeCatalog } from '@/lib/domain/catalog';
 import { DomainError } from '@/lib/domain/errors';
 import { configuration } from './config';
 import type { Actor } from './auth';
@@ -57,11 +58,12 @@ export class LocalRepository implements Repository {
     await fs.rename(temporary, this.filename);
   }
   async read() {
-    return this.lock(async () => { const state = await this.load(); await this.save(state); return state; });
+    return this.lock(async () => { const state = await this.load(); if (upgradeCatalog(state)) state.revision++; await this.save(state); return state; });
   }
   async transact<T>(operation: (state: AppState) => T): Promise<T> {
     return this.lock(async () => {
       const state = await this.load();
+      upgradeCatalog(state);
       const result = operation(state);
       state.revision += 1;
       await this.save(state);
@@ -72,9 +74,20 @@ export class LocalRepository implements Repository {
 export class SupabaseRepository implements Repository {
   constructor(private actor: Actor) {}
   async read(): Promise<AppState> {
-    const { data, error } = await this.actor.client!.rpc('load_classcompass_state');
-    if (error) throw new DomainError('DATABASE_READ', 503, 'Could not load the classroom. Check the database migrations.');
-    return data ? data as AppState : createInitialState(this.actor.id);
+    // A conflicting migration is retried from the winner's state, never by
+    // replaying an arbitrary caller mutation.
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const { data, error } = await this.actor.client!.rpc('load_classcompass_state');
+      if (error) throw new DomainError('DATABASE_READ', 503, 'Could not load the classroom. Check the database migrations.');
+      if (!data) return createInitialState(this.actor.id);
+      const state = data as AppState;
+      if (!upgradeCatalog(state)) return state;
+      const previous = state.revision; state.revision++;
+      const { error: saveError } = await this.actor.client!.rpc('commit_classcompass_state', { p_expected_revision: previous, p_state: state });
+      if (!saveError) return state;
+      if (!['PT409', '40001'].includes(saveError.code)) throw new DomainError('DATABASE_WRITE', 503, 'Could not update the assignment catalog. Your saved work is unchanged.');
+    }
+    throw new DomainError('REVISION_CONFLICT', 409, 'This classroom changed in another session. Refresh and retry.');
   }
   async transact<T>(operation: (state: AppState) => T): Promise<T> {
     const state = await this.read();

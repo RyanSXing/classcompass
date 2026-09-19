@@ -48,9 +48,15 @@ export function checkMath(question: Question, workingText: string, answerText: s
   const separateTops = new RegExp(`(?:^|[;\\n])\\s*${a.numerator}\\s*\\+\\s*${b.numerator}\\s*=\\s*${a.numerator+b.numerator}(?:\\s*[;\\n]|$)`).test(workingText);
   const hasCorrectRenaming = correctRenameCount(workingText, question.operands) > 0;
   const denominatorAddition = Boolean(parsed && equalFractions(parsed, naive) && !equalFractions(naive, expected) && ((directAddition && !hasCorrectRenaming) || (separateBottoms && separateTops)));
-  const equivalentReasoning = correctRenameCount(workingText) > 0 && contradictions.length === 0;
+  const validRenamedAddition = [...workingText.matchAll(/(?=(\d+\s*\/\s*\d+)\s*\+\s*(\d+\s*\/\s*\d+)\s*=\s*(\d+\s*\/\s*\d+))/g)].some(match => {
+    const left = parseFraction(match[1]), right = parseFraction(match[2]), result = parseFraction(match[3]);
+    return !!left && !!right && !!result && left.denominator === right.denominator && ((equalFractions(left,a) && equalFractions(right,b)) || (equalFractions(left,b) && equalFractions(right,a))) && equalFractions(addFractions(left,right),result);
+  });
+  // A true equivalence about an unrelated fraction does not demonstrate the
+  // method for this task. Chained common-unit additions are also valid evidence.
+  const equivalentReasoning = (hasCorrectRenaming || validRenamedAddition) && contradictions.length === 0;
   const blank = legibility === 'blank' && !workingText.trim() && !answerText;
   const status = blank ? 'blank' : !parsed || legibility === 'uncertain' ? 'unresolved' : equalFractions(parsed, expected) ? 'correct' : 'incorrect';
   const unitStatus = !question.answerUnit ? 'not_required' : !answerText ? 'unresolved' : /\b(?:meters?|metres?|m)\b/i.test(answerText) ? 'correct' : parsed ? 'missing' : 'unresolved';
-  return { status, parsed, expected, unitStatus, contradictions, denominatorAddition, equivalentReasoning };
+  return { status, parsed, expected, unitStatus, contradictions, denominatorAddition, equivalentReasoning, checkerVersion: 2 };
 }

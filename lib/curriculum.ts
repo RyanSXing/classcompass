@@ -324,6 +324,370 @@ const authored = {
         }
       ],
       "answerUnit": "meter"
+    },
+    {
+      "id": "fp01",
+      "prompt": "Calculate 1/4 + 1/8. Show equivalent fractions and your sum.",
+      "learningObjectiveIds": [
+        "obj-equivalent-fractions",
+        "obj-add-unlike-fractions"
+      ],
+      "assessmentCriterionIds": [
+        "crit-equivalence",
+        "crit-common-unit",
+        "crit-addition",
+        "crit-reasoning"
+      ],
+      "taskDifficulty": "core",
+      "expectedAnswer": {
+        "canonicalFraction": "3/8",
+        "acceptEquivalentUnreducedFractions": true,
+        "rational": {
+          "numerator": 3,
+          "denominator": 8
+        }
+      },
+      "answerWorking": [
+        "1/4 = 2/8",
+        "2/8 + 1/8 = 3/8"
+      ],
+      "validationKind": "fraction-addition",
+      "operands": [
+        {
+          "numerator": 1,
+          "denominator": 4
+        },
+        {
+          "numerator": 1,
+          "denominator": 8
+        }
+      ],
+      "answerUnit": null
+    },
+    {
+      "id": "fp02",
+      "prompt": "Calculate 1/3 + 1/5. Show how the addends use equal-sized parts.",
+      "learningObjectiveIds": [
+        "obj-equivalent-fractions",
+        "obj-add-unlike-fractions"
+      ],
+      "assessmentCriterionIds": [
+        "crit-equivalence",
+        "crit-common-unit",
+        "crit-addition",
+        "crit-reasoning"
+      ],
+      "taskDifficulty": "core",
+      "expectedAnswer": {
+        "canonicalFraction": "8/15",
+        "acceptEquivalentUnreducedFractions": true,
+        "rational": {
+          "numerator": 8,
+          "denominator": 15
+        }
+      },
+      "answerWorking": [
+        "1/3 = 5/15",
+        "1/5 = 3/15",
+        "5/15 + 3/15 = 8/15"
+      ],
+      "validationKind": "fraction-addition",
+      "operands": [
+        {
+          "numerator": 1,
+          "denominator": 3
+        },
+        {
+          "numerator": 1,
+          "denominator": 5
+        }
+      ],
+      "answerUnit": null
+    },
+    {
+      "id": "fp03",
+      "prompt": "Calculate 2/9 + 1/3. Explain the common unit in your working.",
+      "learningObjectiveIds": [
+        "obj-equivalent-fractions",
+        "obj-add-unlike-fractions"
+      ],
+      "assessmentCriterionIds": [
+        "crit-equivalence",
+        "crit-common-unit",
+        "crit-addition",
+        "crit-reasoning"
+      ],
+      "taskDifficulty": "core",
+      "expectedAnswer": {
+        "canonicalFraction": "5/9",
+        "acceptEquivalentUnreducedFractions": true,
+        "rational": {
+          "numerator": 5,
+          "denominator": 9
+        }
+      },
+      "answerWorking": [
+        "1/3 = 3/9",
+        "2/9 + 3/9 = 5/9",
+        "Both addends now count ninths."
+      ],
+      "validationKind": "fraction-addition",
+      "operands": [
+        {
+          "numerator": 2,
+          "denominator": 9
+        },
+        {
+          "numerator": 1,
+          "denominator": 3
+        }
+      ],
+      "answerUnit": null
+    },
+    {
+      "id": "wp01",
+      "prompt": "A display uses 1/5 meter of blue ribbon and 3/10 meter of green ribbon. Find the total length. Show working and units.",
+      "learningObjectiveIds": [
+        "obj-equivalent-fractions",
+        "obj-add-unlike-fractions",
+        "obj-explain-fraction-context"
+      ],
+      "assessmentCriterionIds": [
+        "crit-equivalence",
+        "crit-common-unit",
+        "crit-addition",
+        "crit-reasoning",
+        "crit-context"
+      ],
+      "taskDifficulty": "core-transfer",
+      "expectedAnswer": {
+        "canonicalFraction": "1/2",
+        "acceptEquivalentUnreducedFractions": true,
+        "rational": {
+          "numerator": 1,
+          "denominator": 2
+        }
+      },
+      "answerWorking": [
+        "1/5 = 2/10",
+        "2/10 + 3/10 = 5/10 = 1/2 meter"
+      ],
+      "validationKind": "fraction-addition",
+      "operands": [
+        {
+          "numerator": 1,
+          "denominator": 5
+        },
+        {
+          "numerator": 3,
+          "denominator": 10
+        }
+      ],
+      "answerUnit": "meter"
+    },
+    {
+      "id": "wp02",
+      "prompt": "Two strings measure 2/5 meter and 1/3 meter. What is their total length? Show equivalent fractions and include the unit.",
+      "learningObjectiveIds": [
+        "obj-equivalent-fractions",
+        "obj-add-unlike-fractions",
+        "obj-explain-fraction-context"
+      ],
+      "assessmentCriterionIds": [
+        "crit-equivalence",
+        "crit-common-unit",
+        "crit-addition",
+        "crit-reasoning",
+        "crit-context"
+      ],
+      "taskDifficulty": "core-transfer",
+      "expectedAnswer": {
+        "canonicalFraction": "11/15",
+        "acceptEquivalentUnreducedFractions": true,
+        "rational": {
+          "numerator": 11,
+          "denominator": 15
+        }
+      },
+      "answerWorking": [
+        "2/5 = 6/15",
+        "1/3 = 5/15",
+        "6/15 + 5/15 = 11/15 meter"
+      ],
+      "validationKind": "fraction-addition",
+      "operands": [
+        {
+          "numerator": 2,
+          "denominator": 5
+        },
+        {
+          "numerator": 1,
+          "denominator": 3
+        }
+      ],
+      "answerUnit": "meter"
+    },
+    {
+      "id": "wp03",
+      "prompt": "A class joins 1/4 meter of paper border to 1/10 meter more. How long is the border? Show your method and units.",
+      "learningObjectiveIds": [
+        "obj-equivalent-fractions",
+        "obj-add-unlike-fractions",
+        "obj-explain-fraction-context"
+      ],
+      "assessmentCriterionIds": [
+        "crit-equivalence",
+        "crit-common-unit",
+        "crit-addition",
+        "crit-reasoning",
+        "crit-context"
+      ],
+      "taskDifficulty": "core-transfer",
+      "expectedAnswer": {
+        "canonicalFraction": "7/20",
+        "acceptEquivalentUnreducedFractions": true,
+        "rational": {
+          "numerator": 7,
+          "denominator": 20
+        }
+      },
+      "answerWorking": [
+        "1/4 = 5/20",
+        "1/10 = 2/20",
+        "5/20 + 2/20 = 7/20 meter"
+      ],
+      "validationKind": "fraction-addition",
+      "operands": [
+        {
+          "numerator": 1,
+          "denominator": 4
+        },
+        {
+          "numerator": 1,
+          "denominator": 10
+        }
+      ],
+      "answerUnit": "meter"
+    },
+    {
+      "id": "ic01",
+      "prompt": "Calculate 1/2 + 3/10. Show equivalent fractions and your sum.",
+      "learningObjectiveIds": [
+        "obj-equivalent-fractions",
+        "obj-add-unlike-fractions"
+      ],
+      "assessmentCriterionIds": [
+        "crit-equivalence",
+        "crit-common-unit",
+        "crit-addition",
+        "crit-reasoning"
+      ],
+      "taskDifficulty": "core",
+      "expectedAnswer": {
+        "canonicalFraction": "4/5",
+        "acceptEquivalentUnreducedFractions": true,
+        "rational": {
+          "numerator": 4,
+          "denominator": 5
+        }
+      },
+      "answerWorking": [
+        "1/2 = 5/10",
+        "5/10 + 3/10 = 8/10 = 4/5"
+      ],
+      "validationKind": "fraction-addition",
+      "operands": [
+        {
+          "numerator": 1,
+          "denominator": 2
+        },
+        {
+          "numerator": 3,
+          "denominator": 10
+        }
+      ],
+      "answerUnit": null
+    },
+    {
+      "id": "ic02",
+      "prompt": "Calculate 1/5 + 2/3. Show your steps. A correct unreduced answer is allowed.",
+      "learningObjectiveIds": [
+        "obj-equivalent-fractions",
+        "obj-add-unlike-fractions"
+      ],
+      "assessmentCriterionIds": [
+        "crit-equivalence",
+        "crit-common-unit",
+        "crit-addition",
+        "crit-reasoning"
+      ],
+      "taskDifficulty": "core",
+      "expectedAnswer": {
+        "canonicalFraction": "13/15",
+        "acceptEquivalentUnreducedFractions": true,
+        "rational": {
+          "numerator": 13,
+          "denominator": 15
+        }
+      },
+      "answerWorking": [
+        "1/5 = 3/15",
+        "2/3 = 10/15",
+        "3/15 + 10/15 = 13/15"
+      ],
+      "validationKind": "fraction-addition",
+      "operands": [
+        {
+          "numerator": 1,
+          "denominator": 5
+        },
+        {
+          "numerator": 2,
+          "denominator": 3
+        }
+      ],
+      "answerUnit": null
+    },
+    {
+      "id": "ic03",
+      "prompt": "A ribbon is 1/4 meter long. Another is 1/12 meter long. Find their total length with working and units.",
+      "learningObjectiveIds": [
+        "obj-equivalent-fractions",
+        "obj-add-unlike-fractions",
+        "obj-explain-fraction-context"
+      ],
+      "assessmentCriterionIds": [
+        "crit-equivalence",
+        "crit-common-unit",
+        "crit-addition",
+        "crit-reasoning",
+        "crit-context"
+      ],
+      "taskDifficulty": "core-transfer",
+      "expectedAnswer": {
+        "canonicalFraction": "1/3",
+        "acceptEquivalentUnreducedFractions": true,
+        "rational": {
+          "numerator": 1,
+          "denominator": 3
+        }
+      },
+      "answerWorking": [
+        "1/4 = 3/12",
+        "3/12 + 1/12 = 4/12 = 1/3 meter"
+      ],
+      "validationKind": "fraction-addition",
+      "operands": [
+        {
+          "numerator": 1,
+          "denominator": 4
+        },
+        {
+          "numerator": 1,
+          "denominator": 12
+        }
+      ],
+      "answerUnit": "meter"
     }
   ],
   "templates": [
@@ -405,6 +769,129 @@ const authored = {
             "y": 0.55,
             "width": 0.88,
             "height": 0.38
+          }
+        }
+      ]
+    },
+    {
+      "id": "fraction-practice-template-v1",
+      "title": "Fraction practice",
+      "date": "2026-09-25",
+      "questionIds": [
+        "fp01",
+        "fp02",
+        "fp03"
+      ],
+      "instructions": "Show your working. Use the same-sized whole in models. Equivalent unreduced answers are accepted. Teacher records any help provided.",
+      "pageSize": "US-Letter",
+      "questionRegions": [
+        {
+          "questionId": "fp01",
+          "rect": {
+            "x": 0.06,
+            "y": 0.17,
+            "width": 0.88,
+            "height": 0.25
+          }
+        },
+        {
+          "questionId": "fp02",
+          "rect": {
+            "x": 0.06,
+            "y": 0.435,
+            "width": 0.88,
+            "height": 0.25
+          }
+        },
+        {
+          "questionId": "fp03",
+          "rect": {
+            "x": 0.06,
+            "y": 0.7,
+            "width": 0.88,
+            "height": 0.25
+          }
+        }
+      ]
+    },
+    {
+      "id": "word-problems-template-v1",
+      "title": "Word problems",
+      "date": "2026-09-28",
+      "questionIds": [
+        "wp01",
+        "wp02",
+        "wp03"
+      ],
+      "instructions": "Show your working. Use the same-sized whole in models. Equivalent unreduced answers are accepted. Teacher records any help provided.",
+      "pageSize": "US-Letter",
+      "questionRegions": [
+        {
+          "questionId": "wp01",
+          "rect": {
+            "x": 0.06,
+            "y": 0.17,
+            "width": 0.88,
+            "height": 0.25
+          }
+        },
+        {
+          "questionId": "wp02",
+          "rect": {
+            "x": 0.06,
+            "y": 0.435,
+            "width": 0.88,
+            "height": 0.25
+          }
+        },
+        {
+          "questionId": "wp03",
+          "rect": {
+            "x": 0.06,
+            "y": 0.7,
+            "width": 0.88,
+            "height": 0.25
+          }
+        }
+      ]
+    },
+    {
+      "id": "independent-check-template-v1",
+      "title": "Independent check",
+      "date": "2026-09-30",
+      "questionIds": [
+        "ic01",
+        "ic02",
+        "ic03"
+      ],
+      "instructions": "Show your working. Use the same-sized whole in models. Equivalent unreduced answers are accepted. Teacher records any help provided.",
+      "pageSize": "US-Letter",
+      "questionRegions": [
+        {
+          "questionId": "ic01",
+          "rect": {
+            "x": 0.06,
+            "y": 0.17,
+            "width": 0.88,
+            "height": 0.25
+          }
+        },
+        {
+          "questionId": "ic02",
+          "rect": {
+            "x": 0.06,
+            "y": 0.435,
+            "width": 0.88,
+            "height": 0.25
+          }
+        },
+        {
+          "questionId": "ic03",
+          "rect": {
+            "x": 0.06,
+            "y": 0.7,
+            "width": 0.88,
+            "height": 0.25
           }
         }
       ]
@@ -544,6 +1031,156 @@ const authored = {
           "mode": "whole_class"
         }
       ]
+    },
+    {
+      "schemaVersion": 1,
+      "lessonId": "lesson-2026-09-28",
+      "unitId": "unit-fractions-v1",
+      "date": "2026-09-28",
+      "title": "Connect models to written methods",
+      "objectiveIds": [
+        "obj-equivalent-fractions",
+        "obj-add-unlike-fractions",
+        "obj-explain-fraction-context"
+      ],
+      "totalMinutes": 45,
+      "blocks": [
+        {
+          "id": "warmup",
+          "title": "Recall equivalent parts",
+          "minutes": 5,
+          "instructions": "Use an equal-whole bar to explain why changing both numerator and denominator preserves a fraction.",
+          "mode": "whole_class"
+        },
+        {
+          "id": "model",
+          "title": "Connect a model and calculation",
+          "minutes": 8,
+          "instructions": "Model a fresh unlike-denominator sum with strips, then write the matching equivalent-fraction steps.",
+          "mode": "whole_class"
+        },
+        {
+          "id": "practice",
+          "title": "Practice matching representations",
+          "minutes": 12,
+          "instructions": "Pairs solve fresh sums and connect each renamed fraction to equal-sized parts in their models.",
+          "mode": "whole_class"
+        },
+        {
+          "id": "application",
+          "title": "Word problems",
+          "minutes": 15,
+          "instructions": "Use ten minutes for the three-question Word problems assignment. Record actual help. Discuss the context and units in the remaining five minutes.",
+          "mode": "whole_class"
+        },
+        {
+          "id": "exit",
+          "title": "Explain a common unit",
+          "minutes": 5,
+          "instructions": "Students explain why the addends must count the same-sized parts before addition.",
+          "mode": "whole_class"
+        }
+      ]
+    },
+    {
+      "schemaVersion": 1,
+      "lessonId": "lesson-2026-09-29",
+      "unitId": "unit-fractions-v1",
+      "date": "2026-09-29",
+      "title": "Choose and justify a common denominator",
+      "objectiveIds": [
+        "obj-equivalent-fractions",
+        "obj-add-unlike-fractions",
+        "obj-explain-fraction-context"
+      ],
+      "totalMinutes": 45,
+      "blocks": [
+        {
+          "id": "warmup",
+          "title": "Recall two valid denominators",
+          "minutes": 5,
+          "instructions": "Compare two representations of the same fraction and explain their equal value.",
+          "mode": "whole_class"
+        },
+        {
+          "id": "model",
+          "title": "Justify a denominator choice",
+          "minutes": 8,
+          "instructions": "Model two valid common denominators for a fresh sum. Explain why the smaller convenient denominator is optional.",
+          "mode": "whole_class"
+        },
+        {
+          "id": "practice",
+          "title": "Compare methods in pairs",
+          "minutes": 12,
+          "instructions": "Solve fresh sums using two valid methods. Explain why equivalent unreduced results count as correct.",
+          "mode": "whole_class"
+        },
+        {
+          "id": "application",
+          "title": "Apply the chosen method",
+          "minutes": 15,
+          "instructions": "Solve short ribbon-length problems with working and units. The teacher records help without supplying a group label.",
+          "mode": "whole_class"
+        },
+        {
+          "id": "exit",
+          "title": "Check the reasoning",
+          "minutes": 5,
+          "instructions": "Write one equivalent-fraction step and explain what the denominator counts.",
+          "mode": "whole_class"
+        }
+      ]
+    },
+    {
+      "schemaVersion": 1,
+      "lessonId": "lesson-2026-10-01",
+      "unitId": "unit-fractions-v1",
+      "date": "2026-10-01",
+      "title": "Review evidence and prepare for assessment",
+      "objectiveIds": [
+        "obj-equivalent-fractions",
+        "obj-add-unlike-fractions",
+        "obj-explain-fraction-context"
+      ],
+      "totalMinutes": 45,
+      "blocks": [
+        {
+          "id": "warmup",
+          "title": "Recall the common unit",
+          "minutes": 5,
+          "instructions": "Use a short example to recall equal-sized wholes and equivalent fractional parts.",
+          "mode": "whole_class"
+        },
+        {
+          "id": "model",
+          "title": "Explain a complete solution",
+          "minutes": 8,
+          "instructions": "Model an inspectable calculation, a reasonable total and a word-problem unit without rehearsing assessment items.",
+          "mode": "whole_class"
+        },
+        {
+          "id": "practice",
+          "title": "Review through practice",
+          "minutes": 12,
+          "instructions": "Students work on fresh examples while the teacher uses reviewed September 30 work to select brief support or extension.",
+          "mode": "whole_class"
+        },
+        {
+          "id": "application",
+          "title": "Apply and discuss",
+          "minutes": 15,
+          "instructions": "Solve new fraction-addition contexts. Ask students to explain their method and record the help they receive.",
+          "mode": "whole_class"
+        },
+        {
+          "id": "exit",
+          "title": "Name the next check",
+          "minutes": 5,
+          "instructions": "Students show a short calculation or question for a teacher conference. Keep the October 2 assessment date fixed.",
+          "mode": "whole_class"
+        }
+      ]
     }
   ],
   "calendar": [
@@ -663,7 +1300,7 @@ const authored = {
     {
       "date": "2026-09-25",
       "title": "Compare strategies and check reasonableness",
-      "content": "Original 45-minute lesson comparing strategies and checking reasonableness. Any targeted revisit depends on reviewed follow-up evidence and a separately accepted proposal.",
+      "content": "Original 45-minute lesson comparing strategies and checking reasonableness. Any targeted revisit depends on reviewed follow-up evidence and a separately accepted proposal. Fraction practice may use ten minutes of the application block; record actual help.",
       "eventType": "planned-lesson",
       "lessonId": "lesson-2026-09-25",
       "minutes": 45,
@@ -692,8 +1329,8 @@ const authored = {
       "date": "2026-09-28",
       "title": "Connect models to written methods",
       "content": "Continue unlike-denominator addition with equal-whole models and calculation explanations.",
-      "eventType": "none",
-      "lessonId": null,
+      "eventType": "planned-lesson",
+      "lessonId": "lesson-2026-09-28",
       "minutes": 45,
       "locked": false,
       "learningObjectiveIds": [
@@ -717,10 +1354,10 @@ const authored = {
     },
     {
       "date": "2026-09-29",
-      "title": "Select and justify a common denominator",
+      "title": "Choose and justify a common denominator",
       "content": "Compare valid denominators and accept equivalent unreduced sums.",
-      "eventType": "none",
-      "lessonId": null,
+      "eventType": "planned-lesson",
+      "lessonId": "lesson-2026-09-29",
       "minutes": 45,
       "locked": false,
       "learningObjectiveIds": [
@@ -745,7 +1382,7 @@ const authored = {
     {
       "date": "2026-09-30",
       "title": "Explain fraction-addition contexts",
-      "content": "Use fresh word problems and units; collect additional observations where needed.",
+      "content": "Use fresh word problems and units; collect additional observations where needed. Collect the three-question Independent check during ten minutes of application; use it to plan October 1.",
       "eventType": "none",
       "lessonId": null,
       "minutes": 45,
@@ -771,10 +1408,10 @@ const authored = {
     },
     {
       "date": "2026-10-01",
-      "title": "Review and short conferences",
+      "title": "Review evidence and prepare for assessment",
       "content": "Review required objectives; use brief checks to address unresolved evidence.",
-      "eventType": "review",
-      "lessonId": null,
+      "eventType": "planned-lesson",
+      "lessonId": "lesson-2026-10-01",
       "minutes": 45,
       "locked": false,
       "learningObjectiveIds": [
@@ -1204,6 +1841,228 @@ const authored = {
             {
               "numerator": 1,
               "denominator": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "fraction-practice-template-v1",
+      "title": "Fraction practice",
+      "suggestedMinutes": 10,
+      "conditions": "Record actual assistance. Synthetic fictional assignment; teacher review required.",
+      "prompts": [
+        {
+          "id": "fp01",
+          "prompt": "Calculate 1/4 + 1/8. Show equivalent fractions and your sum.",
+          "canonicalFraction": "3/8",
+          "answerKey": "1/4 = 2/8; 2/8 + 1/8 = 3/8",
+          "expectedRational": {
+            "numerator": 3,
+            "denominator": 8
+          },
+          "answerUnit": null,
+          "validationKind": "fraction-addition",
+          "operands": [
+            {
+              "numerator": 1,
+              "denominator": 4
+            },
+            {
+              "numerator": 1,
+              "denominator": 8
+            }
+          ]
+        },
+        {
+          "id": "fp02",
+          "prompt": "Calculate 1/3 + 1/5. Show how the addends use equal-sized parts.",
+          "canonicalFraction": "8/15",
+          "answerKey": "1/3 = 5/15; 1/5 = 3/15; 5/15 + 3/15 = 8/15",
+          "expectedRational": {
+            "numerator": 8,
+            "denominator": 15
+          },
+          "answerUnit": null,
+          "validationKind": "fraction-addition",
+          "operands": [
+            {
+              "numerator": 1,
+              "denominator": 3
+            },
+            {
+              "numerator": 1,
+              "denominator": 5
+            }
+          ]
+        },
+        {
+          "id": "fp03",
+          "prompt": "Calculate 2/9 + 1/3. Explain the common unit in your working.",
+          "canonicalFraction": "5/9",
+          "answerKey": "1/3 = 3/9; 2/9 + 3/9 = 5/9; Both addends now count ninths.",
+          "expectedRational": {
+            "numerator": 5,
+            "denominator": 9
+          },
+          "answerUnit": null,
+          "validationKind": "fraction-addition",
+          "operands": [
+            {
+              "numerator": 2,
+              "denominator": 9
+            },
+            {
+              "numerator": 1,
+              "denominator": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "word-problems-template-v1",
+      "title": "Word problems",
+      "suggestedMinutes": 10,
+      "conditions": "Record actual assistance. Synthetic fictional assignment; teacher review required.",
+      "prompts": [
+        {
+          "id": "wp01",
+          "prompt": "A display uses 1/5 meter of blue ribbon and 3/10 meter of green ribbon. Find the total length. Show working and units.",
+          "canonicalFraction": "1/2",
+          "answerKey": "1/5 = 2/10; 2/10 + 3/10 = 5/10 = 1/2 meter",
+          "expectedRational": {
+            "numerator": 1,
+            "denominator": 2
+          },
+          "answerUnit": "meter",
+          "validationKind": "fraction-addition",
+          "operands": [
+            {
+              "numerator": 1,
+              "denominator": 5
+            },
+            {
+              "numerator": 3,
+              "denominator": 10
+            }
+          ]
+        },
+        {
+          "id": "wp02",
+          "prompt": "Two strings measure 2/5 meter and 1/3 meter. What is their total length? Show equivalent fractions and include the unit.",
+          "canonicalFraction": "11/15",
+          "answerKey": "2/5 = 6/15; 1/3 = 5/15; 6/15 + 5/15 = 11/15 meter",
+          "expectedRational": {
+            "numerator": 11,
+            "denominator": 15
+          },
+          "answerUnit": "meter",
+          "validationKind": "fraction-addition",
+          "operands": [
+            {
+              "numerator": 2,
+              "denominator": 5
+            },
+            {
+              "numerator": 1,
+              "denominator": 3
+            }
+          ]
+        },
+        {
+          "id": "wp03",
+          "prompt": "A class joins 1/4 meter of paper border to 1/10 meter more. How long is the border? Show your method and units.",
+          "canonicalFraction": "7/20",
+          "answerKey": "1/4 = 5/20; 1/10 = 2/20; 5/20 + 2/20 = 7/20 meter",
+          "expectedRational": {
+            "numerator": 7,
+            "denominator": 20
+          },
+          "answerUnit": "meter",
+          "validationKind": "fraction-addition",
+          "operands": [
+            {
+              "numerator": 1,
+              "denominator": 4
+            },
+            {
+              "numerator": 1,
+              "denominator": 10
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "independent-check-template-v1",
+      "title": "Independent check",
+      "suggestedMinutes": 10,
+      "conditions": "Record actual assistance. Synthetic fictional assignment; teacher review required.",
+      "prompts": [
+        {
+          "id": "ic01",
+          "prompt": "Calculate 1/2 + 3/10. Show equivalent fractions and your sum.",
+          "canonicalFraction": "4/5",
+          "answerKey": "1/2 = 5/10; 5/10 + 3/10 = 8/10 = 4/5",
+          "expectedRational": {
+            "numerator": 4,
+            "denominator": 5
+          },
+          "answerUnit": null,
+          "validationKind": "fraction-addition",
+          "operands": [
+            {
+              "numerator": 1,
+              "denominator": 2
+            },
+            {
+              "numerator": 3,
+              "denominator": 10
+            }
+          ]
+        },
+        {
+          "id": "ic02",
+          "prompt": "Calculate 1/5 + 2/3. Show your steps. A correct unreduced answer is allowed.",
+          "canonicalFraction": "13/15",
+          "answerKey": "1/5 = 3/15; 2/3 = 10/15; 3/15 + 10/15 = 13/15",
+          "expectedRational": {
+            "numerator": 13,
+            "denominator": 15
+          },
+          "answerUnit": null,
+          "validationKind": "fraction-addition",
+          "operands": [
+            {
+              "numerator": 1,
+              "denominator": 5
+            },
+            {
+              "numerator": 2,
+              "denominator": 3
+            }
+          ]
+        },
+        {
+          "id": "ic03",
+          "prompt": "A ribbon is 1/4 meter long. Another is 1/12 meter long. Find their total length with working and units.",
+          "canonicalFraction": "1/3",
+          "answerKey": "1/4 = 3/12; 3/12 + 1/12 = 4/12 = 1/3 meter",
+          "expectedRational": {
+            "numerator": 1,
+            "denominator": 3
+          },
+          "answerUnit": "meter",
+          "validationKind": "fraction-addition",
+          "operands": [
+            {
+              "numerator": 1,
+              "denominator": 4
+            },
+            {
+              "numerator": 1,
+              "denominator": 12
             }
           ]
         }

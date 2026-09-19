@@ -481,5 +481,728 @@
         "uncertaintyNote": null
       }
     ]
+  },
+  "15038cdc43db2f20b54ff1912db4828dfa9fa1ea1f65259eb65fec5d6da5f8c2": {
+    "templateId": "fraction-practice-template-v1",
+    "studentId": "stu-01",
+    "responses": [
+      {
+        "questionId": "fp01",
+        "workingText": "1/4 = 2/8; 2/8 + 1/8 = 3/8",
+        "answerText": "3/8",
+        "legibility": "clear",
+        "alternatives": [],
+        "uncertaintyNote": null
+      },
+      {
+        "questionId": "fp02",
+        "workingText": "1/3 = 5/15; 1/5 = 3/15; 5/15 + 3/15 = 8/15",
+        "answerText": "8/15",
+        "legibility": "clear",
+        "alternatives": [],
+        "uncertaintyNote": null
+      },
+      {
+        "questionId": "fp03",
+        "workingText": "1/3 = 3/9; Both fractions count ninths. 2/9 + 3/9 = 5/9",
+        "answerText": "5/9",
+        "legibility": "clear",
+        "alternatives": [],
+        "uncertaintyNote": null
+      }
+    ]
+  },
+  "469383cf7471a80eff90184e35041dccb983403fab09eb0e75401e9b364cca9a": {
+    "templateId": "fraction-practice-template-v1",
+    "studentId": "stu-02",
+    "responses": [
+      {
+        "questionId": "fp01",
+        "workingText": "1/4 = 2/8; 2/8 + 1/8 = 3/8",
+        "answerText": "3/8",
+        "legibility": "clear",
+        "alternatives": [],
+        "uncertaintyNote": null
+      },
+      {
+        "questionId": "fp02",
+        "workingText": "1/3 = 5/15; 1/5 = 3/15; 5/15 + 3/15 = 7/15",
+        "answerText": "7/15",
+        "legibility": "clear",
+        "alternatives": [],
+        "uncertaintyNote": null
+      },
+      {
+        "questionId": "fp03",
+        "workingText": "1/3 = 3/9; 2/9 + 3/9 = 5/9",
+        "answerText": "5/9",
+        "legibility": "clear",
+        "alternatives": [],
+        "uncertaintyNote": null
+      }
+    ]
+  },
+  "1e5da9f722b53e4ab29cc7513fe45c149a54550938d4fe2d71a74c905c23e128": {
+    "templateId": "fraction-practice-template-v1",
+    "studentId": "stu-03",
+    "responses": [
+      {
+        "questionId": "fp01",
+        "workingText": "1/4 = 2/8; 2/8 + 1/8 = 3/8",
+        "answerText": "3/8",
+        "legibility": "clear",
+        "alternatives": [],
+        "uncertaintyNote": null
+      },
+      {
+        "questionId": "fp02",
+        "workingText": "1/3 = 5/15; 1/5 = 3/15; 5/15 + 3/15 = 8/15",
+        "answerText": "8/15",
+        "legibility": "clear",
+        "alternatives": [],
+        "uncertaintyNote": null
+      },
+      {
+        "questionId": "fp03",
+        "workingText": "1/3 = 3/9; 2/9 + 3/9 = 5/9",
+        "answerText": "5/9",
+        "legibility": "clear",
+        "alternatives": [],
+        "uncertaintyNote": null
+      }
+    ]
+  },
+  "a1e7b75a363e6f9370a200496b21dec2ea9d3a6baff7c2f856231c69005979b9": {
+    "templateId": "fraction-practice-template-v1",
+    "studentId": "stu-04",
+    "responses": [
+      {
+        "questionId": "fp01",
+        "workingText": "1/4 = 2/8; 2/8 + 1/8 = 3/8",
+        "answerText": "3/8",
+        "legibility": "clear",
+        "alternatives": [],
+        "uncertaintyNote": null
+      },
+      {
+        "questionId": "fp02",
+        "workingText": "1/3 = 5/15; 1/5 = 3/15; 5/15 + 3/15 = 8/15",
+        "answerText": "8/15",
+        "legibility": "clear",
+        "alternatives": [],
+        "uncertaintyNote": null
+      },
+      {
+        "questionId": "fp03",
+        "workingText": "1/3 = 3/9; 2/9 + 3/9 = 4/9",
+        "answerText": "4/9",
+        "legibility": "clear",
+        "alternatives": [],
+        "uncertaintyNote": null
+      }
+    ]
+  },
+  "4759e4d4b18bbf8b0620cf7a141148d8d3b372685f0406c47ecc5b30a39a80d1": {
+    "templateId": "fraction-practice-template-v1",
+    "studentId": "stu-05",
+    "responses": [
+      {
+        "questionId": "fp01",
+        "workingText": "1/4 = 4/16; 1/8 = 2/16; 4/16 + 2/16 = 6/16",
+        "answerText": "6/16",
+        "legibility": "clear",
+        "alternatives": [],
+        "uncertaintyNote": null
+      },
+      {
+        "questionId": "fp02",
+        "workingText": "1/3 = 10/30; 1/5 = 6/30; 10/30 + 6/30 = 16/30",
+        "answerText": "16/30",
+        "legibility": "clear",
+        "alternatives": [],
+        "uncertaintyNote": null
+      },
+      {
+        "questionId": "fp03",
+        "workingText": "2/9 = 4/18; 1/3 = 6/18; Both fractions count eighteenths. 4/18 + 6/18 = 10/18",
+        "answerText": "10/18",
+        "legibility": "clear",
+        "alternatives": [],
+        "uncertaintyNote": null
+      }
+    ]
+  },
+  "189cbed6943124a119791a0f39a46554ec84949c24863f1b62f93ea023bf6108": {
+    "templateId": "fraction-practice-template-v1",
+    "studentId": "stu-06",
+    "responses": [
+      {
+        "questionId": "fp01",
+        "workingText": "1/4 = 2/8; 2/8 + 1/8 = 3/8",
+        "answerText": "3/8",
+        "legibility": "clear",
+        "alternatives": [],
+        "uncertaintyNote": null
+      },
+      {
+        "questionId": "fp02",
+        "workingText": "1/3 = 5/15; 1/5 = 3/15; 5/15 + 3/15 = 8/15",
+        "answerText": "8/15",
+        "legibility": "clear",
+        "alternatives": [],
+        "uncertaintyNote": null
+      },
+      {
+        "questionId": "fp03",
+        "workingText": "1/3 = 3/9; Both fractions count ninths. 2/9 + 3/9 = 5/9",
+        "answerText": "5/9",
+        "legibility": "clear",
+        "alternatives": [],
+        "uncertaintyNote": null
+      }
+    ]
+  },
+  "acf2b30500f47a08ab213a4549289611c36d28dc3048523c8c85fb23ef7667b6": {
+    "templateId": "fraction-practice-template-v1",
+    "studentId": "stu-07",
+    "responses": [
+      {
+        "questionId": "fp01",
+        "workingText": "1/4 = 2/8; 2/8 + 1/8 = 3/8",
+        "answerText": "3/8",
+        "legibility": "clear",
+        "alternatives": [],
+        "uncertaintyNote": null
+      },
+      {
+        "questionId": "fp02",
+        "workingText": "1/3 = 5/15; 1/5 = 3/15; 5/15 + 3/15 = 8/15",
+        "answerText": "8/15",
+        "legibility": "clear",
+        "alternatives": [],
+        "uncertaintyNote": null
+      },
+      {
+        "questionId": "fp03",
+        "workingText": "1/3 = 3/9; 2/9 + 3/9 = 5/9",
+        "answerText": "5/9",
+        "legibility": "clear",
+        "alternatives": [],
+        "uncertaintyNote": null
+      }
+    ]
+  },
+  "80d1db4f5b524e830a12b1896c886a0d035f5f25fdbde552d8f2e8a75a24d4b8": {
+    "templateId": "fraction-practice-template-v1",
+    "studentId": "stu-08",
+    "responses": [
+      {
+        "questionId": "fp01",
+        "workingText": "1/4 = 2/8; 2/8 + 1/8 = 3/8",
+        "answerText": "3/8",
+        "legibility": "clear",
+        "alternatives": [],
+        "uncertaintyNote": null
+      },
+      {
+        "questionId": "fp02",
+        "workingText": "1/3 = 5/15",
+        "answerText": null,
+        "legibility": "clear",
+        "alternatives": [],
+        "uncertaintyNote": null
+      },
+      {
+        "questionId": "fp03",
+        "workingText": "",
+        "answerText": null,
+        "legibility": "blank",
+        "alternatives": [],
+        "uncertaintyNote": null
+      }
+    ]
+  },
+  "07e32de55562df90a8e0f00d436a1aa8631230767c1d113d8d0f77264bb2402b": {
+    "templateId": "word-problems-template-v1",
+    "studentId": "stu-01",
+    "responses": [
+      {
+        "questionId": "wp01",
+        "workingText": "1/5 = 2/10; 2/10 + 3/10 = 5/10 = 1/2 meter",
+        "answerText": "1/2 meter",
+        "legibility": "clear",
+        "alternatives": [],
+        "uncertaintyNote": null
+      },
+      {
+        "questionId": "wp02",
+        "workingText": "2/5 = 6/15; 1/3 = 5/15; 6/15 + 5/15 = 11/15 meter",
+        "answerText": "11/15 meter",
+        "legibility": "clear",
+        "alternatives": [],
+        "uncertaintyNote": null
+      },
+      {
+        "questionId": "wp03",
+        "workingText": "1/4 = 5/20; 1/10 = 2/20; 5/20 + 2/20 = 7/20",
+        "answerText": "7/20",
+        "legibility": "clear",
+        "alternatives": [],
+        "uncertaintyNote": null
+      }
+    ]
+  },
+  "beaa829dab4d12bd9a8dbfd66f762e7aadd339d658da4d87a0778ccf2b3cf7fc": {
+    "templateId": "word-problems-template-v1",
+    "studentId": "stu-02",
+    "responses": [
+      {
+        "questionId": "wp01",
+        "workingText": "1/5 = 2/10; 2/10 + 3/10 = 5/10 meter",
+        "answerText": "5/10 meter",
+        "legibility": "clear",
+        "alternatives": [],
+        "uncertaintyNote": null
+      },
+      {
+        "questionId": "wp02",
+        "workingText": "2/5 = 6/15; 1/3 = 5/15; 6/15 + 5/15 = 11/15",
+        "answerText": "11/15",
+        "legibility": "clear",
+        "alternatives": [],
+        "uncertaintyNote": null
+      },
+      {
+        "questionId": "wp03",
+        "workingText": "1/4 = 10/40; 1/10 = 4/40; 10/40 + 4/40 = 14/40 meter",
+        "answerText": "14/40 meter",
+        "legibility": "clear",
+        "alternatives": [],
+        "uncertaintyNote": null
+      }
+    ]
+  },
+  "ddf697d6f071076890a503b715b8ef290f634d0bcc0de094fa13d0d1349bb615": {
+    "templateId": "word-problems-template-v1",
+    "studentId": "stu-03",
+    "responses": [
+      {
+        "questionId": "wp01",
+        "workingText": "1/5 = 2/10; 2/10 + 3/10 = 5/10 meter",
+        "answerText": "5/10 meter",
+        "legibility": "clear",
+        "alternatives": [],
+        "uncertaintyNote": null
+      },
+      {
+        "questionId": "wp02",
+        "workingText": "2/5 + 1/3 = 3/8 meter",
+        "answerText": "3/8 meter",
+        "legibility": "clear",
+        "alternatives": [],
+        "uncertaintyNote": null
+      },
+      {
+        "questionId": "wp03",
+        "workingText": "1/4 + 1/10 = 2/14 = 1/7 meter",
+        "answerText": "1/7 meter",
+        "legibility": "clear",
+        "alternatives": [],
+        "uncertaintyNote": null
+      }
+    ]
+  },
+  "c6f74e70b042f57bc95a77446e0e29ef956db4c79981473714887de31f7d65a0": {
+    "templateId": "word-problems-template-v1",
+    "studentId": "stu-04",
+    "responses": [
+      {
+        "questionId": "wp01",
+        "workingText": "1/5 = 2/10; 2/10 + 3/10 = 5/10 = 1/2 meter",
+        "answerText": "1/2 meter",
+        "legibility": "clear",
+        "alternatives": [],
+        "uncertaintyNote": null
+      },
+      {
+        "questionId": "wp02",
+        "workingText": "2/5 = 6/15; 1/3 = 5/15; 6/15 + 5/15 = 11/15 meter",
+        "answerText": "11/15 meter",
+        "legibility": "clear",
+        "alternatives": [],
+        "uncertaintyNote": null
+      },
+      {
+        "questionId": "wp03",
+        "workingText": "1/4 = 5/20; 1/10 = 2/20; 5/20 + 2/20 = 7/20 meter",
+        "answerText": "7/20 meter",
+        "legibility": "clear",
+        "alternatives": [],
+        "uncertaintyNote": null
+      }
+    ]
+  },
+  "5540120e196035c0f2c376bdc1bffe655bc6f3b4f49820b2d603d896b8100dfe": {
+    "templateId": "word-problems-template-v1",
+    "studentId": "stu-05",
+    "responses": [
+      {
+        "questionId": "wp01",
+        "workingText": "1/5 = 4/20; 3/10 = 6/20; 4/20 + 6/20 = 10/20 meter",
+        "answerText": "10/20 meter",
+        "legibility": "clear",
+        "alternatives": [],
+        "uncertaintyNote": null
+      },
+      {
+        "questionId": "wp02",
+        "workingText": "2/5 = 12/30; 1/3 = 10/30; 12/30 + 10/30 = 22/30 meter",
+        "answerText": "22/30 meter",
+        "legibility": "clear",
+        "alternatives": [],
+        "uncertaintyNote": null
+      },
+      {
+        "questionId": "wp03",
+        "workingText": "1/4 = 10/40; 1/10 = 4/40; 10/40 + 4/40 = 14/40 meter",
+        "answerText": "14/40 meter",
+        "legibility": "clear",
+        "alternatives": [],
+        "uncertaintyNote": null
+      }
+    ]
+  },
+  "25321f47e11107a01b8851acad050d1524fa2793c4ab6dba4c79c82e263e6e3e": {
+    "templateId": "word-problems-template-v1",
+    "studentId": "stu-06",
+    "responses": [
+      {
+        "questionId": "wp01",
+        "workingText": "1/5 = 2/10; 2/10 + 3/10 = 5/10 = 1/2 meter",
+        "answerText": "1/2 meter",
+        "legibility": "clear",
+        "alternatives": [],
+        "uncertaintyNote": null
+      },
+      {
+        "questionId": "wp02",
+        "workingText": "2/5 = 6/15; 1/3 = 5/15; 6/15 + 5/15 = 11/15 meter",
+        "answerText": "11/15 meter",
+        "legibility": "clear",
+        "alternatives": [],
+        "uncertaintyNote": null
+      },
+      {
+        "questionId": "wp03",
+        "workingText": "1/4 = 5/20; 1/10 = 2/20; 5/20 + 2/20 = 7/30 meter",
+        "answerText": "7/30 meter",
+        "legibility": "uncertain",
+        "alternatives": [
+          "7/20 meter"
+        ],
+        "uncertaintyNote": "Prepared reading flag: simulated denominator misread. The synthetic source says 7/20 meter. Inspect the original before correcting."
+      }
+    ],
+    "preparedCorrection": "Prepared reading flag - simulated extraction error. Actual image answer is 7/20 meter; fixture transcript deliberately reads 7/30 meter."
+  },
+  "8a94e8a7abd60b95936e325ea1982c2c4c7085c8f4584d68477902cbb99106fb": {
+    "templateId": "word-problems-template-v1",
+    "studentId": "stu-07",
+    "responses": [
+      {
+        "questionId": "wp01",
+        "workingText": "1/5 = 2/10; 2/10 + 3/10 = 5/10 = 1/2 meter",
+        "answerText": "1/2 meter",
+        "legibility": "clear",
+        "alternatives": [],
+        "uncertaintyNote": null
+      },
+      {
+        "questionId": "wp02",
+        "workingText": "2/5 = 6/15; 1/3 = 5/15; 6/15 + 5/15 = 11/15 meter",
+        "answerText": "11/15 meter",
+        "legibility": "clear",
+        "alternatives": [],
+        "uncertaintyNote": null
+      },
+      {
+        "questionId": "wp03",
+        "workingText": "1/4 = 5/20; 1/10 = 2/20; 5/20 + 2/20 = 7/20 meter",
+        "answerText": "7/20 meter",
+        "legibility": "clear",
+        "alternatives": [],
+        "uncertaintyNote": null
+      }
+    ]
+  },
+  "72a19ef9dd16713e85f8df7fd177785f2d22b2f007084d2b9eaf280018ddd8e0": {
+    "templateId": "word-problems-template-v1",
+    "studentId": "stu-08",
+    "responses": [
+      {
+        "questionId": "wp01",
+        "workingText": "1/5 = 2/10; 2/10 + 3/10 = 5/10 meter",
+        "answerText": "5/10 meter",
+        "legibility": "clear",
+        "alternatives": [],
+        "uncertaintyNote": null
+      },
+      {
+        "questionId": "wp02",
+        "workingText": "2/5 = 6/15",
+        "answerText": null,
+        "legibility": "clear",
+        "alternatives": [],
+        "uncertaintyNote": null
+      },
+      {
+        "questionId": "wp03",
+        "workingText": "",
+        "answerText": null,
+        "legibility": "blank",
+        "alternatives": [],
+        "uncertaintyNote": null
+      }
+    ]
+  },
+  "b5695a4d04d251491a1360daf51052d72cda265b2d5f8138783178a58290ac62": {
+    "templateId": "independent-check-template-v1",
+    "studentId": "stu-01",
+    "responses": [
+      {
+        "questionId": "ic01",
+        "workingText": "1/2 = 5/10; 5/10 + 3/10 = 8/10 = 4/5",
+        "answerText": "4/5",
+        "legibility": "clear",
+        "alternatives": [],
+        "uncertaintyNote": null
+      },
+      {
+        "questionId": "ic02",
+        "workingText": "1/5 = 3/15; 2/3 = 10/15; 3/15 + 10/15 = 13/15",
+        "answerText": "13/15",
+        "legibility": "clear",
+        "alternatives": [],
+        "uncertaintyNote": null
+      },
+      {
+        "questionId": "ic03",
+        "workingText": "1/4 = 3/12; 3/12 + 1/12 = 4/12 = 1/3 meter",
+        "answerText": "1/3 meter",
+        "legibility": "clear",
+        "alternatives": [],
+        "uncertaintyNote": null
+      }
+    ]
+  },
+  "eb18b9a75f515058b6670c834e6faf9dc4de0fb98aee36ebabb6c51b369997e0": {
+    "templateId": "independent-check-template-v1",
+    "studentId": "stu-02",
+    "responses": [
+      {
+        "questionId": "ic01",
+        "workingText": "1/2 = 5/10; 5/10 + 3/10 = 8/10",
+        "answerText": "8/10",
+        "legibility": "clear",
+        "alternatives": [],
+        "uncertaintyNote": null
+      },
+      {
+        "questionId": "ic02",
+        "workingText": "1/5 = 6/30; 2/3 = 20/30; 6/30 + 20/30 = 26/30",
+        "answerText": "26/30",
+        "legibility": "clear",
+        "alternatives": [],
+        "uncertaintyNote": null
+      },
+      {
+        "questionId": "ic03",
+        "workingText": "1/4 = 3/12; 3/12 + 1/12 = 4/12 meter",
+        "answerText": "4/12 meter",
+        "legibility": "clear",
+        "alternatives": [],
+        "uncertaintyNote": null
+      }
+    ]
+  },
+  "38586d784c55f4d1185f81a25b1edd5e73883af9f416eb5fba8ed79c9cc8ef4c": {
+    "templateId": "independent-check-template-v1",
+    "studentId": "stu-03",
+    "responses": [
+      {
+        "questionId": "ic01",
+        "workingText": "1/2 = 5/10; 5/10 + 3/10 = 8/10",
+        "answerText": "8/10",
+        "legibility": "clear",
+        "alternatives": [],
+        "uncertaintyNote": null
+      },
+      {
+        "questionId": "ic02",
+        "workingText": "1/5 = 3/15; 2/3 = 10/15; 3/15 + 10/15 = 13/15",
+        "answerText": "13/15",
+        "legibility": "clear",
+        "alternatives": [],
+        "uncertaintyNote": null
+      },
+      {
+        "questionId": "ic03",
+        "workingText": "",
+        "answerText": null,
+        "legibility": "blank",
+        "alternatives": [],
+        "uncertaintyNote": null
+      }
+    ]
+  },
+  "cf65a6835e96cbebd89f15c38ca42f3eb2395a16afae6463d4879d8c7b7982c7": {
+    "templateId": "independent-check-template-v1",
+    "studentId": "stu-04",
+    "responses": [
+      {
+        "questionId": "ic01",
+        "workingText": "1/2 = 5/10; 5/10 + 3/10 = 8/10 = 4/5",
+        "answerText": "4/5",
+        "legibility": "clear",
+        "alternatives": [],
+        "uncertaintyNote": null
+      },
+      {
+        "questionId": "ic02",
+        "workingText": "1/5 = 3/15; 2/3 = 10/15; 3/15 + 10/15 = 12/15",
+        "answerText": "12/15",
+        "legibility": "clear",
+        "alternatives": [],
+        "uncertaintyNote": null
+      },
+      {
+        "questionId": "ic03",
+        "workingText": "1/4 = 3/12; 3/12 + 1/12 = 4/12 = 1/3 meter",
+        "answerText": "1/3 meter",
+        "legibility": "clear",
+        "alternatives": [],
+        "uncertaintyNote": null
+      }
+    ]
+  },
+  "c292949ed0c1c54be5e9a566183240d79cf965706024c70f28646373e624d462": {
+    "templateId": "independent-check-template-v1",
+    "studentId": "stu-05",
+    "responses": [
+      {
+        "questionId": "ic01",
+        "workingText": "1/2 = 10/20; 3/10 = 6/20; 10/20 + 6/20 = 16/20",
+        "answerText": "16/20",
+        "legibility": "clear",
+        "alternatives": [],
+        "uncertaintyNote": null
+      },
+      {
+        "questionId": "ic02",
+        "workingText": "1/5 = 6/30; 2/3 = 20/30; 6/30 + 20/30 = 26/30",
+        "answerText": "26/30",
+        "legibility": "clear",
+        "alternatives": [],
+        "uncertaintyNote": null
+      },
+      {
+        "questionId": "ic03",
+        "workingText": "1/4 = 6/24; 1/12 = 2/24; 6/24 + 2/24 = 8/24 meter",
+        "answerText": "8/24 meter",
+        "legibility": "clear",
+        "alternatives": [],
+        "uncertaintyNote": null
+      }
+    ]
+  },
+  "dbec9d3bdf97fdfe19a8c7aac2d107143945b2d2f6fbe1f7d28155b3ba7c6f0f": {
+    "templateId": "independent-check-template-v1",
+    "studentId": "stu-06",
+    "responses": [
+      {
+        "questionId": "ic01",
+        "workingText": "1/2 = 5/10; 5/10 + 3/10 = 8/10 = 4/5",
+        "answerText": "4/5",
+        "legibility": "clear",
+        "alternatives": [],
+        "uncertaintyNote": null
+      },
+      {
+        "questionId": "ic02",
+        "workingText": "1/5 = 3/15; 2/3 = 10/15; 3/15 + 10/15 = 13/15",
+        "answerText": "13/15",
+        "legibility": "clear",
+        "alternatives": [],
+        "uncertaintyNote": null
+      },
+      {
+        "questionId": "ic03",
+        "workingText": "1/4 = 3/12; 3/12 + 1/12 = 4/12 = 1/3 meter",
+        "answerText": "1/3 meter",
+        "legibility": "clear",
+        "alternatives": [],
+        "uncertaintyNote": null
+      }
+    ]
+  },
+  "bf1d5ad73f3a112d46fcd0fe8ac5027ba0b600b373d4a6ebf2b1a6f365b2f1d7": {
+    "templateId": "independent-check-template-v1",
+    "studentId": "stu-07",
+    "responses": [
+      {
+        "questionId": "ic01",
+        "workingText": "1/2 = 5/10; 5/10 + 3/10 = 8/10 = 4/5",
+        "answerText": "4/5",
+        "legibility": "clear",
+        "alternatives": [],
+        "uncertaintyNote": null
+      },
+      {
+        "questionId": "ic02",
+        "workingText": "1/5 = 3/15; 2/3 = 10/15; 3/15 + 10/15 = 13/15",
+        "answerText": "13/15",
+        "legibility": "clear",
+        "alternatives": [],
+        "uncertaintyNote": null
+      },
+      {
+        "questionId": "ic03",
+        "workingText": "1/4 = 3/12; 3/12 + 1/12 = 4/12 = 1/3 meter",
+        "answerText": "1/3 meter",
+        "legibility": "clear",
+        "alternatives": [],
+        "uncertaintyNote": null
+      }
+    ]
+  },
+  "870545fb21d1a3dde33d2febf473c4417c595126716102ba3b9f8a7cf00e76ed": {
+    "templateId": "independent-check-template-v1",
+    "studentId": "stu-08",
+    "responses": [
+      {
+        "questionId": "ic01",
+        "workingText": "1/2 = 5/10; 5/10 + 3/10 = 8/10",
+        "answerText": "8/10",
+        "legibility": "clear",
+        "alternatives": [],
+        "uncertaintyNote": null
+      },
+      {
+        "questionId": "ic02",
+        "workingText": "1/5 = 3/15",
+        "answerText": null,
+        "legibility": "clear",
+        "alternatives": [],
+        "uncertaintyNote": null
+      },
+      {
+        "questionId": "ic03",
+        "workingText": "1/4 = 3/12; 3/12 + 1/12 = 4/12 meter",
+        "answerText": "4/12 meter",
+        "legibility": "clear",
+        "alternatives": [],
+        "uncertaintyNote": null
+      }
+    ]
   }
 }

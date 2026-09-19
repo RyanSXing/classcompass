@@ -1,4 +1,4 @@
-"""Validate authored specification content, not the unbuilt application.
+"""Validate authored curriculum, fictional evidence and generated asset declarations.
 
 Run from any directory: python3 /path/to/project/docs/validate_spec.py
 Uses Python's standard library only and never mutates project files.
@@ -42,15 +42,14 @@ def pair_key(operands):
 
 
 require(DATA["fictional"] is True, "data must remain explicitly fictional")
-require(DATA["fixtureUsage"]["generatedAssetsPresent"] is False,
-        "docs-only asset status unexpectedly changed")
+require(DATA["fixtureUsage"]["generatedAssetsPresent"] is True, "generated sample assets are declared")
 students = DATA["students"]
 student_ids = [s["id"] for s in students]
 require(student_ids == [f"stu-{i:02d}" for i in range(1, 9)], "roster IDs/count")
-questions = DATA["questions"] + DATA["followupQuestions"]
+questions = DATA["questions"] + DATA["followupQuestions"] + DATA["additionalQuestions"]
 by_question = {q["id"]: q for q in questions}
 unique([q["id"] for q in questions], "question IDs")
-require(len(questions) == 6, "expected four baseline and two follow-up questions")
+require(len(questions) == 15, "expected 4 + 2 + 3 + 3 + 3 authored questions")
 objectives = {item["id"]: item for item in DATA["learningObjectives"]}
 criteria = {item["id"] for item in DATA["assessmentCriteria"]}
 
@@ -134,7 +133,7 @@ for template in DATA["templates"]:
                        second["y"] < first["y"] + first["height"])
             require(not overlap, "overlapping question regions")
 
-for lesson in [DATA["lesson"], DATA["nextLesson"]]:
+for lesson in [DATA["lesson"], DATA["nextLesson"], *DATA["additionalLessons"]]:
     require([b["id"] for b in lesson["blocks"]] == ["warmup", "model", "practice", "application", "exit"], "block IDs")
     require([b["minutes"] for b in lesson["blocks"]] == [5, 8, 12, 15, 5], "block durations")
     require(sum(b["minutes"] for b in lesson["blocks"]) == lesson["totalMinutes"] == 45, "lesson total")
@@ -178,10 +177,57 @@ for entry in DATA["widerCalendarPreview"]:
 assets = DATA["assetManifest"]["assets"]
 unique([a["id"] for a in assets], "asset IDs")
 unique([a["filename"] for a in assets], "asset filenames")
-require(len(assets) == 23 and all(a["status"] == "specified-not-generated" for a in assets), "asset specification status")
+require(len(assets) == 59 and all(a["status"] == "generated" for a in assets), "generated asset declarations")
 for student in students:
     for phase in ["baseline", "followup"]:
         require(student[phase]["assetId"] in {a["id"] for a in assets}, "submission asset reference")
+
+assignments = DATA["assignments"]
+require(len(assignments) == 5, "five assignments")
+require([a["sequence"] for a in assignments] == [1, 2, 3, 4, 5], "assignment order")
+require([a["date"] for a in assignments] == sorted(a["date"] for a in assignments), "dated sequence")
+by_template = {t["id"]: t for t in DATA["templates"]}
+lessons = {l["id"]: l for l in [DATA["lesson"], DATA["nextLesson"], *DATA["additionalLessons"]]}
+for assignment in assignments:
+    template = by_template[assignment["templateId"]]
+    require(template["date"] == assignment["date"], "assignment/template date")
+    require(assignment["targetLessonId"] in lessons, "authored target lesson")
+    require(lessons[assignment["targetLessonId"]]["date"] > assignment["date"], "future lesson target")
+    require(lessons[assignment["targetLessonId"]]["date"] < DATA["unit"]["fixedAssessmentDate"], "preserve assessment")
+    require(1 <= assignment["eligibilityPolicy"]["extensionMinimum"] <= len(template["questionIds"]), "extension threshold")
+require(all(not a["eligibilityPolicy"]["requiresPriorExtension"] for a in assignments[2:]), "later work can newly qualify")
+new_totals = {"correct": 0, "incorrect": 0, "no_answer": 0}
+for template_id, submissions in DATA["additionalSubmissions"].items():
+    template = by_template[template_id]
+    require([s["studentId"] for s in submissions] == student_ids, "complete new roster")
+    for submission in submissions:
+        require(submission["date"] == template["date"] and submission["templateId"] == template_id, "new submission identity")
+        require(submission["assetId"] in {a["id"] for a in assets}, "new source asset")
+        require(submission["recordedSupport"]["level"] in {"independent", "supported", "unknown"}, "explicit assistance")
+        require([r["questionId"] for r in submission["responses"]] == template["questionIds"], "new response coverage")
+        for response in submission["responses"]:
+            if response["answerText"] is None:
+                new_totals["no_answer"] += 1
+            else:
+                value = final_fraction(response["answerText"])
+                require(value is not None and value == final_fraction(response["writtenAnswer"]), "final answer agrees with source working")
+                expected = rational(by_question[response["questionId"]]["expectedAnswer"]["rational"])
+                new_totals["correct" if value == expected else "incorrect"] += 1
+            prepared = response.get("preparedExtraction")
+            if prepared:
+                require(prepared["legibility"] == "uncertain" and "simulated" in prepared["uncertaintyNote"], "disclosed prepared reading flag")
+require(new_totals == {"correct": 61, "incorrect": 5, "no_answer": 6}, "authored additional outcomes")
+require(sum(counts.values()) + sum(new_totals.values()) == 120, "120 source response slots")
+used_pairs = prior_pairs | {pair_key(q["operands"]) for q in DATA["followupQuestions"]}
+for question in DATA["additionalQuestions"]:
+    pair = pair_key(question["operands"])
+    require(pair not in used_pairs, "new assignments use fresh fraction pairs")
+    used_pairs.add(pair)
+require(len(DATA["fixtureUsage"]["preservedSourceHashes"]) == 16, "original scan declarations")
+for asset_id, digest in DATA["fixtureUsage"]["preservedSourceHashes"].items():
+    require(next(a for a in assets if a["id"] == asset_id)["sha256"] == digest, "original scan bytes preserved")
+public_manifest = json.loads((ROOT / "public/demo/manifest.json").read_text())["assets"]
+require([{k:v for k,v in a.items() if k != "status"} for a in assets] == public_manifest, "source/public asset declarations agree")
 
 markdown_files = [ROOT / "README.md", ROOT / "ClassCompass-build-brief.md", *sorted((ROOT / "docs").glob("*.md"))]
 local_links = 0
@@ -195,6 +241,6 @@ for path in markdown_files:
         require((path.parent / unquote(target.split("#", 1)[0])).exists(), f"broken local link in {path.name}: {target}")
 
 print(f"PASS: {checks} specification assertions; {local_links} local links.")
-print("8 fictional students; 32 baseline + 16 follow-up responses; 6 worksheet questions; 12 material prompts.")
-print("Both lessons total 45 minutes; concurrent block 12 minutes; 10 teaching days; 23 specified assets.")
-print("This validates authored data/docs only. No application, live AI, or connected deployment was tested.")
+print("8 fictional students; 5 assignments; 40 scans; 120 responses; 15 worksheet questions; 12 practice prompts.")
+print("Five lesson targets total 45 minutes each; 12-minute concurrent practice; 10 teaching days; 59 generated assets.")
+print("This validates authored data and asset declarations. It does not evaluate live AI or a connected deployment.")

@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "lessonId": "lesson-2026-09-29",
+  "unitId": "unit-fractions-v1",
+  "date": "2026-09-29",
+  "title": "Choose and justify a common denominator",
+  "objectiveIds": [
+    "obj-equivalent-fractions",
+    "obj-add-unlike-fractions",
+    "obj-explain-fraction-context"
+  ],
+  "totalMinutes": 45,
+  "blocks": [
+    {
+      "id": "warmup",
+      "title": "Recall two valid denominators",
+      "minutes": 5,
+      "instructions": "Compare two representations of the same fraction and explain their equal value.",
+      "mode": "whole_class"
+    },
+    {
+      "id": "model",
+      "title": "Justify a denominator choice",
+      "minutes": 8,
+      "instructions": "Model two valid common denominators for a fresh sum. Explain why the smaller convenient denominator is optional.",
+      "mode": "whole_class"
+    },
+    {
+      "id": "practice",
+      "title": "Compare methods in pairs",
+      "minutes": 12,
+      "instructions": "Solve fresh sums using two valid methods. Explain why equivalent unreduced results count as correct.",
+      "mode": "whole_class"
+    },
+    {
+      "id": "application",
+      "title": "Apply the chosen method",
+      "minutes": 15,
+      "instructions": "Solve short ribbon-length problems with working and units. The teacher records help without supplying a group label.",
+      "mode": "whole_class"
+    },
+    {
+      "id": "exit",
+      "title": "Check the reasoning",
+      "minutes": 5,
+      "instructions": "Write one equivalent-fraction step and explain what the denominator counts.",
+      "mode": "whole_class"
+    }
+  ]
+}

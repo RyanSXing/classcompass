@@ -25,6 +25,15 @@ describe('AI provider boundary',()=>{
   expect(student.checkedEvidence.correctEquivalentReasoning).toEqual([]);expect(student.checkedEvidence.clearDenominatorAddition).toEqual([]);
   expect(context).not.toHaveProperty('responses');expect(context).not.toHaveProperty('expectedGroups');
  });
+ it('revalidates legacy checks in model input without rewriting saved evidence',()=>{
+  const {state,batchId}=setup(),response=state.responses[0];
+  response.answerText='5/6';response.workingText='1/7 = 2/14; 5/6';response.legibility='clear';
+  response.mathCheck={...response.mathCheck,status:'correct',equivalentReasoning:true};
+  const before=JSON.stringify(response.mathCheck),context=buildAnalysisInput(state,batchId);
+  expect(context.studentWork[0].checkedEvidence.correctEquivalentReasoning).toEqual([]);
+  expect(context.studentWork[0].currentResponses[0].mathCheck.equivalentReasoning).toBe(false);
+  expect(JSON.stringify(response.mathCheck)).toBe(before);
+ });
  it('fixture analysis delegates recomputation without mutating state',async()=>{const{state,batchId}=setup();const before=JSON.stringify(state);const fetcher=vi.fn();vi.stubGlobal('fetch',fetcher);const result=await analyzeEvidence({state,batchId,mode:'fixture'});expect(result.drafts).toBeUndefined();expect(result.provenance.modelId).toBe('deterministic-domain-fixture');expect(JSON.stringify(state)).toBe(before);expect(fetcher).not.toHaveBeenCalled();});
  it('disables optional reasoning only for bounded text analysis while leaving vision unchanged',async()=>{
   const{state,batchId}=setup();
