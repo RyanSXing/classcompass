@@ -10,6 +10,8 @@ supabase/.branches/
 # Dependencies, generated builds and test output
 node_modules/
 .next/
+.next-e2e/
+.next-build/
 out/
 coverage/
 playwright-report/

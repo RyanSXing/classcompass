@@ -14,12 +14,12 @@ export async function importLesson(actor: Actor, repo: Repository, raw: unknown)
   const state = await repo.read(), asset = state.assets.find(a => a.id === input.assetId);
   if (!asset || asset.status !== 'ready' || asset.purpose !== 'lesson') throw new DomainError('IMPORT_ASSET', 422, 'Upload and verify a lesson document first.');
   const bytes = await getObject(actor, asset.originalObjectKey);
-  let text = input.extractedText || '', draft: LessonSnapshot | null = input.lesson || null;
+  let text = '', draft: LessonSnapshot | null = null;
   const errors: string[] = [];
   try {
-    if (!draft && asset.mimeType === 'application/json') draft = lessonSchema.parse(JSON.parse(bytes.toString()));
+    if (asset.mimeType === 'application/json') draft = lessonSchema.parse(JSON.parse(bytes.toString()));
     if (!draft && asset.mimeType === 'application/pdf') {
-      // Read the actual uploaded PDF. A client text layer is only a fallback for unreadable PDFs.
+      // Read the actual uploaded PDF. Client preview text never replaces the source.
       const { getDocument } = await import('pdfjs-dist/legacy/build/pdf.mjs');
       const task = getDocument({ data: new Uint8Array(bytes), useSystemFonts: true });
       try { const doc = await task.promise; text = ''; for (let p = 1; p <= doc.numPages; p++) { const content = await (await doc.getPage(p)).getTextContent(); text += content.items.map(item => 'str' in item ? item.str : '').join(' ') + '\n'; } } finally { await task.destroy(); }

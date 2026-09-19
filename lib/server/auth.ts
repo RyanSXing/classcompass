@@ -10,12 +10,16 @@ export async function supabaseClient() {
   if (!config.supabaseUrl || !config.supabaseKey) throw new DomainError('SUPABASE_CONFIGURATION', 503, 'Supabase project configuration is missing.');
   const jar = await cookies();
   return createServerClient(config.supabaseUrl, config.supabaseKey, {
+    db: { timeout: 20000, retry: false },
     cookies: { getAll: () => jar.getAll(), setAll: values => values.forEach(({ name, value, options }) => jar.set(name, value, { ...options, httpOnly: true, sameSite: 'lax' })) },
   });
 }
 export async function authenticate(request?: Request): Promise<Actor> {
   if (configuration().dataBackend === 'local') {
-    if (request && !['127.0.0.1', 'localhost', '[::1]'].includes(new URL(request.url).hostname)) throw new DomainError('LOCAL_ONLY', 403, 'Local demo access is restricted to this computer.');
+    if (request) {
+      const hostname = new URL(`http://${request.headers.get('host') || new URL(request.url).host}`).hostname;
+      if (!['127.0.0.1', 'localhost', '[::1]'].includes(hostname)) throw new DomainError('LOCAL_ONLY', 403, 'Local demo access is restricted to this computer.');
+    }
     return { id: LOCAL_OWNER, name: 'Demo teacher' };
   }
   const client = await supabaseClient();
@@ -27,6 +31,9 @@ export function verifyOrigin(request: Request) {
   if (['GET', 'HEAD', 'OPTIONS'].includes(request.method)) return;
   const origin = request.headers.get('origin');
   const fetchSite = request.headers.get('sec-fetch-site');
-  const target = new URL(request.url).origin;
+  // Next's internal request URL may use localhost while the browser uses 127.0.0.1.
+  // Compare against the actual HTTP authority; never accept a forwarded host override.
+  const url = new URL(request.url);
+  const target = `${url.protocol}//${request.headers.get('host') || url.host}`;
   if ((origin && origin !== target) || fetchSite === 'cross-site') throw new DomainError('INVALID_ORIGIN', 403, 'This request must come from ClassCompass.');
 }

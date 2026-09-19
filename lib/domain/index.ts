@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { analysisSchema, applyProposalSchema, candidateFindingSchema, confirmLessonImportSchema, correctResponseSchema, correctSupportSchema, createBatchSchema, editFindingSchema, editProposalSchema, extractionSchema, generateProposalSchema, lessonSchema, reviewFindingsSchema, type AppState, type Batch, type CandidateFindingDraft, type EvidenceRef, type Finding, type LessonSnapshot, type Material, type PlanVersion, type Proposal, type ProposalChange, type Provenance, type Response, type SupportSnapshot } from '../contracts';
+import { analysisSchema, applyProposalSchema, candidateFindingSchema, confirmLessonImportSchema, correctResponseSchema, correctSupportSchema, createBatchSchema, editFindingSchema, editProposalSchema, extractionSchema, generateProposalSchema, lessonSchema, proposalChangeSchema, reviewFindingsSchema, type AppState, type Batch, type CandidateFindingDraft, type EvidenceRef, type Finding, type LessonSnapshot, type Material, type PlanVersion, type Proposal, type ProposalChange, type Provenance, type Response, type SupportSnapshot } from '../contracts';
 import { curriculum, getQuestion, getTemplate } from '../curriculum';
 import { addFractions, checkMath, equalFractions } from './math';
 import { invariant } from './errors';
@@ -67,6 +67,7 @@ export function ingestExtraction(state: AppState, input: { submissionId: string;
 export function correctResponse(state: AppState, responseId: string, raw: z.input<typeof correctResponseSchema>, ctx: DomainContext = {}) {
   const input = correctResponseSchema.parse(raw), response = find(state.responses,responseId); expected(response,input.expectedRevision);
   const before = clone(response); Object.assign(response,{ workingText: input.workingText, answerText: input.answerText, legibility: input.legibility, readingStatus: input.readingStatus }); touch(response,ctx);
+  if (input.legibility !== 'uncertain') { response.alternatives = []; response.uncertaintyNote = null; }
   response.mathCheck = checkMath(getQuestion(response.questionId),response.workingText,response.answerText,response.legibility);
   if (input.readingStatus === 'resolved') state.readingReviews.push({ ...base(state,'reading',ctx), responseId, responseRevision: response.revision, actorId: ctx.actorId || state.ownerId, note: input.reason });
   state.responseRevisions.push({ ...base(state,'response-revision',ctx), responseId, before, after: clone(response), actorId: ctx.actorId || state.ownerId, reason: input.reason });
@@ -83,19 +84,37 @@ function resolveEvidence(state: AppState, draft: CandidateFindingDraft): Respons
   invariant(new Set(draft.evidence.map(r => r.responseId)).size === draft.evidence.length, 'DUPLICATE_EVIDENCE', 'Cite each answer once.');
   return draft.evidence.map(ref => { const response = find(state.responses,ref.responseId), submission = find(state.submissions,response.submissionId); invariant(submission.studentId === draft.studentId, 'EVIDENCE_OWNER', 'Evidence must belong to this student.'); expected(response,ref.responseRevision); return response; });
 }
+function evidenceForBatch(state: AppState, draft: CandidateFindingDraft, batchId: string): Response[] {
+  const responses = resolveEvidence(state,draft), batch = find(state.batches,batchId);
+  invariant(responses.some(r => find(state.submissions,r.submissionId).batchId === batchId),'FINDING_BATCH','A finding must cite at least one response from its own worksheet batch.');
+  invariant(responses.every(r => find(state.batches,find(state.submissions,r.submissionId).batchId).activityDate <= batch.activityDate),'FUTURE_EVIDENCE','A dated finding cannot use work collected after that worksheet batch.');
+  invariant(responses.some(r => getQuestion(r.questionId).learningObjectiveIds.includes(draft.objectiveId)),'OBJECTIVE_EVIDENCE','The cited work must assess the selected learning objective.');
+  return responses;
+}
 function snapshots(state: AppState, responses: Response[]): SupportSnapshot[] { return [...new Set(responses.map(r => r.submissionId))].map(submissionId => { const s = find(state.submissions,submissionId); return { submissionId, submissionRevision: s.revision, support: clone(s.support) }; }); }
 function observationStatus(state: AppState, draft: CandidateFindingDraft, responses: Response[]): Finding['observationStatus'] {
   if (['ambiguous_transcription','insufficient_evidence'].includes(draft.code)) return 'insufficient';
   if (draft.code === 'denominator_addition') return 'not_demonstrated';
+  if (!responses.some(r => r.mathCheck.status === 'correct' && r.mathCheck.equivalentReasoning)) return responses.some(r => r.mathCheck.status === 'incorrect') ? 'not_demonstrated' : 'insufficient';
   const levels = snapshots(state,responses).map(s => s.support.level);
   return levels.includes('unknown') ? 'unknown_support' : levels.includes('supported') ? 'supported' : 'independent';
 }
 function isResolved(state: AppState, response: Response): boolean { return state.readingReviews.some(r => r.responseId === response.id && r.responseRevision === response.revision); }
 function supportFresh(state: AppState, finding: Finding) { return finding.supportSnapshots.every(s => state.submissions.some(current => current.id === s.submissionId && current.revision === s.submissionRevision)); }
-export function findingWarnings(state: AppState, draft: CandidateFindingDraft, options: { acknowledgeClear?: boolean; definitive?: boolean } = {}): string[] {
+export function findingWarnings(state: AppState, draft: CandidateFindingDraft, options: { acknowledgeClear?: boolean; definitive?: boolean; batchId?: string } = {}): string[] {
   const responses = resolveEvidence(state,draft), warnings: string[] = [], correct = responses.filter(r => r.mathCheck.status === 'correct' && r.mathCheck.equivalentReasoning), support = snapshots(state,responses);
   const unresolved = responses.filter(r => (r.legibility === 'uncertain' || r.mathCheck.contradictions.length > 0) && !isResolved(state,r));
   const qualityOnly = draft.claimScope === 'evidence_quality';
+  const explicitBatchId = options.batchId ?? ('batchId' in draft && typeof draft.batchId === 'string' ? draft.batchId : undefined);
+  const batch = explicitBatchId ? find(state.batches,explicitBatchId) : undefined;
+  if (batch) evidenceForBatch(state,draft,batch.id);
+  const currentCorrect = batch ? correct.filter(r => find(state.submissions,r.submissionId).batchId === batch.id) : correct;
+  if (['ambiguous_transcription','insufficient_evidence'].includes(draft.code) && !qualityOnly) warnings.push('An evidence limitation must retain evidence-quality scope.');
+  if (qualityOnly && ['extension','targeted_equal_parts','independent_application'].includes(draft.suggestedNextStep)) warnings.push('An evidence-quality limitation can request a check or more work, not an affirmative skill placement.');
+  if (!qualityOnly && !responses.some(r => r.legibility === 'clear' && ['correct','incorrect'].includes(r.mathCheck.status))) warnings.push('A mathematical claim needs a completed clear response; blanks and unresolved work cannot establish a skill.');
+  if (draft.claimScope === 'independent_performance' && !correct.length) warnings.push('Independent success needs correct equivalent-fraction reasoning in the cited work.');
+  if (draft.code === 'needs_independent_check' && !correct.length) warnings.push('An independent-check interpretation needs demonstrated correct working; otherwise request more evidence.');
+  if (batch?.kind === 'followup' && draft.suggestedNextStep === 'independent_application' && currentCorrect.length < 2) warnings.push('Returning to planned application needs both fresh correct follow-up responses.');
   if (!qualityOnly && unresolved.length) warnings.push('Resolve uncertain or contradictory readings before confirming this claim.');
   if (!qualityOnly && !options.acknowledgeClear && responses.some(r => r.legibility !== 'blank' && !isResolved(state,r))) warnings.push('Acknowledge these source readings before confirmation.');
   if (draft.claimScope === 'independent_performance' && support.some(s => s.support.level !== 'independent')) warnings.push('Independent performance needs teacher-recorded independent conditions.');
@@ -105,14 +124,19 @@ export function findingWarnings(state: AppState, draft: CandidateFindingDraft, o
   if (draft.suggestedNextStep === 'extension') {
     const allBatchResponses = state.responses.filter(r => { const s = find(state.submissions,r.submissionId); return s.studentId === draft.studentId && responses.some(selected => find(state.submissions,selected.submissionId).batchId === s.batchId); });
     if (correct.length < 3 || support.some(s => s.support.level !== 'independent') || allBatchResponses.some(r => (r.legibility === 'uncertain' || r.mathCheck.contradictions.length > 0) && !isResolved(state,r))) warnings.push('Extension needs three correct reasoned independent responses and no unresolved contradiction.');
+    if (batch?.kind === 'baseline' && currentCorrect.length < 3) warnings.push('A new extension placement needs three correct responses in this baseline task.');
+    if (batch?.kind === 'followup') {
+      const prior = state.findings.filter(f => f.studentId === draft.studentId && f.status === 'confirmed' && f.suggestedNextStep === 'extension' && supportFresh(state,f) && find(state.batches,f.batchId).activityDate < batch.activityDate && f.evidence.every(ref => state.responses.some(r => r.id === ref.responseId && r.revision === ref.responseRevision)));
+      const confirmedPriorIds = new Set(prior.flatMap(f => f.evidence.map(ref => ref.responseId)));
+      if (currentCorrect.length < 2 || correct.filter(r => confirmedPriorIds.has(r.id)).length < 3) warnings.push('Continuing extension needs both fresh independent follow-up responses plus confirmed earlier extension evidence.');
+    }
   }
   if (draft.suggestedNextStep === 'targeted_equal_parts' && draft.code !== 'denominator_addition' && draft.code !== 'other_teacher_finding') warnings.push('Targeted equal-parts support needs a reviewed instructional finding.');
   return [...new Set(warnings)];
 }
 function newFinding(state: AppState, draft: CandidateFindingDraft, batchId: string, provenance: Provenance | null, source: 'ai' | 'teacher', ctx: DomainContext): Finding {
-  const responses = resolveEvidence(state,draft); find(state.batches,batchId);
-  invariant(responses.some(r => find(state.submissions,r.submissionId).batchId === batchId),'FINDING_BATCH','A finding must cite the current batch.');
-  return { ...mutable(state,'finding',ctx), ...clone(draft), batchId, status: 'candidate', observationStatus: observationStatus(state,draft,responses), supportSnapshots: snapshots(state,responses), source, provenance, originalDraft: clone(draft), priorVersions: [], eligibilityWarnings: findingWarnings(state,draft) };
+  const responses = evidenceForBatch(state,draft,batchId);
+  return { ...mutable(state,'finding',ctx), ...clone(draft), batchId, status: 'candidate', observationStatus: observationStatus(state,draft,responses), supportSnapshots: snapshots(state,responses), source, provenance, originalDraft: clone(draft), priorVersions: [], eligibilityWarnings: findingWarnings(state,draft,{batchId}) };
 }
 const refs = (responses: Response[]): EvidenceRef[] => responses.map(r => ({ responseId: r.id, responseRevision: r.revision }));
 function deriveDraft(state: AppState, batch: Batch, studentId: string, responses: Response[]): CandidateFindingDraft {
@@ -126,8 +150,8 @@ function deriveDraft(state: AppState, batch: Batch, studentId: string, responses
   if (correct.length && support.includes('supported')) return { ...common, code: 'correct_with_support', claimScope: 'mathematics', explanation: 'Correct equivalent-fraction working was demonstrated with recorded help. Keep that success and collect a brief independent check.', suggestedNextStep: 'independent_check' };
   if (correct.length && support.includes('unknown')) return { ...common, code: 'needs_independent_check', claimScope: 'mathematics', explanation: 'The submitted working includes correct fraction reasoning, but the assistance conditions are not recorded.', limitations: ['Independence is not established.'], suggestedNextStep: 'independent_check' };
   if (correct.length >= (batch.kind === 'followup' ? 2 : 3)) {
-    const prior = batch.kind === 'followup' ? state.findings.filter(f => f.studentId === studentId && f.batchId !== batch.id && f.status === 'confirmed' && f.suggestedNextStep === 'extension' && supportFresh(state,f)) : [];
-    const priorResponses = prior.flatMap(f => resolveEvidence(state,f)).filter(r => !responses.some(current => current.id === r.id));
+    const prior = batch.kind === 'followup' ? state.findings.filter(f => f.studentId === studentId && f.batchId !== batch.id && f.status === 'confirmed' && f.suggestedNextStep === 'extension' && supportFresh(state,f) && find(state.batches,f.batchId).activityDate < batch.activityDate) : [];
+    const priorResponses = [...new Map(prior.flatMap(f => resolveEvidence(state,f)).filter(r => !responses.some(current => current.id === r.id)).map(r => [r.id,r])).values()];
     const extension = batch.kind === 'baseline' || priorResponses.length >= 3;
     return { ...common, evidence: refs([...responses,...priorResponses.slice(0,8-responses.length)]), code: 'equivalent_fraction_reasoning', claimScope: 'independent_performance', explanation: batch.kind === 'followup' ? 'The fresh independent check shows correct equivalent fractions and addition. Preserve earlier observations and use this new evidence for the next lesson.' : 'The work shows correct equivalent fractions and addition across this task, under recorded independent conditions.', suggestedNextStep: extension ? 'extension' : 'independent_application' };
   }
@@ -142,7 +166,7 @@ export function analyzeBatch(state: AppState, input: { batchId: string; provenan
     if(primary.code==='insufficient_evidence' && correct.length>0 && submission.support.level==='independent') return [primary,{studentId:submission.studentId,objectiveId:'obj-add-unlike-fractions',evidence:refs(correct),code:'equivalent_fraction_reasoning' as const,claimScope:'independent_performance' as const,explanation:'This completed response demonstrates correct independent fraction reasoning. Keep this observation while requesting the missing response.',limitations:['This observation covers only the completed question.'],suggestedNextStep:'gather_evidence' as const}];
     return [primary];
   });
-  for (const draft of drafts) { const warnings = findingWarnings(state,draft,{acknowledgeClear:true}); invariant(!warnings.some(w => !w.includes('Resolve uncertain')), 'INVALID_FINDING', warnings.join(' ')); }
+  for (const draft of drafts) { const warnings = findingWarnings(state,draft,{acknowledgeClear:true,batchId:batch.id}); invariant(!warnings.some(w => !w.includes('Resolve uncertain')), 'INVALID_FINDING', warnings.join(' ')); }
   const created: Finding[] = [];
   for (const old of state.findings.filter(f => f.batchId === batch.id && f.status === 'candidate' && drafts.some(d=>d.studentId===f.studentId))) { old.status = 'stale'; touch(old,ctx); }
   for (const draft of drafts) {
@@ -156,9 +180,9 @@ export function createFinding(state: AppState, raw: CandidateFindingDraft & { ba
 }
 export function editFinding(state: AppState, findingId: string, raw: z.input<typeof editFindingSchema>, ctx: DomainContext = {}) {
   const input = editFindingSchema.parse(raw), finding = find(state.findings,findingId); expected(finding,input.expectedRevision);
-  const { reason } = input; const changes = { objectiveId: input.objectiveId, code: input.code, claimScope: input.claimScope, explanation: input.explanation, evidence: input.evidence, limitations: input.limitations, suggestedNextStep: input.suggestedNextStep }; const draft = candidateFindingSchema.parse({...changes,studentId:finding.studentId}); const responses = resolveEvidence(state,draft);
+  const { reason } = input; const changes = { objectiveId: input.objectiveId, code: input.code, claimScope: input.claimScope, explanation: input.explanation, evidence: input.evidence, limitations: input.limitations, suggestedNextStep: input.suggestedNextStep }; const draft = candidateFindingSchema.parse({...changes,studentId:finding.studentId}); const responses = evidenceForBatch(state,draft,finding.batchId);
   finding.priorVersions.push(candidateFindingSchema.parse({ studentId: finding.studentId, objectiveId: finding.objectiveId, code: finding.code, claimScope: finding.claimScope, explanation: finding.explanation, evidence: finding.evidence, limitations: finding.limitations, suggestedNextStep: finding.suggestedNextStep }));
-  withdrawObservations(state,finding.id,reason); Object.assign(finding,draft,{status:'candidate',source:'teacher',supportSnapshots:snapshots(state,responses),observationStatus:observationStatus(state,draft,responses),eligibilityWarnings:findingWarnings(state,draft)}); touch(finding,ctx); invalidateProposals(state,ctx); audit(state,'finding.edited',finding.id,{reason},ctx); return finding;
+  withdrawObservations(state,finding.id,reason); Object.assign(finding,draft,{status:'candidate',source:'teacher',supportSnapshots:snapshots(state,responses),observationStatus:observationStatus(state,draft,responses),eligibilityWarnings:findingWarnings(state,draft,{batchId:finding.batchId})}); touch(finding,ctx); invalidateProposals(state,ctx); audit(state,'finding.edited',finding.id,{reason},ctx); return finding;
 }
 export function reviewFindings(state: AppState, raw: z.input<typeof reviewFindingsSchema>, ctx: DomainContext = {}) {
   const input = reviewFindingsSchema.parse(raw); invariant(new Set(input.items.map(i=>i.findingId)).size === input.items.length,'DUPLICATE_REVIEW','Review each finding once.');
@@ -222,17 +246,20 @@ export function proposalAfter(state: AppState, proposal: Proposal, selectedChang
 export function proposalIsFresh(state: AppState, proposal: Proposal): boolean { return proposal.status==='draft' && proposal.evidenceRevision===state.classroom.evidenceRevision && proposal.calendarRevision===state.classroom.calendarRevision && find(state.plans,proposal.lessonId).currentVersionId===proposal.basePlanVersionId; }
 function validateChanges(state: AppState, proposal: Proposal, selectedIds = proposal.changes.map(c=>c.id)) {
   invariant(selectedIds.length===new Set(selectedIds).size && selectedIds.every(changeId=>proposal.changes.some(c=>c.id===changeId)),'CHANGE_SELECTION','Select known changes once each.');
+  invariant(new Set(proposal.changes.map(c=>c.id)).size===proposal.changes.length,'DUPLICATE_CHANGE','Each proposal change must have a distinct identity.');
   invariant(new Set(proposal.changes.map(c=>c.operation)).size===proposal.changes.length,'DUPLICATE_OPERATION','Use at most one change of each kind.');
   const selected=proposal.changes.filter(c=>selectedIds.includes(c.id)), snapshot=proposalAfter(state,proposal,selectedIds), current=currentFindings(state,snapshot.date);
   for (const change of selected) {
     invariant(change.dependsOnChangeIds.every(changeId=>selectedIds.includes(changeId)),'CHANGE_DEPENDENCY','Select the changes required by this activity.');
-    invariant(change.findingIds.length>0,'CONFIRMED_EVIDENCE_REQUIRED','Instructional changes need confirmed evidence.');
+    invariant(change.findingIds.length>0 && new Set(change.findingIds).size===change.findingIds.length,'CONFIRMED_EVIDENCE_REQUIRED','Instructional changes need confirmed evidence.');
     const findings=change.findingIds.map(findingId=>find(state.findings,findingId));
     invariant(findings.every(f=>current.some(c=>c.id===f.id)),'STALE_EVIDENCE','Only current confirmed findings may support this change.',409);
-    invariant(change.evidence.every(ref=>findings.some(f=>f.evidence.some(e=>e.responseId===ref.responseId && e.responseRevision===ref.responseRevision))),'CHANGE_EVIDENCE','Each source reference must appear in a cited confirmed finding.');
-    invariant(change.affectedStudentIds.every(studentId=>state.students.some(s=>s.id===studentId&&s.active)),'CHANGE_STUDENT','This change contains an unknown student.');
+    invariant(change.evidence.length>0 && new Set(change.evidence.map(ref=>ref.responseId)).size===change.evidence.length && findings.every(f=>change.evidence.some(ref=>f.evidence.some(e=>e.responseId===ref.responseId&&e.responseRevision===ref.responseRevision))) && change.evidence.every(ref=>findings.some(f=>f.evidence.some(e=>e.responseId===ref.responseId && e.responseRevision===ref.responseRevision))),'CHANGE_EVIDENCE','Keep source evidence for every cited confirmed finding; each reference must be current and occur once.');
+    invariant(change.affectedStudentIds.length>0 && new Set(change.affectedStudentIds).size===change.affectedStudentIds.length && change.affectedStudentIds.every(studentId=>state.students.some(s=>s.id===studentId&&s.active)),'CHANGE_STUDENT','This change contains an unknown student.');
     if (change.operation==='replace_practice') {
-      invariant(change.payload.block.id==='practice','CHANGE_BLOCK','Practice changes must target the practice block.');
+      invariant(change.payload.block.id==='practice' && change.payload.block.mode==='concurrent' && change.payload.block.lanes?.length===3,'CHANGE_BLOCK','Practice replacement must preserve the three concurrent pathways.');
+      const roster=state.students.filter(s=>s.active).map(s=>s.id);
+      invariant(roster.length===change.affectedStudentIds.length&&roster.every(id=>change.affectedStudentIds.includes(id)),'CHANGE_ROSTER','The practice replacement affects every active student exactly once.');
       for (const lane of change.payload.block.lanes||[]) for (const studentId of lane.studentIds) {
         if (lane.id==='extension') invariant(findings.some(f=>f.studentId===studentId && f.suggestedNextStep==='extension' && !findingWarnings(state,f,{acknowledgeClear:true}).length),'EXTENSION_EVIDENCE','Extension membership needs current confirmed independent evidence.');
         if (lane.id==='targeted') invariant(findings.some(f=>f.studentId===studentId && f.suggestedNextStep==='targeted_equal_parts'),'TARGETED_EVIDENCE','Targeted membership needs a current confirmed finding.');
@@ -270,7 +297,8 @@ export function generateProposal(state: AppState, lessonId: string, raw: z.input
     {...common,id:id('change',ctx),operation:'replace_exit',rationale:'Collect a short explanation of equal-sized parts to decide whether the instruction transferred.',payload:{block:{id:'exit',title:'Explain the common unit',minutes:5,instructions:'Solve 1/4 + 1/6 and finish: Before adding, I rewrite the fractions because… Record actual assistance.',mode:'whole_class',materialIds:['exit-equal-units-v1']}}},
   ];
   if (lessonId==='lesson-2026-09-23' && !find(state.calendarEntries,'calendar-2026-09-24').checkpoint) defaultChanges.push({...common,id:id('change',ctx),operation:'schedule_checkpoint',rationale:'Check fresh independent work the following day. Keep the fixed assessment and later units in place.',payload:{calendarEntryId:'calendar-2026-09-24',offsetMinutes:0,minutes:8,templateId:'followup-template-v1',title:'Fresh fraction check',materialIds:['followup-template-v1']}});
-  const proposal: Proposal={...mutable(state,'proposal',ctx),lessonId,basePlanVersionId:version.id,evidenceRevision:state.classroom.evidenceRevision,calendarRevision:state.classroom.calendarRevision,inputFingerprint:inputFingerprint(state),status:'draft',changes:clone(changes||defaultChanges),originalChanges:clone(changes||defaultChanges),provenance:clone(provenance),teacherEdited:false,selectedChangeIds:[]};
+  const validatedChanges=z.array(proposalChangeSchema).min(1).max(3).parse(changes||defaultChanges);
+  const proposal: Proposal={...mutable(state,'proposal',ctx),lessonId,basePlanVersionId:version.id,evidenceRevision:state.classroom.evidenceRevision,calendarRevision:state.classroom.calendarRevision,inputFingerprint:inputFingerprint(state),status:'draft',changes:clone(validatedChanges),originalChanges:clone(validatedChanges),provenance:clone(provenance),teacherEdited:false,selectedChangeIds:[]};
   validateChanges(state,proposal); state.proposals.push(proposal); audit(state,'proposal.created',proposal.id,{lessonId,mode:provenance.mode},ctx); return proposal;
 }
 export function editProposal(state: AppState, proposalId: string, raw: z.input<typeof editProposalSchema>, ctx: DomainContext = {}) {
@@ -289,6 +317,10 @@ export function applyProposal(state: AppState, proposalId: string, raw: z.input<
   if(!input.selectedChangeIds.length) { proposal.status='discarded';touch(proposal,ctx);result={proposalId,planVersionId:previous.id,keptOriginal:true};audit(state,'proposal.discarded',proposalId,{},ctx); }
   else {
     const selected=proposal.changes.filter(c=>input.selectedChangeIds.includes(c.id)),materialIds=new Set(snapshot.blocks.flatMap(b=>[...(b.materialIds||[]),...(b.lanes||[]).flatMap(l=>l.materialIds)]));
+    for (const entry of state.calendarEntries) if (entry.checkpoint) {
+      const accepted=state.proposals.find(p=>p.id===entry.checkpoint!.proposalId&&p.lessonId===plan.id&&p.status==='applied');
+      for (const change of accepted?.changes||[]) if (change.operation==='schedule_checkpoint'&&accepted?.selectedChangeIds.includes(change.id)&&change.payload.calendarEntryId===entry.id) for (const materialId of change.payload.materialIds) materialIds.add(materialId);
+    }
     for(const change of selected) if(change.operation==='schedule_checkpoint') for(const materialId of change.payload.materialIds) materialIds.add(materialId);
     const materials=curriculum.materials.filter(m=>materialIds.has(m.id)); validateMaterials(materials);
     const version:PlanVersion={...base(state,'plan-version',ctx),lessonId:plan.id,versionNumber:previous.versionNumber+1,previousVersionId:previous.id,snapshot:clone(snapshot),proposalId,selectedChangeIds:clone(input.selectedChangeIds),evidence:[...new Map(selected.flatMap(c=>c.evidence).map(ref=>[ref.responseId,ref])).values()],actorId:ctx.actorId||state.ownerId};

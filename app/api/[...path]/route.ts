@@ -45,7 +45,7 @@ async function route(request: Request, context: Context) {
     const ctx = { actorId: actor.id, idempotencyKey: key };
     if (area === 'classroom' && method === 'GET' && paths.length === 1) return ok({ state: await repo.read(), config: { aiMode: config.aiMode, dataBackend: config.dataBackend, teacher: actor.name }, curriculum });
     if (area === 'uploads') {
-      if (id === 'prepare' && method === 'POST') return ok(await prepareUploads(actor, repo, await body(request)), 201);
+      if (id === 'prepare' && method === 'POST') return ok(await prepareUploads(actor, repo, await body(request), key), 201);
       if (action === 'complete' && method === 'POST') return ok(await finalizeUpload(actor, repo, id));
       if (action === 'content' && method === 'PUT') {
         if (config.dataBackend !== 'local') throw new DomainError('SIGNED_UPLOAD_REQUIRED', 403, 'Use the prepared private upload URL.');

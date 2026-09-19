@@ -83,7 +83,7 @@ export class SupabaseRepository implements Repository {
     state.revision++;
     const { error } = await this.actor.client!.rpc('commit_classcompass_state', { p_expected_revision: previous, p_state: state });
     if (error) {
-      if (error.code === '40001') throw new DomainError('REVISION_CONFLICT', 409, 'This classroom changed in another session. Refresh and retry.');
+      if (error.code === 'PT409' || error.code === '40001') throw new DomainError('REVISION_CONFLICT', 409, 'This classroom changed in another session. Refresh and retry.');
       throw new DomainError('DATABASE_WRITE', 503, 'Could not save the classroom. Your draft is retained.');
     }
     return result;

@@ -15,11 +15,11 @@ export function parseFraction(text: string | null): Rational | null {
   return { numerator, denominator };
 }
 function simpleFraction(text: string): Rational | null { const match = text.trim().match(/^(-?\d+\s*\/\s*\d+)(?:\s+(?:meters?|metres?|m))?$/i); return match ? parseFraction(match[1]) : null; }
-function correctRenameCount(working: string): number {
+function correctRenameCount(working: string, addends?: Rational[]): number {
   let count = 0;
   for (const match of working.matchAll(/(?=(\b\d+\s*\/\s*\d+)\s*=\s*(\d+\s*\/\s*\d+)(?![\d]|\s*\+))/g)) {
     const left = parseFraction(match[1]), right = parseFraction(match[2]);
-    if (left && right && equalFractions(left, right) && left.denominator !== right.denominator) count++;
+    if (left && right && equalFractions(left, right) && left.denominator !== right.denominator && (!addends || addends.some(a => a.numerator === left.numerator && a.denominator === left.denominator))) count++;
   }
   return count;
 }
@@ -39,10 +39,15 @@ export function checkMath(question: Question, workingText: string, answerText: s
   if (parsed && finalFraction && !equalFractions(parsed, finalFraction)) contradictions.push('The final answer differs from the last written result.');
   const [a, b] = question.operands;
   const naive = { numerator: a.numerator + b.numerator, denominator: a.denominator + b.denominator };
-  const operandsShown = workingText.includes(`${a.numerator}/${a.denominator}`) && workingText.includes(`${b.numerator}/${b.denominator}`) && workingText.includes('+');
-  const separateBottoms = new RegExp(`${a.denominator}\\s*\\+\\s*${b.denominator}\\s*=\\s*${a.denominator+b.denominator}`).test(workingText);
-  const explicitBottoms = /(?:tops?.*bottoms?|numerators?.*denominators?)/i.test(workingText);
-  const denominatorAddition = Boolean(parsed && equalFractions(parsed, naive) && !equalFractions(naive, expected) && (operandsShown || separateBottoms || explicitBottoms));
+  // A mistaken final answer is not enough to diagnose an operation. Require the
+  // original addends to be added directly, or explicit numerator/denominator sums.
+  const fractionPattern = (v: Rational) => `${v.numerator}\\s*\\/\\s*${v.denominator}`;
+  const directPattern = new RegExp(`(?:^|[;\\n])\\s*${fractionPattern(a)}\\s*\\+\\s*${fractionPattern(b)}\\s*=\\s*`);
+  const directAddition = directPattern.test(workingText);
+  const separateBottoms = new RegExp(`(?:^|[;\\n])\\s*${a.denominator}\\s*\\+\\s*${b.denominator}\\s*=\\s*${a.denominator+b.denominator}(?:\\s*[;\\n]|$)`).test(workingText);
+  const separateTops = new RegExp(`(?:^|[;\\n])\\s*${a.numerator}\\s*\\+\\s*${b.numerator}\\s*=\\s*${a.numerator+b.numerator}(?:\\s*[;\\n]|$)`).test(workingText);
+  const hasCorrectRenaming = correctRenameCount(workingText, question.operands) > 0;
+  const denominatorAddition = Boolean(parsed && equalFractions(parsed, naive) && !equalFractions(naive, expected) && ((directAddition && !hasCorrectRenaming) || (separateBottoms && separateTops)));
   const equivalentReasoning = correctRenameCount(workingText) > 0 && contradictions.length === 0;
   const blank = legibility === 'blank' && !workingText.trim() && !answerText;
   const status = blank ? 'blank' : !parsed || legibility === 'uncertain' ? 'unresolved' : equalFractions(parsed, expected) ? 'correct' : 'incorrect';

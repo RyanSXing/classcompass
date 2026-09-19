@@ -21,11 +21,29 @@ function localPath(key: string) {
   return target;
 }
 export async function putObject(actor: Actor, key: string, bytes: Uint8Array, type: string) {
+  if (!key.startsWith(actor.id + '/')) throw new DomainError('NOT_FOUND', 404, 'File not found.');
   if (configuration().dataBackend === 'local') {
-    const target = localPath(key); await fs.mkdir(path.dirname(target), { recursive: true }); await fs.writeFile(target, bytes, { mode: 0o600 });
+    const target = localPath(key); await fs.mkdir(path.dirname(target), { recursive: true });
+    const temporary = `${target}.${randomUUID()}.tmp`;
+    try {
+      await fs.writeFile(temporary, bytes, { mode: 0o600, flag: 'wx' });
+      try { await fs.link(temporary, target); }
+      catch (error) {
+        if ((error as NodeJS.ErrnoException).code !== 'EEXIST') throw error;
+        const existing = await fs.readFile(target);
+        if (!existing.equals(Buffer.from(bytes))) throw new DomainError('OBJECT_IMMUTABLE', 409, 'This evidence is already stored. Prepare a new upload to replace it.');
+      }
+    } finally { await fs.unlink(temporary).catch(() => {}); }
   } else {
     const { error } = await actor.client!.storage.from('classcompass-evidence').upload(key, bytes, { contentType: type, upsert: false });
-    if (error) throw new DomainError('STORAGE_UPLOAD', 503, 'Could not save the worksheet. Retry this file.');
+    if (error) {
+      if (String((error as {statusCode?:string}).statusCode) === '409' || /already exists|duplicate/i.test(error.message)) {
+        const existing = await getObject(actor, key);
+        if (existing.equals(Buffer.from(bytes))) return;
+        throw new DomainError('OBJECT_IMMUTABLE', 409, 'This evidence is already stored. Prepare a new upload to replace it.');
+      }
+      throw new DomainError('STORAGE_UPLOAD', 503, 'Could not save the worksheet. Retry this file.');
+    }
   }
 }
 export async function getObject(actor: Actor, key: string): Promise<Buffer> {
@@ -72,15 +90,25 @@ async function inspect(bytes: Buffer, purpose: Asset['purpose']) {
     return { mimeType: meta.format === 'png' ? 'image/png' : 'image/jpeg', width: meta.width, height: meta.height, pageCount: 1 };
   } catch { throw new DomainError('INVALID_IMAGE', 415, 'Use a clear PNG/JPEG under 20 megapixels, or a supported PDF.'); }
 }
-export async function prepareUploads(actor: Actor, repo: Repository, input: unknown) {
+export async function prepareUploads(actor: Actor, repo: Repository, input: unknown, idempotencyKey?: string) {
   const parsed = uploadSchema.parse(input);
   if (parsed.purpose === 'worksheet' && !curriculum.templates.some(t => t.id === parsed.templateId)) throw new DomainError('TEMPLATE_REQUIRED', 422, 'Choose a known worksheet template.');
-  const assets = await repo.transact(state => parsed.files.map(file => {
+  const assets = await repo.transact(state => {
+    const operation='upload.prepare', requestHash=JSON.stringify(parsed);
+    const prior=idempotencyKey && state.mutationKeys.find(key=>key.operation===operation && key.key===idempotencyKey);
+    if(prior) {
+      if(prior.requestHash!==requestHash) throw new DomainError('IDEMPOTENCY_CONFLICT',409,'This upload request key was already used for different files.');
+      return (prior.result as string[]).map(id=>{const asset=state.assets.find(asset=>asset.id===id);if(!asset)throw new DomainError('UPLOAD_MISSING',409,'The prepared upload is no longer available.');return asset;});
+    }
+    const created=parsed.files.map(file => {
     if (file.studentId && !state.students.some(s => s.id === file.studentId)) throw new DomainError('STUDENT_NOT_FOUND', 404, 'Student not found.');
     const id = randomUUID(); const now = new Date().toISOString();
     const asset: Asset = { id, ownerId: actor.id, createdAt: now, updatedAt: now, revision: 1, purpose: parsed.purpose, name: file.name, status: 'pending', mimeType: file.type, byteCount: file.size, templateId: parsed.templateId, studentId: file.studentId, originalObjectKey: `${actor.id}/${id}/original`, normalizedObjectKey: `${actor.id}/${id}/normalized`, source: 'upload' };
     state.assets.push(asset); return asset;
-  }));
+    });
+    if(idempotencyKey) state.mutationKeys.push({id:randomUUID(),ownerId:actor.id,createdAt:new Date().toISOString(),operation,key:idempotencyKey,requestHash,result:created.map(asset=>asset.id)});
+    return created;
+  });
   return { assets: await Promise.all(assets.map(async asset => {
     const result = { id: asset.id, method: 'PUT', uploadUrl: `/api/uploads/${asset.id}/content?slot=original`, normalizedUploadUrl: `/api/uploads/${asset.id}/content?slot=normalized`, headers: {} };
     if (configuration().dataBackend === 'supabase') {

@@ -1,5 +1,6 @@
 // Server-only provider boundary. Never import this module into a client component.
 import { createHash, randomUUID } from 'node:crypto';
+import path from 'node:path';
 import { z } from 'zod';
 import { analysisSchema, extractionSchema, idSchema, laneSchema, proposalChangeSchema, type AppState, type CandidateFindingDraft, type ExtractionDraft, type Finding, type ProposalChange, type Provenance, type Response as WorkResponse } from '@/lib/contracts';
 import { curriculum, getQuestion, getTemplate } from '@/lib/curriculum';
@@ -74,7 +75,7 @@ export async function extractWorksheet(input: { assetHash: string; bytes: Buffer
   if (mode === 'fixture') {
     // Loaded only in this explicitly selected branch; never included in live prompts.
     const { readFile } = await import('node:fs/promises');
-    const records = JSON.parse(await readFile(new URL('../fixtures/extractions.json', import.meta.url), 'utf8')) as Record<string,{templateId:string;responses:unknown}>;
+    const records = JSON.parse(await readFile(path.join(process.cwd(), 'lib', 'fixtures', 'extractions.json'), 'utf8')) as Record<string,{templateId:string;responses:unknown}>;
     const fixture = records[input.assetHash];
     if (!fixture || fixture.templateId !== input.templateId) throw new AIError('AI_FIXTURE_UNSUPPORTED', 'Fixture mode recognizes only the provided demo pages. Load a matching demo page, choose live mode, or use manual transcription.', false);
     return { draft: validateExtraction({ templateId:fixture.templateId,responses:fixture.responses },input.templateId), provenance: provenance(mode,'prepared-fixture-extraction',PROMPTS.extract,{assetHash:input.assetHash,templateId:input.templateId}) };

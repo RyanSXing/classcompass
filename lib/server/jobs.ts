@@ -40,7 +40,6 @@ export function queueJob(state: AppState, type: Job['type'], id: string, raw: un
       if (!state.extractions.some(e => e.submissionId === submissionId)) job.steps.push({ id: randomUUID(), kind: 'extract', submissionId, status: 'pending', attempts: 0, inputFingerprint: '' });
     }
     job.steps.push({ id: randomUUID(), kind: 'analyze', status: 'pending', attempts: 0, inputFingerprint: '' });
-    batch.latestJobId = job.id;
   } else {
     job.lessonId = id;
     // Validate all preconditions on a throwaway snapshot before spending a model call.
@@ -50,10 +49,11 @@ export function queueJob(state: AppState, type: Job['type'], id: string, raw: un
   }
   job.inputFingerprint = fingerprint(state, job);
   const existing = state.jobs.find(j => !terminal.includes(j.status) && j.type === type && j.batchId === job.batchId && j.lessonId === job.lessonId && j.inputFingerprint === job.inputFingerprint);
-  if (existing) return existing;
-  state.jobs.push(job);
-  if (key) state.mutationKeys.push({ id: randomUUID(), ownerId: state.ownerId, createdAt: now, operation, key, requestHash: JSON.stringify(request), result: job.id });
-  return job;
+  const selected = existing || job;
+  if (!existing) state.jobs.push(job);
+  if (selected.batchId) state.batches.find(batch => batch.id === selected.batchId)!.latestJobId = selected.id;
+  if (key) state.mutationKeys.push({ id: randomUUID(), ownerId: state.ownerId, createdAt: now, operation, key, requestHash: JSON.stringify(request), result: selected.id });
+  return selected;
 }
 function cancel(job: Job, code: string, message: string) {
   job.status = 'cancelled'; job.errorCode = code; job.error = message; job.cancelledAt = stamp();
@@ -129,7 +129,7 @@ export async function runNext(actor: Actor, repo: Repository, id: string, provid
       job.error = message; job.errorCode = failure.code || 'PROCESSING_FAILED';
       if (retryable && current.attempts < configuration().maxAttempts) {
         current.status = 'waiting_retry'; job.status = 'waiting_retry';
-        current.nextAttemptAt = new Date(Date.now() + Math.max(4000, Math.min(failure.retryAfterMs || 4000 * 2 ** current.attempts, 300000))).toISOString(); job.nextAttemptAt = current.nextAttemptAt;
+        current.nextAttemptAt = new Date(Date.now() + Math.max(4000, Math.min(failure.retryAfterMs || 4000 * 2 ** current.attempts, 86400000))).toISOString(); job.nextAttemptAt = current.nextAttemptAt;
       } else { current.status = 'failed'; job.status = retryable ? 'failed' : 'blocked'; }
       touch(job); return { job };
     });
