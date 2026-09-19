@@ -4,7 +4,7 @@ Show a teacher making a decision from evidence, correcting that evidence, and ac
 
 ## Prepare the recording
 
-Use a dedicated local fictional workspace with `DATA_BACKEND=local` and `AI_MODE=fixture`. Follow the root README setup, start `npm run dev`, and open `http://127.0.0.1:3000/classroom`. Keep the **Fictional student data** and **Fixture analysis** labels visible. This guide is a rehearsal procedure, not a claim that final browser, production or connected verification has passed.
+Use a dedicated local fictional workspace with `DATA_BACKEND=local` and `AI_MODE=fixture`. Follow the root README setup, start `npm run dev`, and open `http://127.0.0.1:3000/classroom`. Keep the **Fictional student data** and **Fixture analysis** labels visible. Actual browser, production and connected outcomes are recorded in [verification results](verification-results.md).
 
 The classroom begins with authored lesson plans and eight fictional students; findings and accepted changes are created through the workflow. For a clean recording, use **Reset demo → Reset fictional work** in this dedicated workspace. The command-line equivalent is `npm run demo:reset -- --yes`; it clears the configured local fictional work and generated uploads. `npm run demo:seed` only loads baseline worksheets for review and preserves an existing batch.
 
@@ -40,7 +40,7 @@ Fixture mode recognizes exact prepared scan hashes and recomputes findings/propo
 
 Live mode uses OpenRouter with `google/gemma-4-26b-a4b-it:free` for image transcription and `deepseek/deepseek-v4-flash-0731:free` for text analysis/planning. It sends known questions and actual work, without hidden student reference answers or intended groups. It never silently substitutes fixture results or a paid model.
 
-The September 19, 2026 availability checks confirmed catalog capabilities but three Gemma attempts returned rate limits and one DeepSeek structured-output call reached its 75-second timeout. **Zero of the sixteen scans were evaluated successfully; transcription quality and model recommendation quality remain unmeasured.** Do not present this recording as a successful live-model benchmark. A later successful evaluation should report its exact models, timestamp, 48-response comparison and correction needs separately.
+The September 19, 2026 checks confirmed catalog capabilities, but Gemma remained rate-limited. DeepSeek returned structured text; full-class findings failed validation, while one proposal from previously confirmed fictional evidence passed. A low-reasoning analysis timed out at 75 seconds. **Zero of the sixteen scans were evaluated successfully, and no complete live analysis loop passed.** Do not present this recording as a successful live-model benchmark. A later successful evaluation should report its exact models, timestamp, 48-response comparison and correction needs separately.
 
 ## Source files and downloads
 

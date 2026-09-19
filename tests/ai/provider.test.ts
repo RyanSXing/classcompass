@@ -17,6 +17,14 @@ describe('AI provider boundary',()=>{
  it('does not retry exhausted daily quota',async()=>{vi.stubEnv('OPENROUTER_API_KEY','test');vi.stubGlobal('fetch',vi.fn().mockResolvedValue(new Response(JSON.stringify({error:{message:'Daily quota exhausted'}}),{status:429})));await expect(extractWorksheet({...input,mode:'live'})).rejects.toMatchObject({code:'AI_QUOTA',retryable:false});});
  it('rejects duplicate questions, invented blank writing, malformed and truncated JSON',async()=>{for(const [draft,finish,code] of [[{...good,responses:[good.responses[0],good.responses[0],good.responses[2],good.responses[3]]},'stop','AI_QUESTION_IDS'],[{...good,responses:good.responses.map(r=>({...r,workingText:'invented'}))},'stop','AI_BLANK_CONTRACT'],['{','stop','AI_INVALID_JSON'],[good,'length','AI_TRUNCATED']] as const){mockCompletion(draft,finish);await expect(extractWorksheet({...input,mode:'live'})).rejects.toMatchObject({code});}});
  it('does not send identity, private raw extraction or hidden state into analysis',()=>{const{state,batchId}=setup();(state as AppState&{groundTruth:string}).groundTruth='DO_NOT_SEND';state.students[7].displayName='Secret Name';state.assets[0].originalObjectKey='private-storage-secret';state.extractions[0].raw.responses[0].workingText='DISCARDED-RAW-READING';const body=JSON.stringify(buildAnalysisInput(state,batchId));for(const forbidden of ['DO_NOT_SEND','Secret Name','private-storage-secret','DISCARDED-RAW-READING','displayName','ownerId'])expect(body).not.toContain(forbidden);expect(body).toContain('No help');});
+ it('keeps evidence and assistance grouped by student with checked facts from effective work',()=>{
+  const{state,batchId}=setup(),context=buildAnalysisInput(state,batchId),student=context.studentWork[0];
+  expect(student.studentId).toBe('stu-08');expect(student.support.note).toBe('No help');expect(student.currentResponseCount).toBe(4);
+  expect(student.currentResponses.map(r=>r.responseId)).toEqual(state.responses.map(r=>r.id));
+  expect(student.checkedEvidence.blank).toEqual(state.responses.map(r=>({responseId:r.id,responseRevision:r.revision})));
+  expect(student.checkedEvidence.correctEquivalentReasoning).toEqual([]);expect(student.checkedEvidence.clearDenominatorAddition).toEqual([]);
+  expect(context).not.toHaveProperty('responses');expect(context).not.toHaveProperty('expectedGroups');
+ });
  it('fixture analysis delegates recomputation without mutating state',async()=>{const{state,batchId}=setup();const before=JSON.stringify(state);const fetcher=vi.fn();vi.stubGlobal('fetch',fetcher);const result=await analyzeEvidence({state,batchId,mode:'fixture'});expect(result.drafts).toBeUndefined();expect(result.provenance.modelId).toBe('deterministic-domain-fixture');expect(JSON.stringify(state)).toBe(before);expect(fetcher).not.toHaveBeenCalled();});
  it('disables optional reasoning only for bounded text analysis while leaving vision unchanged',async()=>{
   const{state,batchId}=setup();
@@ -25,10 +33,20 @@ describe('AI provider boundary',()=>{
   await analyzeEvidence({state,batchId,mode:'live'});
   const analysisRequest=JSON.parse(analysisFetch.mock.calls[0][1].body);
   expect(analysisRequest.reasoning).toEqual({enabled:false});expect(analysisRequest.response_format.type).toBe('json_schema');
+  const lowFetch=mockCompletion({findings:[finding]});await analyzeEvidence({state,batchId,mode:'live',reasoningEffort:'low'});
+  const lowRequest=JSON.parse(lowFetch.mock.calls[0][1].body);expect(lowRequest.reasoning).toEqual({effort:'low'});expect(lowRequest.max_tokens).toBe(6000);
   const visionFetch=mockCompletion(good);await extractWorksheet({...input,mode:'live'});
   expect(JSON.parse(visionFetch.mock.calls[0][1].body)).not.toHaveProperty('reasoning');
  });
  it('rejects live cross-student fabricated evidence without touching state',async()=>{const{state,batchId}=setup();const before=JSON.stringify(state);mockCompletion({findings:[{studentId:'stu-01',objectiveId:'obj-add-unlike-fractions',code:'insufficient_evidence',claimScope:'evidence_quality',explanation:'Missing work',evidence:[{responseId:state.responses[0].id,responseRevision:1}],limitations:[],suggestedNextStep:'gather_evidence'}]});await expect(analyzeEvidence({state,batchId,mode:'live'})).rejects.toMatchObject({code:'AI_FINDING_COVERAGE'});expect(JSON.stringify(state)).toBe(before);});
+ it('retains domain diagnostics internally while keeping the public evidence failure message generic',async()=>{
+  const{state,batchId}=setup();mockCompletion({findings:[{studentId:'stu-08',objectiveId:'obj-add-unlike-fractions',code:'equivalent_fraction_reasoning',claimScope:'independent_performance',explanation:'Unsupported independent success.',evidence:state.responses.map(r=>({responseId:r.id,responseRevision:r.revision})),limitations:[],suggestedNextStep:'independent_application'}]});
+  try{await analyzeEvidence({state,batchId,mode:'live'});throw new Error('Expected validation failure');}catch(error){expect(error).toMatchObject({code:'AI_INVALID_EVIDENCE',cause:{code:'INVALID_FINDING'}});expect((error as Error).message).not.toContain('completed clear response');}
+ });
+ it('rejects misconception output that uses affirmative independent-success scope',async()=>{
+  const{state,batchId}=setup();mockCompletion({findings:[{studentId:'stu-08',objectiveId:'obj-add-unlike-fractions',code:'denominator_addition',claimScope:'independent_performance',explanation:'Attempted without help.',evidence:state.responses.slice(0,2).map(r=>({responseId:r.id,responseRevision:r.revision})),limitations:[],suggestedNextStep:'targeted_equal_parts'}]});
+  await expect(analyzeEvidence({state,batchId,mode:'live'})).rejects.toMatchObject({code:'AI_INVALID_OUTPUT'});
+ });
 });
 
 describe('proposal model boundary',()=>{
@@ -49,6 +67,8 @@ describe('proposal model boundary',()=>{
   expect(result.changes![0].id).toMatch(/^change-/);expect(result.changes![0].id).not.toBe(common.changeKey);expect(result.changes![0].evidence).toEqual(f.evidence);expect(JSON.stringify(state)).toBe(before);
   const request=JSON.parse(fetcher.mock.calls[0][1].body);expect(request.response_format.type).toBe('json_schema');expect(request.provider.require_parameters).toBe(true);expect(request.reasoning).toEqual({enabled:false});
   const payload=JSON.stringify(buildProposalInput(state,'lesson-2026-09-23'));expect(payload).not.toContain('displayName');expect(payload).not.toContain('"raw":');
+  mockCompletion({changes:[{...common,operation:'replace_practice',payload:{block:{...block,id:'practice-renamed'}}}]});await expect(proposeLesson({state,lessonId:'lesson-2026-09-23',mode:'live'})).rejects.toMatchObject({code:'AI_INVALID_OUTPUT'});
+  mockCompletion({changes:[{...common,operation:'replace_practice',payload:{block:{...block,materialIds:['invented-activity']}}}]});await expect(proposeLesson({state,lessonId:'lesson-2026-09-23',mode:'live'})).rejects.toMatchObject({code:'AI_INVALID_OUTPUT'});
   block.lanes[1].studentIds=block.lanes[1].studentIds.slice(1);block.lanes[1].entryCheckStudentIds=block.lanes[1].studentIds;
   mockCompletion({changes:[{...common,operation:'replace_practice',payload:{block}}]});await expect(proposeLesson({state,lessonId:'lesson-2026-09-23',mode:'live'})).rejects.toMatchObject({code:'AI_INVALID_PLAN'});
  });
