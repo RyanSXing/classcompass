@@ -1,0 +1,2022 @@
+{
+  "schemaVersion": "1.0.0",
+  "fixtureId": "classcompass-grade5-fractions-v1",
+  "fictional": true,
+  "purpose": "Human-authored curriculum, reference transcripts, and regression expectations for the agreed hackathon demonstration. These are specifications, not model-generated findings.",
+  "fixtureUsage": {
+    "generatedAssetsPresent": false,
+    "liveMode": "Extraction receives the uploaded image, template prompts, question IDs, objective IDs, criteria and known page regions. It never receives these reference writtenAnswer values, expected findings, intended groups, correction targets, or future follow-up answers.",
+    "reasoningInput": "Use the actual extracted transcript and teacher corrections, known question/rubric context, recorded support, deterministic arithmetic checks, current lesson and constraints. Do not feed intended scenario categories or expected grouping as student evidence.",
+    "fixturePlayback": "May seed the reference transcripts and explicitly labeled simulated extraction for offline development or recording a disclosed replay. Every seeded/replayed result must show fixture provenance and must not be presented as a successful live model call.",
+    "groundTruth": "Expected answers, reference writtenAnswer values, actual support, intended scenarios and expected outcomes are instructor/test ground truth. The answer key may be used by deterministic arithmetic checks and teacher materials; it does not prove a student's work or interpretation.",
+    "support": "Independence is a teacher-recorded task condition, never an inference from correct work. A correction adds an audit event and revises interpretation without replacing the original scan.",
+    "typedMath": "validationKind distinguishes fraction-addition, construct-addition, and explanation. Fixed operands and expected rationals are instructor/checker data, not student evidence. Canonical strings are retained for display. Do not infer open-response correctness by matching the examplePairs verbatim."
+  },
+  "class": {
+    "id": "class-grade5-demo",
+    "name": "Grade 5 \u00b7 Fraction addition",
+    "studentCount": 8,
+    "subject": "Mathematics",
+    "grade": 5
+  },
+  "unit": {
+    "id": "unit-fractions-v1",
+    "title": "Adding fractions with unlike denominators",
+    "startDate": "2026-09-21",
+    "endDate": "2026-10-02",
+    "fixedAssessmentDate": "2026-10-02",
+    "availableTeachingDates": [
+      "2026-09-21",
+      "2026-09-22",
+      "2026-09-23",
+      "2026-09-24",
+      "2026-09-25",
+      "2026-09-28",
+      "2026-09-29",
+      "2026-09-30",
+      "2026-10-01",
+      "2026-10-02"
+    ],
+    "lessonMinutes": 45,
+    "scope": "Positive proper fractions, unlike denominators, sums at most one; no mixed numbers.",
+    "learningObjectiveIds": [
+      "obj-equivalent-fractions",
+      "obj-add-unlike-fractions",
+      "obj-explain-fraction-context"
+    ],
+    "prerequisiteUnitIds": [],
+    "prerequisiteRule": "Prerequisites describe planned curriculum exposure and within-lesson content order, not permanent student mastery. Preserve the authored unit sequence; targeted support may revisit prerequisites inside a concurrent block."
+  },
+  "learningObjectives": [
+    {
+      "id": "obj-equivalent-fractions",
+      "description": "Represent equivalent fractions as the same quantity using equal-sized wholes.",
+      "prerequisiteObjectiveIds": []
+    },
+    {
+      "id": "obj-add-unlike-fractions",
+      "description": "Add fractions with unlike denominators by rewriting them in a common fractional unit.",
+      "prerequisiteObjectiveIds": [
+        "obj-equivalent-fractions"
+      ]
+    },
+    {
+      "id": "obj-explain-fraction-context",
+      "description": "Explain a fraction-addition word problem with working, a reasonable total, and appropriate units.",
+      "prerequisiteObjectiveIds": [
+        "obj-add-unlike-fractions"
+      ]
+    }
+  ],
+  "assessmentCriteria": [
+    {
+      "id": "crit-equivalence",
+      "description": "Rewrite fractions without changing their values; fraction models must use equal-sized wholes."
+    },
+    {
+      "id": "crit-common-unit",
+      "description": "Express addends in a common fractional unit before adding."
+    },
+    {
+      "id": "crit-addition",
+      "description": "Add numerators and retain the common denominator; accept mathematically equivalent unreduced answers."
+    },
+    {
+      "id": "crit-reasoning",
+      "description": "Show enough calculation steps, a labeled model, or a clear explanation to inspect the method."
+    },
+    {
+      "id": "crit-context",
+      "description": "For word problems, interpret the total with the stated unit."
+    }
+  ],
+  "questions": [
+    {
+      "id": "q-01",
+      "prompt": "Calculate 1/2 + 1/3. Show how you make equal-sized parts before adding.",
+      "learningObjectiveIds": [
+        "obj-equivalent-fractions",
+        "obj-add-unlike-fractions"
+      ],
+      "assessmentCriterionIds": [
+        "crit-equivalence",
+        "crit-common-unit",
+        "crit-addition",
+        "crit-reasoning"
+      ],
+      "taskDifficulty": "core",
+      "expectedAnswer": {
+        "canonicalFraction": "5/6",
+        "acceptEquivalentUnreducedFractions": true,
+        "rational": {
+          "numerator": 5,
+          "denominator": 6
+        }
+      },
+      "answerWorking": [
+        "1/2 = 3/6",
+        "1/3 = 2/6",
+        "3/6 + 2/6 = 5/6"
+      ],
+      "validationKind": "fraction-addition",
+      "operands": [
+        {
+          "numerator": 1,
+          "denominator": 2
+        },
+        {
+          "numerator": 1,
+          "denominator": 3
+        }
+      ],
+      "answerUnit": null
+    },
+    {
+      "id": "q-02",
+      "prompt": "Calculate 1/4 + 2/3. Show your equivalent fractions and the sum.",
+      "learningObjectiveIds": [
+        "obj-equivalent-fractions",
+        "obj-add-unlike-fractions"
+      ],
+      "assessmentCriterionIds": [
+        "crit-equivalence",
+        "crit-common-unit",
+        "crit-addition",
+        "crit-reasoning"
+      ],
+      "taskDifficulty": "core",
+      "expectedAnswer": {
+        "canonicalFraction": "11/12",
+        "acceptEquivalentUnreducedFractions": true,
+        "rational": {
+          "numerator": 11,
+          "denominator": 12
+        }
+      },
+      "answerWorking": [
+        "1/4 = 3/12",
+        "2/3 = 8/12",
+        "3/12 + 8/12 = 11/12"
+      ],
+      "validationKind": "fraction-addition",
+      "operands": [
+        {
+          "numerator": 1,
+          "denominator": 4
+        },
+        {
+          "numerator": 2,
+          "denominator": 3
+        }
+      ],
+      "answerUnit": null
+    },
+    {
+      "id": "q-03",
+      "prompt": "Calculate 2/5 + 1/10. Show your steps. You may simplify your answer.",
+      "learningObjectiveIds": [
+        "obj-equivalent-fractions",
+        "obj-add-unlike-fractions"
+      ],
+      "assessmentCriterionIds": [
+        "crit-equivalence",
+        "crit-common-unit",
+        "crit-addition",
+        "crit-reasoning"
+      ],
+      "taskDifficulty": "core",
+      "expectedAnswer": {
+        "canonicalFraction": "1/2",
+        "acceptEquivalentUnreducedFractions": true,
+        "rational": {
+          "numerator": 1,
+          "denominator": 2
+        }
+      },
+      "answerWorking": [
+        "2/5 = 4/10",
+        "4/10 + 1/10 = 5/10",
+        "5/10 = 1/2"
+      ],
+      "validationKind": "fraction-addition",
+      "operands": [
+        {
+          "numerator": 2,
+          "denominator": 5
+        },
+        {
+          "numerator": 1,
+          "denominator": 10
+        }
+      ],
+      "answerUnit": null
+    },
+    {
+      "id": "q-04",
+      "prompt": "A class uses 3/8 meter of ribbon for one display and 1/4 meter for another. How many meters of ribbon does it use altogether? Show your working and include the unit.",
+      "learningObjectiveIds": [
+        "obj-equivalent-fractions",
+        "obj-add-unlike-fractions",
+        "obj-explain-fraction-context"
+      ],
+      "assessmentCriterionIds": [
+        "crit-equivalence",
+        "crit-common-unit",
+        "crit-addition",
+        "crit-reasoning",
+        "crit-context"
+      ],
+      "taskDifficulty": "core-transfer",
+      "expectedAnswer": {
+        "canonicalFraction": "5/8",
+        "acceptEquivalentUnreducedFractions": true,
+        "rational": {
+          "numerator": 5,
+          "denominator": 8
+        }
+      },
+      "answerWorking": [
+        "1/4 = 2/8",
+        "3/8 + 2/8 = 5/8",
+        "The class uses 5/8 meter altogether."
+      ],
+      "validationKind": "fraction-addition",
+      "operands": [
+        {
+          "numerator": 3,
+          "denominator": 8
+        },
+        {
+          "numerator": 1,
+          "denominator": 4
+        }
+      ],
+      "answerUnit": "meter"
+    }
+  ],
+  "followupQuestions": [
+    {
+      "id": "fq01",
+      "prompt": "Calculate 1/3 + 1/4. Show equivalent fractions or an equal-whole model that explains your answer.",
+      "learningObjectiveIds": [
+        "obj-equivalent-fractions",
+        "obj-add-unlike-fractions"
+      ],
+      "assessmentCriterionIds": [
+        "crit-equivalence",
+        "crit-common-unit",
+        "crit-addition",
+        "crit-reasoning"
+      ],
+      "taskDifficulty": "core",
+      "expectedAnswer": {
+        "canonicalFraction": "7/12",
+        "acceptEquivalentUnreducedFractions": true,
+        "rational": {
+          "numerator": 7,
+          "denominator": 12
+        }
+      },
+      "answerWorking": [
+        "1/3 = 4/12",
+        "1/4 = 3/12",
+        "4/12 + 3/12 = 7/12"
+      ],
+      "validationKind": "fraction-addition",
+      "operands": [
+        {
+          "numerator": 1,
+          "denominator": 3
+        },
+        {
+          "numerator": 1,
+          "denominator": 4
+        }
+      ],
+      "answerUnit": null
+    },
+    {
+      "id": "fq02",
+      "prompt": "Jules uses 1/6 meter of ribbon for one tag and 1/3 meter for another. How much ribbon is used altogether? Show your working and include the unit.",
+      "learningObjectiveIds": [
+        "obj-equivalent-fractions",
+        "obj-add-unlike-fractions",
+        "obj-explain-fraction-context"
+      ],
+      "assessmentCriterionIds": [
+        "crit-equivalence",
+        "crit-common-unit",
+        "crit-addition",
+        "crit-reasoning",
+        "crit-context"
+      ],
+      "taskDifficulty": "core-transfer",
+      "expectedAnswer": {
+        "canonicalFraction": "1/2",
+        "acceptEquivalentUnreducedFractions": true,
+        "rational": {
+          "numerator": 1,
+          "denominator": 2
+        }
+      },
+      "answerWorking": [
+        "1/3 = 2/6",
+        "1/6 + 2/6 = 3/6",
+        "3/6 = 1/2",
+        "Jules uses 1/2 meter altogether."
+      ],
+      "validationKind": "fraction-addition",
+      "operands": [
+        {
+          "numerator": 1,
+          "denominator": 6
+        },
+        {
+          "numerator": 1,
+          "denominator": 3
+        }
+      ],
+      "answerUnit": "meter"
+    }
+  ],
+  "templates": [
+    {
+      "id": "baseline-template-v1",
+      "title": "Fraction addition: show your thinking",
+      "date": "2026-09-22",
+      "questionIds": [
+        "q-01",
+        "q-02",
+        "q-03",
+        "q-04"
+      ],
+      "instructions": "Show calculation steps or a labeled model. Use the same-sized whole in every model. You may leave a correct answer unreduced. If you are unsure, show what you can do. Teacher records any help provided.",
+      "pageSize": "US-Letter",
+      "questionRegions": [
+        {
+          "questionId": "q-01",
+          "rect": {
+            "x": 0.06,
+            "y": 0.14,
+            "width": 0.88,
+            "height": 0.19
+          }
+        },
+        {
+          "questionId": "q-02",
+          "rect": {
+            "x": 0.06,
+            "y": 0.35,
+            "width": 0.88,
+            "height": 0.19
+          }
+        },
+        {
+          "questionId": "q-03",
+          "rect": {
+            "x": 0.06,
+            "y": 0.56,
+            "width": 0.88,
+            "height": 0.19
+          }
+        },
+        {
+          "questionId": "q-04",
+          "rect": {
+            "x": 0.06,
+            "y": 0.77,
+            "width": 0.88,
+            "height": 0.19
+          }
+        }
+      ]
+    },
+    {
+      "id": "followup-template-v1",
+      "title": "A fresh fraction check",
+      "date": "2026-09-24",
+      "questionIds": [
+        "fq01",
+        "fq02"
+      ],
+      "instructions": "Complete both questions independently. Show your working and include the unit in the word problem. Teacher records any assistance rather than prompting answers.",
+      "pageSize": "US-Letter",
+      "questionRegions": [
+        {
+          "questionId": "fq01",
+          "rect": {
+            "x": 0.06,
+            "y": 0.18,
+            "width": 0.88,
+            "height": 0.32
+          }
+        },
+        {
+          "questionId": "fq02",
+          "rect": {
+            "x": 0.06,
+            "y": 0.55,
+            "width": 0.88,
+            "height": 0.38
+          }
+        }
+      ]
+    }
+  ],
+  "students": [
+    {
+      "id": "stu-01",
+      "displayName": "Avery",
+      "fictional": true,
+      "baseline": {
+        "templateId": "baseline-template-v1",
+        "date": "2026-09-22",
+        "assetId": "baseline-stu-01",
+        "recordedSupport": {
+          "level": "independent",
+          "source": "teacher-recorded",
+          "note": "Initial teacher entry: completed independently. For stu-07 only, this entry is intentionally incorrect and is corrected during the demonstration.",
+          "appliesTo": "all-responses-in-this-submission"
+        },
+        "responses": [
+          {
+            "questionId": "q-01",
+            "writtenAnswer": "1/2 + 1/3 = (1 + 1)/(2 + 3) = 2/5"
+          },
+          {
+            "questionId": "q-02",
+            "writtenAnswer": "1/4 + 2/3 = 3/7"
+          },
+          {
+            "questionId": "q-03",
+            "writtenAnswer": "2/5 + 1/10 = 3/15 = 1/5"
+          },
+          {
+            "questionId": "q-04",
+            "writtenAnswer": "3/8 + 1/4 = 4/12 = 1/3 meter"
+          }
+        ]
+      },
+      "followup": {
+        "templateId": "followup-template-v1",
+        "date": "2026-09-24",
+        "assetId": "followup-stu-01",
+        "recordedSupport": {
+          "level": "independent",
+          "source": "teacher-recorded",
+          "note": "Teacher records no hints, answer checking, worked examples, or peer help during this check; prior instruction on a different day is not assistance on this task.",
+          "appliesTo": "all-responses-in-this-submission"
+        },
+        "responses": [
+          {
+            "questionId": "fq01",
+            "writtenAnswer": "1/3 = 4/12; 1/4 = 3/12; 4/12 + 3/12 = 7/12"
+          },
+          {
+            "questionId": "fq02",
+            "writtenAnswer": "1/3 = 2/6; 1/6 + 2/6 = 3/6 = 1/2 meter"
+          }
+        ]
+      }
+    },
+    {
+      "id": "stu-02",
+      "displayName": "Blake",
+      "fictional": true,
+      "baseline": {
+        "templateId": "baseline-template-v1",
+        "date": "2026-09-22",
+        "assetId": "baseline-stu-02",
+        "recordedSupport": {
+          "level": "independent",
+          "source": "teacher-recorded",
+          "note": "Initial teacher entry: completed independently. For stu-07 only, this entry is intentionally incorrect and is corrected during the demonstration.",
+          "appliesTo": "all-responses-in-this-submission"
+        },
+        "responses": [
+          {
+            "questionId": "q-01",
+            "writtenAnswer": "1 + 1 = 2; 2 + 3 = 5; answer 2/5"
+          },
+          {
+            "questionId": "q-02",
+            "writtenAnswer": "1 + 2 = 3; 4 + 3 = 7; answer 3/7"
+          },
+          {
+            "questionId": "q-03",
+            "writtenAnswer": "2 + 1 = 3; 5 + 10 = 15; answer 3/15"
+          },
+          {
+            "questionId": "q-04",
+            "writtenAnswer": "3 + 1 = 4; 8 + 4 = 12; answer 4/12 meter"
+          }
+        ]
+      },
+      "followup": {
+        "templateId": "followup-template-v1",
+        "date": "2026-09-24",
+        "assetId": "followup-stu-02",
+        "recordedSupport": {
+          "level": "independent",
+          "source": "teacher-recorded",
+          "note": "Teacher records no hints, answer checking, worked examples, or peer help during this check; prior instruction on a different day is not assistance on this task.",
+          "appliesTo": "all-responses-in-this-submission"
+        },
+        "responses": [
+          {
+            "questionId": "fq01",
+            "writtenAnswer": "1/3 = 4/12; 1/4 = 3/12; answer 7/12"
+          },
+          {
+            "questionId": "fq02",
+            "writtenAnswer": "1/6 + 1/3 = 1/6 + 2/6 = 3/6 meter"
+          }
+        ]
+      }
+    },
+    {
+      "id": "stu-03",
+      "displayName": "Casey",
+      "fictional": true,
+      "baseline": {
+        "templateId": "baseline-template-v1",
+        "date": "2026-09-22",
+        "assetId": "baseline-stu-03",
+        "recordedSupport": {
+          "level": "independent",
+          "source": "teacher-recorded",
+          "note": "Initial teacher entry: completed independently. For stu-07 only, this entry is intentionally incorrect and is corrected during the demonstration.",
+          "appliesTo": "all-responses-in-this-submission"
+        },
+        "responses": [
+          {
+            "questionId": "q-01",
+            "writtenAnswer": "1/2 + 1/3 = 2/5. I added the tops and the bottoms."
+          },
+          {
+            "questionId": "q-02",
+            "writtenAnswer": "1/4 + 2/3 = (1 + 2)/(4 + 3) = 3/7"
+          },
+          {
+            "questionId": "q-03",
+            "writtenAnswer": "2/5 + 1/10 = (2 + 1)/(5 + 10) = 3/15"
+          },
+          {
+            "questionId": "q-04",
+            "writtenAnswer": "3/8 + 1/4 = (3 + 1)/(8 + 4) = 4/12 meter"
+          }
+        ]
+      },
+      "followup": {
+        "templateId": "followup-template-v1",
+        "date": "2026-09-24",
+        "assetId": "followup-stu-03",
+        "recordedSupport": {
+          "level": "independent",
+          "source": "teacher-recorded",
+          "note": "Teacher records no hints, answer checking, worked examples, or peer help during this check; prior instruction on a different day is not assistance on this task.",
+          "appliesTo": "all-responses-in-this-submission"
+        },
+        "responses": [
+          {
+            "questionId": "fq01",
+            "writtenAnswer": "1/3 + 1/4 = (1 + 1)/(3 + 4) = 2/7"
+          },
+          {
+            "questionId": "fq02",
+            "writtenAnswer": "1/6 + 1/3 = (1 + 1)/(6 + 3) = 2/9 meter"
+          }
+        ]
+      }
+    },
+    {
+      "id": "stu-04",
+      "displayName": "Devon",
+      "fictional": true,
+      "baseline": {
+        "templateId": "baseline-template-v1",
+        "date": "2026-09-22",
+        "assetId": "baseline-stu-04",
+        "recordedSupport": {
+          "level": "independent",
+          "source": "teacher-recorded",
+          "note": "Initial teacher entry: completed independently. For stu-07 only, this entry is intentionally incorrect and is corrected during the demonstration.",
+          "appliesTo": "all-responses-in-this-submission"
+        },
+        "responses": [
+          {
+            "questionId": "q-01",
+            "writtenAnswer": "1/2 = 3/6; 1/3 = 2/6; 3/6 + 2/6 = 5/6"
+          },
+          {
+            "questionId": "q-02",
+            "writtenAnswer": "1/4 = 3/12; 2/3 = 8/12; 3/12 + 8/12 = 11/12"
+          },
+          {
+            "questionId": "q-03",
+            "writtenAnswer": "2/5 = 4/10; 4/10 + 1/10 = 5/10 = 1/2"
+          },
+          {
+            "questionId": "q-04",
+            "writtenAnswer": "1/4 = 2/8; 3/8 + 2/8 = 5/8 meter"
+          }
+        ]
+      },
+      "followup": {
+        "templateId": "followup-template-v1",
+        "date": "2026-09-24",
+        "assetId": "followup-stu-04",
+        "recordedSupport": {
+          "level": "independent",
+          "source": "teacher-recorded",
+          "note": "Teacher records no hints, answer checking, worked examples, or peer help during this check; prior instruction on a different day is not assistance on this task.",
+          "appliesTo": "all-responses-in-this-submission"
+        },
+        "responses": [
+          {
+            "questionId": "fq01",
+            "writtenAnswer": "1/3 = 4/12; 1/4 = 3/12; 4/12 + 3/12 = 7/12"
+          },
+          {
+            "questionId": "fq02",
+            "writtenAnswer": "1/6 + 1/3 = 1/6 + 2/6 = 3/6 = 1/2 meter"
+          }
+        ]
+      }
+    },
+    {
+      "id": "stu-05",
+      "displayName": "Emery",
+      "fictional": true,
+      "baseline": {
+        "templateId": "baseline-template-v1",
+        "date": "2026-09-22",
+        "assetId": "baseline-stu-05",
+        "recordedSupport": {
+          "level": "independent",
+          "source": "teacher-recorded",
+          "note": "Initial teacher entry: completed independently. For stu-07 only, this entry is intentionally incorrect and is corrected during the demonstration.",
+          "appliesTo": "all-responses-in-this-submission"
+        },
+        "responses": [
+          {
+            "questionId": "q-01",
+            "writtenAnswer": "1/2 = 6/12; 1/3 = 4/12; 6/12 + 4/12 = 10/12 = 5/6"
+          },
+          {
+            "questionId": "q-02",
+            "writtenAnswer": "1/4 = 3/12; 2/3 = 8/12; 3/12 + 8/12 = 11/12"
+          },
+          {
+            "questionId": "q-03",
+            "writtenAnswer": "2/5 = 8/20; 1/10 = 2/20; 8/20 + 2/20 = 10/20 = 1/2"
+          },
+          {
+            "questionId": "q-04",
+            "writtenAnswer": "3/8 + 1/4 = 3/8 + 2/8 = 5/8 meter. Both fractions use eighths of the same meter."
+          }
+        ]
+      },
+      "followup": {
+        "templateId": "followup-template-v1",
+        "date": "2026-09-24",
+        "assetId": "followup-stu-05",
+        "recordedSupport": {
+          "level": "independent",
+          "source": "teacher-recorded",
+          "note": "Teacher records no hints, answer checking, worked examples, or peer help during this check; prior instruction on a different day is not assistance on this task.",
+          "appliesTo": "all-responses-in-this-submission"
+        },
+        "responses": [
+          {
+            "questionId": "fq01",
+            "writtenAnswer": "1/3 = 8/24; 1/4 = 6/24; 8/24 + 6/24 = 14/24 = 7/12"
+          },
+          {
+            "questionId": "fq02",
+            "writtenAnswer": "1/6 = 2/12; 1/3 = 4/12; 2/12 + 4/12 = 6/12 = 1/2 meter"
+          }
+        ]
+      }
+    },
+    {
+      "id": "stu-06",
+      "displayName": "Finley",
+      "fictional": true,
+      "baseline": {
+        "templateId": "baseline-template-v1",
+        "date": "2026-09-22",
+        "assetId": "baseline-stu-06",
+        "recordedSupport": {
+          "level": "independent",
+          "source": "teacher-recorded",
+          "note": "Initial teacher entry: completed independently. For stu-07 only, this entry is intentionally incorrect and is corrected during the demonstration.",
+          "appliesTo": "all-responses-in-this-submission"
+        },
+        "responses": [
+          {
+            "questionId": "q-01",
+            "writtenAnswer": "1/2 = 3/6; 1/3 = 2/6; 3/6 + 2/6 = 5/6"
+          },
+          {
+            "questionId": "q-02",
+            "writtenAnswer": "1/4 = 3/12; 2/3 = 8/12; 3/12 + 8/12 = 11/12"
+          },
+          {
+            "questionId": "q-03",
+            "writtenAnswer": "2/5 = 4/10; 4/10 + 1/10 = 5/10 = 1/2"
+          },
+          {
+            "questionId": "q-04",
+            "writtenAnswer": "1/4 = 2/8; 3/8 + 2/8 = 5/8 meter"
+          }
+        ]
+      },
+      "followup": {
+        "templateId": "followup-template-v1",
+        "date": "2026-09-24",
+        "assetId": "followup-stu-06",
+        "recordedSupport": {
+          "level": "independent",
+          "source": "teacher-recorded",
+          "note": "Teacher records no hints, answer checking, worked examples, or peer help during this check; prior instruction on a different day is not assistance on this task.",
+          "appliesTo": "all-responses-in-this-submission"
+        },
+        "responses": [
+          {
+            "questionId": "fq01",
+            "writtenAnswer": "1/3 = 4/12; 1/4 = 3/12; 4/12 + 3/12 = 7/12"
+          },
+          {
+            "questionId": "fq02",
+            "writtenAnswer": "1/3 = 2/6; 1/6 + 2/6 = 3/6 = 1/2 meter"
+          }
+        ]
+      }
+    },
+    {
+      "id": "stu-07",
+      "displayName": "Gray",
+      "fictional": true,
+      "baseline": {
+        "templateId": "baseline-template-v1",
+        "date": "2026-09-22",
+        "assetId": "baseline-stu-07",
+        "recordedSupport": {
+          "level": "independent",
+          "source": "teacher-recorded",
+          "note": "Initial teacher entry: completed independently. For stu-07 only, this entry is intentionally incorrect and is corrected during the demonstration.",
+          "appliesTo": "all-responses-in-this-submission"
+        },
+        "responses": [
+          {
+            "questionId": "q-01",
+            "writtenAnswer": "1/2 = 3/6; 1/3 = 2/6; 3/6 + 2/6 = 5/6"
+          },
+          {
+            "questionId": "q-02",
+            "writtenAnswer": "1/4 = 3/12; 2/3 = 8/12; 3/12 + 8/12 = 11/12"
+          },
+          {
+            "questionId": "q-03",
+            "writtenAnswer": "2/5 = 4/10; 4/10 + 1/10 = 5/10 = 1/2"
+          },
+          {
+            "questionId": "q-04",
+            "writtenAnswer": "1/4 = 2/8; 3/8 + 2/8 = 5/8 meter"
+          }
+        ]
+      },
+      "followup": {
+        "templateId": "followup-template-v1",
+        "date": "2026-09-24",
+        "assetId": "followup-stu-07",
+        "recordedSupport": {
+          "level": "independent",
+          "source": "teacher-recorded",
+          "note": "Teacher records no hints, answer checking, worked examples, or peer help during this check; prior instruction on a different day is not assistance on this task.",
+          "appliesTo": "all-responses-in-this-submission"
+        },
+        "responses": [
+          {
+            "questionId": "fq01",
+            "writtenAnswer": "1/3 = 4/12; 1/4 = 3/12; 4/12 + 3/12 = 7/12"
+          },
+          {
+            "questionId": "fq02",
+            "writtenAnswer": "1/3 = 2/6; 1/6 + 2/6 = 3/6 = 1/2 meter"
+          }
+        ]
+      }
+    },
+    {
+      "id": "stu-08",
+      "displayName": "Harper",
+      "fictional": true,
+      "baseline": {
+        "templateId": "baseline-template-v1",
+        "date": "2026-09-22",
+        "assetId": "baseline-stu-08",
+        "recordedSupport": {
+          "level": "independent",
+          "source": "teacher-recorded",
+          "note": "Initial teacher entry: completed independently. For stu-07 only, this entry is intentionally incorrect and is corrected during the demonstration.",
+          "appliesTo": "all-responses-in-this-submission"
+        },
+        "responses": [
+          {
+            "questionId": "q-01",
+            "writtenAnswer": "1/2 = 3/6"
+          },
+          {
+            "questionId": "q-02",
+            "writtenAnswer": null
+          },
+          {
+            "questionId": "q-03",
+            "writtenAnswer": null
+          },
+          {
+            "questionId": "q-04",
+            "writtenAnswer": null
+          }
+        ]
+      },
+      "followup": {
+        "templateId": "followup-template-v1",
+        "date": "2026-09-24",
+        "assetId": "followup-stu-08",
+        "recordedSupport": {
+          "level": "independent",
+          "source": "teacher-recorded",
+          "note": "Teacher records no hints, answer checking, worked examples, or peer help during this check; prior instruction on a different day is not assistance on this task.",
+          "appliesTo": "all-responses-in-this-submission"
+        },
+        "responses": [
+          {
+            "questionId": "fq01",
+            "writtenAnswer": "1/3 = 4/12; 1/4 = 3/12; 4/12 + 3/12 = 7/12"
+          },
+          {
+            "questionId": "fq02",
+            "writtenAnswer": null
+          }
+        ]
+      }
+    }
+  ],
+  "groundTruth": {
+    "baselineScenarios": [
+      {
+        "studentIds": [
+          "stu-01",
+          "stu-02",
+          "stu-03"
+        ],
+        "scenario": "recurring-denominator-addition",
+        "evidenceQuestionIds": [
+          "q-01",
+          "q-02",
+          "q-03",
+          "q-04"
+        ],
+        "rationale": "Repeated written addition of the denominators supports a tentative shared pattern; teacher confirmation is still required.",
+        "actualSupport": "independent",
+        "afterTeacherConfirmation": "targeted-equal-parts"
+      },
+      {
+        "studentIds": [
+          "stu-04",
+          "stu-05"
+        ],
+        "scenario": "secure-work-in-this-task",
+        "evidenceQuestionIds": [
+          "q-01",
+          "q-02",
+          "q-03",
+          "q-04"
+        ],
+        "rationale": "Correct equivalent fractions and sums across four responses support extension on this task; do not label permanent mastery.",
+        "actualSupport": "independent",
+        "afterTeacherConfirmation": "extension"
+      },
+      {
+        "studentIds": [
+          "stu-06"
+        ],
+        "scenario": "handwriting-ambiguity",
+        "evidenceQuestionIds": [
+          "q-03"
+        ],
+        "rationale": "Human-intended final result is 1/2. A prepared extraction of 1/5 contradicts the same response's valid 5/10 intermediate result, so interpretation must stay unresolved pending review.",
+        "actualSupport": "independent",
+        "beforeCorrection": "independent-application-with-unresolved-q-03",
+        "afterTeacherConfirmation": "extension"
+      },
+      {
+        "studentIds": [
+          "stu-07"
+        ],
+        "scenario": "correct-with-task-support",
+        "evidenceQuestionIds": [
+          "q-01",
+          "q-02",
+          "q-03",
+          "q-04"
+        ],
+        "rationale": "All written arithmetic is correct. Teacher provided a common-denominator prompt for each item; the initially entered independent context is a fictional metadata error.",
+        "actualSupport": "supported",
+        "beforeCorrection": "extension-candidate-if-recorded-independent-context-is-confirmed",
+        "afterTeacherConfirmation": "independent-check-before-application"
+      },
+      {
+        "studentIds": [
+          "stu-08"
+        ],
+        "scenario": "insufficient-completed-work",
+        "evidenceQuestionIds": [
+          "q-01"
+        ],
+        "rationale": "A correct equivalence statement without a completed sum and three blank responses cannot establish or disprove the target addition skill.",
+        "actualSupport": "independent",
+        "afterTeacherConfirmation": "gather-more-evidence"
+      }
+    ],
+    "correctionExamples": [
+      {
+        "id": "correction-finley-transcription",
+        "studentId": "stu-06",
+        "questionId": "q-03",
+        "source": "prepared-correction-example-unless-a-real-error-is-observed",
+        "originalReferenceTranscript": "2/5 = 4/10; 4/10 + 1/10 = 5/10 = 1/2",
+        "simulatedExtraction": "2/5 = 4/10; 4/10 + 1/10 = 5/10 = 1/5",
+        "teacherCorrectedTranscript": "2/5 = 4/10; 4/10 + 1/10 = 5/10 = 1/2",
+        "disclosure": "Prepared correction example \u2014 simulated extraction error.",
+        "expectedEffect": "Retain scan and original extraction; corrected arithmetic becomes consistent. Resolve the answer after teacher review and refresh the draft proposal; do not change a saved lesson automatically."
+      },
+      {
+        "id": "correction-gray-support",
+        "studentId": "stu-07",
+        "questionIds": [
+          "q-01",
+          "q-02",
+          "q-03",
+          "q-04"
+        ],
+        "source": "teacher-context-correction",
+        "before": {
+          "level": "independent",
+          "source": "teacher-recorded"
+        },
+        "after": {
+          "level": "supported",
+          "source": "teacher-corrected",
+          "note": "I prompted Gray to find a common denominator on each question."
+        },
+        "expectedEffect": "Keep the answers correct; record demonstrated with support. Replace the extension candidate with a brief independent check followed by application as appropriate, after teacher approval."
+      }
+    ],
+    "expectedBaselineProposalAfterReview": {
+      "blockId": "practice",
+      "minutes": 12,
+      "concurrent": true,
+      "targetedStudentIds": [
+        "stu-01",
+        "stu-02",
+        "stu-03"
+      ],
+      "independentApplicationStudentIds": [
+        "stu-07",
+        "stu-08"
+      ],
+      "extensionStudentIds": [
+        "stu-04",
+        "stu-05",
+        "stu-06"
+      ],
+      "entryChecks": [
+        {
+          "studentId": "stu-07",
+          "reason": "Correct work was supported; collect new independent evidence."
+        },
+        {
+          "studentId": "stu-08",
+          "reason": "Collect a completed response; existing submission is insufficient."
+        }
+      ],
+      "important": "These are anticipated teacher decisions for fixtures, not hardcoded runtime outputs or automatic student labels."
+    },
+    "expectedFollowupOutcomes": [
+      {
+        "studentId": "stu-01",
+        "evidenceQuestionIds": [
+          "fq01",
+          "fq02"
+        ],
+        "outcome": "demonstrated-independently-in-this-check",
+        "nextStep": "Propose return to planned application and collect another later observation."
+      },
+      {
+        "studentId": "stu-02",
+        "evidenceQuestionIds": [
+          "fq01",
+          "fq02"
+        ],
+        "outcome": "demonstrated-independently-in-this-check",
+        "nextStep": "Propose return to planned application; accept 3/6 meter as equivalent to 1/2 meter."
+      },
+      {
+        "studentId": "stu-03",
+        "evidenceQuestionIds": [
+          "fq01",
+          "fq02"
+        ],
+        "outcome": "recurring-pattern-needs-teacher-review",
+        "nextStep": "Propose continued equal-whole models and a short individual explanation of why the units must match."
+      },
+      {
+        "studentId": "stu-04",
+        "evidenceQuestionIds": [
+          "fq01",
+          "fq02"
+        ],
+        "outcome": "demonstrated-independently-in-this-check",
+        "nextStep": "Continue extension with justification and multiple valid representations."
+      },
+      {
+        "studentId": "stu-05",
+        "evidenceQuestionIds": [
+          "fq01",
+          "fq02"
+        ],
+        "outcome": "demonstrated-independently-in-this-check",
+        "nextStep": "Continue extension; accept nonleast common denominators when values and addition are correct."
+      },
+      {
+        "studentId": "stu-06",
+        "evidenceQuestionIds": [
+          "fq01",
+          "fq02"
+        ],
+        "outcome": "demonstrated-independently-in-this-check",
+        "nextStep": "Continue extension; preserve the earlier transcription correction as history."
+      },
+      {
+        "studentId": "stu-07",
+        "evidenceQuestionIds": [
+          "fq01",
+          "fq02"
+        ],
+        "outcome": "new-independent-evidence-after-supported-baseline",
+        "nextStep": "Propose ordinary application; retain the supported baseline observation instead of rewriting it as independent."
+      },
+      {
+        "studentId": "stu-08",
+        "evidenceQuestionIds": [
+          "fq01",
+          "fq02"
+        ],
+        "outcome": "one-independent-demonstration-and-one-missing-response",
+        "nextStep": "Keep the valid fq01 observation; request one more word-problem response. Do not infer a misconception from the blank."
+      }
+    ],
+    "expectedFollowupProposalLessonId": "lesson-2026-09-25"
+  },
+  "lesson": {
+    "id": "lesson-2026-09-23",
+    "unitId": "unit-fractions-v1",
+    "date": "2026-09-23",
+    "title": "Apply fraction addition to word problems",
+    "version": "original",
+    "totalMinutes": 45,
+    "blocks": [
+      {
+        "id": "warmup",
+        "minutes": 5,
+        "title": "Recall equivalent fractions",
+        "content": "Use an equal-whole model to connect 1/2 and 2/4, then explain why both have the same value."
+      },
+      {
+        "id": "model",
+        "minutes": 8,
+        "title": "Model a word problem",
+        "content": "Teacher models a new fraction-addition context using common-sized parts, adds, and checks the total against one whole."
+      },
+      {
+        "id": "practice",
+        "minutes": 12,
+        "title": "General paired practice",
+        "content": "All students complete the same two unlike-denominator fraction word problems in pairs."
+      },
+      {
+        "id": "application",
+        "minutes": 15,
+        "title": "Apply to word problems",
+        "content": "Students solve and explain fraction-addition contexts; the teacher circulates and records observations."
+      },
+      {
+        "id": "exit",
+        "minutes": 5,
+        "title": "Explain an addition method",
+        "content": "Students explain why equivalent fractions are needed and complete a short exit check."
+      }
+    ],
+    "proposedReplacement": {
+      "blockId": "practice",
+      "minutes": 12,
+      "mode": "concurrent",
+      "title": "Respond to fraction evidence",
+      "activities": [
+        {
+          "id": "targeted-equal-parts",
+          "title": "Teacher-led equal-parts practice",
+          "materialId": "targeted-equal-parts-v1",
+          "minutes": 12,
+          "content": "Represent fractions on equal-length strips, rename in a common unit, then add and explain. The teacher can briefly inspect independently completed entry checks while the targeted group draws."
+        },
+        {
+          "id": "independent-application",
+          "title": "Independent entry check and application",
+          "minutes": 12,
+          "content": "Where more independent evidence is needed, begin with the short entry check without hints; otherwise start the ordinary application. Record help if provided. A blank entry check leads to gathering information, not a failure label."
+        },
+        {
+          "id": "extension",
+          "title": "Explain and compare methods",
+          "materialId": "extension-explain-v1",
+          "minutes": 12,
+          "content": "Explain why unlike units cannot be added directly and show more than one valid common denominator."
+        }
+      ],
+      "timingRule": "The three activities occupy the same minutes 13\u201325 of the 45-minute lesson. Do not add their durations together."
+    }
+  },
+  "unitCalendar": [
+    {
+      "date": "2026-09-21",
+      "title": "Equivalent fractions with equal wholes",
+      "content": "Represent equal values using fraction strips and drawings.",
+      "eventType": "none",
+      "lessonId": null,
+      "minutes": 45,
+      "locked": false,
+      "learningObjectiveIds": [
+        "obj-equivalent-fractions"
+      ],
+      "id": "calendar-2026-09-21",
+      "prerequisiteCalendarEntryIds": [],
+      "prerequisiteObjectiveIds": [],
+      "objectiveSequence": [
+        "obj-equivalent-fractions"
+      ]
+    },
+    {
+      "date": "2026-09-22",
+      "title": "Add unlike denominators and collect baseline",
+      "content": "Teach common fractional units; collect baseline-template-v1 independently.",
+      "eventType": "baseline",
+      "lessonId": null,
+      "minutes": 45,
+      "locked": false,
+      "learningObjectiveIds": [
+        "obj-equivalent-fractions",
+        "obj-add-unlike-fractions",
+        "obj-explain-fraction-context"
+      ],
+      "id": "calendar-2026-09-22",
+      "prerequisiteCalendarEntryIds": [
+        "calendar-2026-09-21"
+      ],
+      "prerequisiteObjectiveIds": [
+        "obj-equivalent-fractions"
+      ],
+      "objectiveSequence": [
+        "obj-equivalent-fractions",
+        "obj-add-unlike-fractions",
+        "obj-explain-fraction-context"
+      ]
+    },
+    {
+      "date": "2026-09-23",
+      "title": "Apply fraction addition to word problems",
+      "content": "Original 45-minute application lesson with a shared 12-minute paired-practice block. Targeted support appears only as a proposal until the teacher applies it.",
+      "eventType": "planned-lesson",
+      "lessonId": "lesson-2026-09-23",
+      "minutes": 45,
+      "locked": false,
+      "learningObjectiveIds": [
+        "obj-equivalent-fractions",
+        "obj-add-unlike-fractions",
+        "obj-explain-fraction-context"
+      ],
+      "proposalEventType": "targeted-support",
+      "id": "calendar-2026-09-23",
+      "prerequisiteCalendarEntryIds": [
+        "calendar-2026-09-22"
+      ],
+      "prerequisiteObjectiveIds": [
+        "obj-equivalent-fractions",
+        "obj-add-unlike-fractions"
+      ],
+      "objectiveSequence": [
+        "obj-equivalent-fractions",
+        "obj-add-unlike-fractions",
+        "obj-explain-fraction-context"
+      ]
+    },
+    {
+      "date": "2026-09-24",
+      "title": "Fraction-addition application and explanation",
+      "content": "Original 45-minute application and explanation lesson. The proposed independent follow-up occupies the first eight minutes only if its schedule_checkpoint change is accepted; otherwise ordinary teaching remains 45 minutes.",
+      "eventType": "planned-lesson",
+      "lessonId": null,
+      "minutes": 45,
+      "locked": false,
+      "learningObjectiveIds": [
+        "obj-equivalent-fractions",
+        "obj-add-unlike-fractions",
+        "obj-explain-fraction-context"
+      ],
+      "id": "calendar-2026-09-24",
+      "prerequisiteCalendarEntryIds": [
+        "calendar-2026-09-22"
+      ],
+      "prerequisiteObjectiveIds": [
+        "obj-equivalent-fractions",
+        "obj-add-unlike-fractions"
+      ],
+      "objectiveSequence": [
+        "obj-equivalent-fractions",
+        "obj-add-unlike-fractions",
+        "obj-explain-fraction-context"
+      ],
+      "proposalEventType": "followup",
+      "checkpointMinutes": 8,
+      "originalAllocation": {
+        "plannedTeachingMinutes": 45,
+        "checkpointMinutes": 0
+      },
+      "proposedAllocation": {
+        "plannedTeachingMinutes": 37,
+        "checkpointMinutes": 8,
+        "checkpointOffsetMinutes": 0,
+        "checkpointTemplateId": "followup-template-v1",
+        "requiresAcceptedChange": "schedule_checkpoint"
+      },
+      "allocationRule": "originalAllocation remains the accepted schedule until the checkpoint change is applied; proposedAllocation is a preview, not an accepted snapshot. Derive the accepted 37+8 snapshot only on application."
+    },
+    {
+      "date": "2026-09-25",
+      "title": "Compare strategies and check reasonableness",
+      "content": "Original 45-minute lesson comparing strategies and checking reasonableness. Any targeted revisit depends on reviewed follow-up evidence and a separately accepted proposal.",
+      "eventType": "planned-lesson",
+      "lessonId": "lesson-2026-09-25",
+      "minutes": 45,
+      "locked": false,
+      "learningObjectiveIds": [
+        "obj-equivalent-fractions",
+        "obj-add-unlike-fractions",
+        "obj-explain-fraction-context"
+      ],
+      "proposalEventType": "targeted-revisit",
+      "id": "calendar-2026-09-25",
+      "prerequisiteCalendarEntryIds": [
+        "calendar-2026-09-22"
+      ],
+      "prerequisiteObjectiveIds": [
+        "obj-equivalent-fractions",
+        "obj-add-unlike-fractions"
+      ],
+      "objectiveSequence": [
+        "obj-equivalent-fractions",
+        "obj-add-unlike-fractions",
+        "obj-explain-fraction-context"
+      ]
+    },
+    {
+      "date": "2026-09-28",
+      "title": "Connect models to written methods",
+      "content": "Continue unlike-denominator addition with equal-whole models and calculation explanations.",
+      "eventType": "none",
+      "lessonId": null,
+      "minutes": 45,
+      "locked": false,
+      "learningObjectiveIds": [
+        "obj-equivalent-fractions",
+        "obj-add-unlike-fractions",
+        "obj-explain-fraction-context"
+      ],
+      "id": "calendar-2026-09-28",
+      "prerequisiteCalendarEntryIds": [
+        "calendar-2026-09-22"
+      ],
+      "prerequisiteObjectiveIds": [
+        "obj-equivalent-fractions",
+        "obj-add-unlike-fractions"
+      ],
+      "objectiveSequence": [
+        "obj-equivalent-fractions",
+        "obj-add-unlike-fractions",
+        "obj-explain-fraction-context"
+      ]
+    },
+    {
+      "date": "2026-09-29",
+      "title": "Select and justify a common denominator",
+      "content": "Compare valid denominators and accept equivalent unreduced sums.",
+      "eventType": "none",
+      "lessonId": null,
+      "minutes": 45,
+      "locked": false,
+      "learningObjectiveIds": [
+        "obj-equivalent-fractions",
+        "obj-add-unlike-fractions",
+        "obj-explain-fraction-context"
+      ],
+      "id": "calendar-2026-09-29",
+      "prerequisiteCalendarEntryIds": [
+        "calendar-2026-09-22"
+      ],
+      "prerequisiteObjectiveIds": [
+        "obj-equivalent-fractions",
+        "obj-add-unlike-fractions"
+      ],
+      "objectiveSequence": [
+        "obj-equivalent-fractions",
+        "obj-add-unlike-fractions",
+        "obj-explain-fraction-context"
+      ]
+    },
+    {
+      "date": "2026-09-30",
+      "title": "Explain fraction-addition contexts",
+      "content": "Use fresh word problems and units; collect additional observations where needed.",
+      "eventType": "none",
+      "lessonId": null,
+      "minutes": 45,
+      "locked": false,
+      "learningObjectiveIds": [
+        "obj-equivalent-fractions",
+        "obj-add-unlike-fractions",
+        "obj-explain-fraction-context"
+      ],
+      "id": "calendar-2026-09-30",
+      "prerequisiteCalendarEntryIds": [
+        "calendar-2026-09-22"
+      ],
+      "prerequisiteObjectiveIds": [
+        "obj-equivalent-fractions",
+        "obj-add-unlike-fractions"
+      ],
+      "objectiveSequence": [
+        "obj-equivalent-fractions",
+        "obj-add-unlike-fractions",
+        "obj-explain-fraction-context"
+      ]
+    },
+    {
+      "date": "2026-10-01",
+      "title": "Review and short conferences",
+      "content": "Review required objectives; use brief checks to address unresolved evidence.",
+      "eventType": "review",
+      "lessonId": null,
+      "minutes": 45,
+      "locked": false,
+      "learningObjectiveIds": [
+        "obj-equivalent-fractions",
+        "obj-add-unlike-fractions",
+        "obj-explain-fraction-context"
+      ],
+      "id": "calendar-2026-10-01",
+      "prerequisiteCalendarEntryIds": [
+        "calendar-2026-09-22"
+      ],
+      "prerequisiteObjectiveIds": [
+        "obj-equivalent-fractions",
+        "obj-add-unlike-fractions"
+      ],
+      "objectiveSequence": [
+        "obj-equivalent-fractions",
+        "obj-add-unlike-fractions",
+        "obj-explain-fraction-context"
+      ]
+    },
+    {
+      "date": "2026-10-02",
+      "title": "Fixed unit assessment",
+      "content": "Assess the unit objectives; date is locked.",
+      "eventType": "assessment",
+      "lessonId": null,
+      "minutes": 45,
+      "locked": true,
+      "learningObjectiveIds": [
+        "obj-equivalent-fractions",
+        "obj-add-unlike-fractions",
+        "obj-explain-fraction-context"
+      ],
+      "id": "calendar-2026-10-02",
+      "prerequisiteCalendarEntryIds": [
+        "calendar-2026-09-30"
+      ],
+      "prerequisiteObjectiveIds": [
+        "obj-equivalent-fractions",
+        "obj-add-unlike-fractions",
+        "obj-explain-fraction-context"
+      ],
+      "objectiveSequence": [
+        "obj-equivalent-fractions",
+        "obj-add-unlike-fractions",
+        "obj-explain-fraction-context"
+      ]
+    }
+  ],
+  "widerCalendarPreview": [
+    {
+      "startDate": "2026-10-05",
+      "endDate": "2026-10-09",
+      "title": "Next planned unit",
+      "locked": false,
+      "detail": "Placeholder for a teacher-provided next unit; no exact curriculum topic is assumed. The proposed in-block support preserves this window; applying support still requires teacher approval.",
+      "id": "calendar-next-unit-preview",
+      "learningObjectiveIds": [],
+      "prerequisiteObjectiveIds": [],
+      "prerequisiteUnitIds": [
+        "unit-fractions-v1"
+      ],
+      "prerequisiteCalendarEntryIds": [
+        "calendar-2026-10-02"
+      ],
+      "prerequisiteRule": "Preserve placement after the current unit assessment. The next-unit topic and skill prerequisites are not yet specified; this is a scheduling dependency only."
+    }
+  ],
+  "materials": {
+    "targeted": {
+      "id": "targeted-equal-parts-v1",
+      "title": "Equal parts before adding",
+      "suggestedMinutes": 12,
+      "teacherLed": true,
+      "prompts": [
+        {
+          "id": "target-01",
+          "prompt": "Use two equal-length fraction strips. Shade 1/2 on one and 1/4 on the other. Rename the halves as fourths, then find 1/2 + 1/4.",
+          "canonicalFraction": "3/4",
+          "answerKey": "1/2 = 2/4; 2/4 + 1/4 = 3/4. The strips must represent the same-sized whole.",
+          "expectedRational": {
+            "numerator": 3,
+            "denominator": 4
+          },
+          "answerUnit": null,
+          "validationKind": "fraction-addition",
+          "operands": [
+            {
+              "numerator": 1,
+              "denominator": 2
+            },
+            {
+              "numerator": 1,
+              "denominator": 4
+            }
+          ]
+        },
+        {
+          "id": "target-02",
+          "prompt": "Draw or use equal-length strips to solve 1/5 + 1/10. Label the equal-sized parts and write the matching calculation.",
+          "canonicalFraction": "3/10",
+          "answerKey": "1/5 = 2/10; 2/10 + 1/10 = 3/10.",
+          "expectedRational": {
+            "numerator": 3,
+            "denominator": 10
+          },
+          "answerUnit": null,
+          "validationKind": "fraction-addition",
+          "operands": [
+            {
+              "numerator": 1,
+              "denominator": 5
+            },
+            {
+              "numerator": 1,
+              "denominator": 10
+            }
+          ]
+        },
+        {
+          "id": "target-03",
+          "prompt": "A fictional student says 1/2 + 1/4 = 2/6 because they added both tops and bottoms. Explain what needs to change, then write a correct calculation.",
+          "canonicalFraction": "3/4",
+          "answerKey": "Halves and fourths are different-sized parts. Rename 1/2 as 2/4 and add 2/4 + 1/4 = 3/4. The answer 2/6 is smaller than 1/2, so it cannot be the sum of these positive addends.",
+          "expectedRational": {
+            "numerator": 3,
+            "denominator": 4
+          },
+          "answerUnit": null,
+          "validationKind": "fraction-addition",
+          "operands": [
+            {
+              "numerator": 1,
+              "denominator": 2
+            },
+            {
+              "numerator": 1,
+              "denominator": 4
+            }
+          ]
+        }
+      ],
+      "teacherPrompts": [
+        "Are both wholes the same size?",
+        "What kind of part are we counting?",
+        "Can we rename the fractions without changing their values?"
+      ],
+      "scaffolds": "Provide equal-length blank fraction bars and strips divided into fourths and tenths. Record hints or worked examples as support for this activity."
+    },
+    "independentEntryCheck": {
+      "id": "entry-check-v1",
+      "suggestedMinutes": 3,
+      "conditions": "No hints, worked examples, or peer help; record any actual assistance.",
+      "prompts": [
+        {
+          "id": "entry-01",
+          "prompt": "Calculate 1/4 + 1/2. Show one equivalent-fraction step.",
+          "canonicalFraction": "3/4",
+          "answerKey": "1/2 = 2/4; 1/4 + 2/4 = 3/4.",
+          "expectedRational": {
+            "numerator": 3,
+            "denominator": 4
+          },
+          "answerUnit": null,
+          "validationKind": "fraction-addition",
+          "operands": [
+            {
+              "numerator": 1,
+              "denominator": 4
+            },
+            {
+              "numerator": 1,
+              "denominator": 2
+            }
+          ]
+        },
+        {
+          "id": "entry-02",
+          "prompt": "Calculate 1/6 + 1/2. Show one equivalent-fraction step.",
+          "canonicalFraction": "2/3",
+          "answerKey": "1/2 = 3/6; 1/6 + 3/6 = 4/6 = 2/3.",
+          "expectedRational": {
+            "numerator": 2,
+            "denominator": 3
+          },
+          "answerUnit": null,
+          "validationKind": "fraction-addition",
+          "operands": [
+            {
+              "numerator": 1,
+              "denominator": 6
+            },
+            {
+              "numerator": 1,
+              "denominator": 2
+            }
+          ]
+        }
+      ],
+      "nextAction": "Teacher inspects what was shown and selects application or additional information gathering; no runtime automatic reassignment during teaching is required."
+    },
+    "independentApplication": {
+      "id": "application-practice-v1",
+      "suggestedMinutes": 9,
+      "prompts": [
+        {
+          "id": "apply-01",
+          "prompt": "A class uses 1/4 meter of blue ribbon and 1/5 meter of green ribbon. Find the total length. Show working.",
+          "canonicalFraction": "9/20",
+          "answerKey": "1/4 = 5/20; 1/5 = 4/20; total 9/20 meter.",
+          "expectedRational": {
+            "numerator": 9,
+            "denominator": 20
+          },
+          "answerUnit": "meter",
+          "validationKind": "fraction-addition",
+          "operands": [
+            {
+              "numerator": 1,
+              "denominator": 4
+            },
+            {
+              "numerator": 1,
+              "denominator": 5
+            }
+          ]
+        },
+        {
+          "id": "apply-02",
+          "prompt": "One plant grows 1/5 meter in a month and another 1/2 meter in the same month. How much growth is that altogether? Show working.",
+          "canonicalFraction": "7/10",
+          "answerKey": "1/5 = 2/10; 1/2 = 5/10; total 7/10 meter.",
+          "expectedRational": {
+            "numerator": 7,
+            "denominator": 10
+          },
+          "answerUnit": "meter",
+          "validationKind": "fraction-addition",
+          "operands": [
+            {
+              "numerator": 1,
+              "denominator": 5
+            },
+            {
+              "numerator": 1,
+              "denominator": 2
+            }
+          ]
+        }
+      ],
+      "note": "Students who do not need an entry check may spend the whole 12-minute block on application and explaining their methods."
+    },
+    "extension": {
+      "id": "extension-explain-v1",
+      "title": "Two methods, one value",
+      "suggestedMinutes": 12,
+      "prompts": [
+        {
+          "id": "extend-01",
+          "prompt": "Solve 1/4 + 2/5 using twentieths and again using fortieths. Explain why the answers have the same value.",
+          "canonicalFraction": "13/20",
+          "answerKey": "5/20 + 8/20 = 13/20; 10/40 + 16/40 = 26/40 = 13/20.",
+          "expectedRational": {
+            "numerator": 13,
+            "denominator": 20
+          },
+          "answerUnit": null,
+          "validationKind": "fraction-addition",
+          "operands": [
+            {
+              "numerator": 1,
+              "denominator": 4
+            },
+            {
+              "numerator": 2,
+              "denominator": 5
+            }
+          ]
+        },
+        {
+          "id": "extend-02",
+          "prompt": "Write two different pairs of positive fractions with unlike denominators that add to 3/4. Prove each pair works.",
+          "canonicalFraction": "3/4",
+          "answerKey": "Examples: 1/2 + 1/4 = 3/4; 1/3 + 5/12 = 4/12 + 5/12 = 9/12 = 3/4. Accept other valid pairs.",
+          "expectedRational": {
+            "numerator": 3,
+            "denominator": 4
+          },
+          "answerUnit": null,
+          "validationKind": "construct-addition",
+          "operands": [],
+          "constructionConstraints": {
+            "pairCount": 2,
+            "addendsPerPair": 2,
+            "positiveProperFractions": true,
+            "unlikeDenominators": true,
+            "distinctPairs": true,
+            "target": {
+              "numerator": 3,
+              "denominator": 4
+            }
+          },
+          "examplePairs": [
+            [
+              {
+                "numerator": 1,
+                "denominator": 2
+              },
+              {
+                "numerator": 1,
+                "denominator": 4
+              }
+            ],
+            [
+              {
+                "numerator": 1,
+                "denominator": 3
+              },
+              {
+                "numerator": 5,
+                "denominator": 12
+              }
+            ]
+          ]
+        },
+        {
+          "id": "extend-03",
+          "prompt": "Explain why adding the denominators does not count equal-sized parts. Use one of your calculations as evidence.",
+          "canonicalFraction": null,
+          "answerKey": "An explanation should connect denominator to part size, rename unlike units into the same unit, and retain that denominator when adding numerators.",
+          "expectedRational": null,
+          "answerUnit": null,
+          "validationKind": "explanation",
+          "operands": [],
+          "requiresTeacherReview": true
+        }
+      ]
+    },
+    "exit": {
+      "id": "exit-equal-units-v1",
+      "title": "What kind of part are we counting?",
+      "suggestedMinutes": 5,
+      "prompts": [
+        {
+          "id": "exit-01",
+          "prompt": "Calculate 1/4 + 1/6. Show how you use equal-sized parts.",
+          "canonicalFraction": "5/12",
+          "answerKey": "1/4 = 3/12; 1/6 = 2/12; total 5/12.",
+          "expectedRational": {
+            "numerator": 5,
+            "denominator": 12
+          },
+          "answerUnit": null,
+          "validationKind": "fraction-addition",
+          "operands": [
+            {
+              "numerator": 1,
+              "denominator": 4
+            },
+            {
+              "numerator": 1,
+              "denominator": 6
+            }
+          ]
+        },
+        {
+          "id": "exit-02",
+          "prompt": "Finish the sentence: Before adding, I rewrite the fractions because\u2026",
+          "canonicalFraction": null,
+          "answerKey": "Accept an explanation that the fractions need the same-sized parts/common unit before their counts can be added.",
+          "expectedRational": null,
+          "answerUnit": null,
+          "validationKind": "explanation",
+          "operands": [],
+          "requiresTeacherReview": true
+        }
+      ],
+      "note": "This lesson exit ticket is distinct from the next day's two-question follow-up upload. It may be recorded as an observation, but no extra scan set is required for the demo."
+    }
+  },
+  "assetManifest": {
+    "status": "Specifications only; no PDFs, images, or handwritten scans have been created by this documentation task.",
+    "page": {
+      "paper": "US-Letter",
+      "widthPoints": 612,
+      "heightPoints": 792,
+      "rasterWidthPixels": 1700,
+      "rasterHeightPixels": 2200,
+      "orientation": "portrait",
+      "color": "grayscale-or-RGB",
+      "pageIndex": 0
+    },
+    "coordinateSystem": "Normalized 0\u20131 coordinates from the top-left of an upright, deskewed page. Rectangles contain both prompt and student response; source images must match the registered template before these regions are used.",
+    "scanPreparation": "Render the blank template first, complete it by hand following the reference transcripts, scan upright with every page edge visible, and verify region alignment. Keep all work inside its question region. If alignment fails, request replacement or flag the page; never fabricate a crop.",
+    "sourceIdentity": "Match student ID and template ID using explicit upload selection or manifest. Do not rely on handwritten-name recognition.",
+    "assets": [
+      {
+        "id": "baseline-blank",
+        "filename": "baseline-template-v1.pdf",
+        "type": "blank-template",
+        "templateId": "baseline-template-v1",
+        "pageCount": 1,
+        "status": "specified-not-generated"
+      },
+      {
+        "id": "followup-blank",
+        "filename": "followup-template-v1.pdf",
+        "type": "blank-template",
+        "templateId": "followup-template-v1",
+        "pageCount": 1,
+        "status": "specified-not-generated"
+      },
+      {
+        "id": "baseline-stu-01",
+        "filename": "baseline-stu-01.png",
+        "type": "fictional-handwritten-scan",
+        "templateId": "baseline-template-v1",
+        "studentId": "stu-01",
+        "pageCount": 1,
+        "status": "specified-not-generated"
+      },
+      {
+        "id": "followup-stu-01",
+        "filename": "followup-stu-01.png",
+        "type": "fictional-handwritten-scan",
+        "templateId": "followup-template-v1",
+        "studentId": "stu-01",
+        "pageCount": 1,
+        "status": "specified-not-generated"
+      },
+      {
+        "id": "baseline-stu-02",
+        "filename": "baseline-stu-02.png",
+        "type": "fictional-handwritten-scan",
+        "templateId": "baseline-template-v1",
+        "studentId": "stu-02",
+        "pageCount": 1,
+        "status": "specified-not-generated"
+      },
+      {
+        "id": "followup-stu-02",
+        "filename": "followup-stu-02.png",
+        "type": "fictional-handwritten-scan",
+        "templateId": "followup-template-v1",
+        "studentId": "stu-02",
+        "pageCount": 1,
+        "status": "specified-not-generated"
+      },
+      {
+        "id": "baseline-stu-03",
+        "filename": "baseline-stu-03.png",
+        "type": "fictional-handwritten-scan",
+        "templateId": "baseline-template-v1",
+        "studentId": "stu-03",
+        "pageCount": 1,
+        "status": "specified-not-generated"
+      },
+      {
+        "id": "followup-stu-03",
+        "filename": "followup-stu-03.png",
+        "type": "fictional-handwritten-scan",
+        "templateId": "followup-template-v1",
+        "studentId": "stu-03",
+        "pageCount": 1,
+        "status": "specified-not-generated"
+      },
+      {
+        "id": "baseline-stu-04",
+        "filename": "baseline-stu-04.png",
+        "type": "fictional-handwritten-scan",
+        "templateId": "baseline-template-v1",
+        "studentId": "stu-04",
+        "pageCount": 1,
+        "status": "specified-not-generated"
+      },
+      {
+        "id": "followup-stu-04",
+        "filename": "followup-stu-04.png",
+        "type": "fictional-handwritten-scan",
+        "templateId": "followup-template-v1",
+        "studentId": "stu-04",
+        "pageCount": 1,
+        "status": "specified-not-generated"
+      },
+      {
+        "id": "baseline-stu-05",
+        "filename": "baseline-stu-05.png",
+        "type": "fictional-handwritten-scan",
+        "templateId": "baseline-template-v1",
+        "studentId": "stu-05",
+        "pageCount": 1,
+        "status": "specified-not-generated"
+      },
+      {
+        "id": "followup-stu-05",
+        "filename": "followup-stu-05.png",
+        "type": "fictional-handwritten-scan",
+        "templateId": "followup-template-v1",
+        "studentId": "stu-05",
+        "pageCount": 1,
+        "status": "specified-not-generated"
+      },
+      {
+        "id": "baseline-stu-06",
+        "filename": "baseline-stu-06.png",
+        "type": "fictional-handwritten-scan",
+        "templateId": "baseline-template-v1",
+        "studentId": "stu-06",
+        "pageCount": 1,
+        "status": "specified-not-generated"
+      },
+      {
+        "id": "followup-stu-06",
+        "filename": "followup-stu-06.png",
+        "type": "fictional-handwritten-scan",
+        "templateId": "followup-template-v1",
+        "studentId": "stu-06",
+        "pageCount": 1,
+        "status": "specified-not-generated"
+      },
+      {
+        "id": "baseline-stu-07",
+        "filename": "baseline-stu-07.png",
+        "type": "fictional-handwritten-scan",
+        "templateId": "baseline-template-v1",
+        "studentId": "stu-07",
+        "pageCount": 1,
+        "status": "specified-not-generated"
+      },
+      {
+        "id": "followup-stu-07",
+        "filename": "followup-stu-07.png",
+        "type": "fictional-handwritten-scan",
+        "templateId": "followup-template-v1",
+        "studentId": "stu-07",
+        "pageCount": 1,
+        "status": "specified-not-generated"
+      },
+      {
+        "id": "baseline-stu-08",
+        "filename": "baseline-stu-08.png",
+        "type": "fictional-handwritten-scan",
+        "templateId": "baseline-template-v1",
+        "studentId": "stu-08",
+        "pageCount": 1,
+        "status": "specified-not-generated"
+      },
+      {
+        "id": "followup-stu-08",
+        "filename": "followup-stu-08.png",
+        "type": "fictional-handwritten-scan",
+        "templateId": "followup-template-v1",
+        "studentId": "stu-08",
+        "pageCount": 1,
+        "status": "specified-not-generated"
+      },
+      {
+        "id": "lesson-original",
+        "filename": "lesson-2026-09-23-original.pdf",
+        "type": "teacher-plan",
+        "lessonId": "lesson-2026-09-23",
+        "pageCount": 1,
+        "status": "specified-not-generated"
+      },
+      {
+        "id": "material-targeted",
+        "filename": "targeted-equal-parts-v1.pdf",
+        "type": "printable-activity",
+        "materialId": "targeted-equal-parts-v1",
+        "pageCount": 1,
+        "status": "specified-not-generated"
+      },
+      {
+        "id": "material-extension",
+        "filename": "extension-explain-v1.pdf",
+        "type": "printable-activity",
+        "materialId": "extension-explain-v1",
+        "pageCount": 1,
+        "status": "specified-not-generated"
+      },
+      {
+        "id": "material-exit",
+        "filename": "exit-equal-units-v1.pdf",
+        "type": "printable-activity",
+        "materialId": "exit-equal-units-v1",
+        "pageCount": 1,
+        "status": "specified-not-generated"
+      },
+      {
+        "id": "teacher-answer-keys",
+        "filename": "classcompass-teacher-answer-keys.pdf",
+        "type": "answer-key",
+        "pageCount": null,
+        "status": "specified-not-generated"
+      }
+    ]
+  },
+  "nextLesson": {
+    "id": "lesson-2026-09-25",
+    "unitId": "unit-fractions-v1",
+    "date": "2026-09-25",
+    "title": "Compare strategies and check reasonableness",
+    "version": "original",
+    "totalMinutes": 45,
+    "blocks": [
+      {
+        "id": "warmup",
+        "minutes": 5,
+        "title": "Compare equivalent totals",
+        "content": "Recognize that 3/6 and 1/2 name the same amount and explain why."
+      },
+      {
+        "id": "model",
+        "minutes": 8,
+        "title": "Compare two valid methods",
+        "content": "Teacher models unlike-denominator addition with two common denominators and checks the total against the addends and one whole."
+      },
+      {
+        "id": "practice",
+        "minutes": 12,
+        "title": "Ordinary paired strategy practice",
+        "content": "All pairs solve two new fraction-addition calculations, compare methods, and justify whether each answer is reasonable."
+      },
+      {
+        "id": "application",
+        "minutes": 15,
+        "title": "Apply and explain",
+        "content": "Students solve fresh fraction-addition word problems and explain one method to a partner while the teacher circulates."
+      },
+      {
+        "id": "exit",
+        "minutes": 5,
+        "title": "Independent explanation",
+        "content": "Students complete a fresh sum and explain how they know the answer is reasonable."
+      }
+    ],
+    "proposalRule": "After teacher review of September 24 follow-up work, create a new proposal against this future lesson. Do not change the taught September 23 lesson or pre-accept follow-up groups."
+  }
+}
