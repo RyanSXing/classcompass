@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import "./revamp.css";
+import "./review-plan.css";
 import { WorkspaceProvider } from "@/components/workspace-provider";
 import { AppShell } from "@/components/app-shell";
 
 export const metadata: Metadata = {
   title: {
-    default: "ClassCompass · A clearer next step",
+    default: "ClassCompass · Classroom overview",
     template: "%s · ClassCompass",
   },
   description:

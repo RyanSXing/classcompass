@@ -3,6 +3,9 @@ import { randomBytes, randomUUID } from 'node:crypto';
 import assert from 'node:assert/strict';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { createInitialState } from '../lib/domain';
+import { curriculum } from '../lib/curriculum';
+import { CATALOG_VERSION } from '../lib/assignments';
+import { SupabaseRepository } from '../lib/server/repository';
 import type { AppState } from '../lib/contracts';
 config({path:'.env.local',quiet:true});
 config({quiet:true});
@@ -25,8 +28,21 @@ async function main() {
     for(let i=0;i<2;i++){
       const initial=await clients[i].rpc('load_classcompass_state');assert.ifError(initial.error);assert.equal(initial.data,null);
       const state=createInitialState(userIds[i]);state.revision=2;
+      const legacyIds=new Set(['lesson-2026-09-23','lesson-2026-09-25']);
+      if(i===1){
+        state.plans=state.plans.filter(plan=>legacyIds.has(plan.id));state.planVersions=state.planVersions.filter(version=>legacyIds.has(version.lessonId));delete state.classroom.catalogVersion;
+        for(const entry of state.calendarEntries)if(entry.lessonId&&!legacyIds.has(entry.lessonId)){delete entry.lessonId;delete entry.planVersionId;}
+      }
+      const originalVersions=structuredClone(state.planVersions);
       const saved=await clients[i].rpc('commit_classcompass_state',{p_expected_revision:1,p_state:state});assert.ifError(saved.error);
-      const loaded=await clients[i].rpc('load_classcompass_state');assert.ifError(loaded.error);assert.equal(loaded.data.ownerId,userIds[i]);assert.equal(loaded.data.students.length,8);assert.equal(loaded.data.planVersions.length,2);assert.equal(loaded.data.revision,2);
+      const loaded=await clients[i].rpc('load_classcompass_state');assert.ifError(loaded.error);assert.equal(loaded.data.ownerId,userIds[i]);assert.equal(loaded.data.students.length,8);assert.equal(loaded.data.planVersions.length,i===1?legacyIds.size:curriculum.lessons.length);assert.equal(loaded.data.revision,2);
+      if(i===1){
+        const repository=new SupabaseRepository({id:userIds[i],name:'Temporary migration check',client:clients[i]});const upgraded=await repository.read();
+        assert.equal(upgraded.plans.length,curriculum.lessons.length);assert.equal(upgraded.classroom.catalogVersion,CATALOG_VERSION);assert.equal(upgraded.revision,3);
+        assert.deepEqual(upgraded.planVersions.filter(version=>legacyIds.has(version.lessonId)),originalVersions,'Original lesson versions changed during the catalog upgrade');
+        assert.deepEqual(await repository.read(),upgraded);
+        console.log('PASS: a persisted two-lesson classroom gains five catalog lessons once, preserving original versions.');
+      }
     }
     console.log('PASS: authenticated normalized state round-trip for two independent owners.');
     console.log('CHECK: stale revision rejection (20-second request limit).');
@@ -52,6 +68,7 @@ async function main() {
     const ownPath=`${ownerA}/check-${randomUUID()}.json`;paths.push(ownPath);
     assert.ifError((await a.storage.from('classcompass-evidence').upload(ownPath,Buffer.from('{"fictional":true}'),{contentType:'application/json',upsert:false})).error);
     assert.ifError((await a.storage.from('classcompass-evidence').download(ownPath)).error);
+    assert((await a.storage.from('classcompass-evidence').update(ownPath,Buffer.from('{"tampered":true}'),{contentType:'application/json'})).error);
     assert((await b.storage.from('classcompass-evidence').download(ownPath)).error);
     assert((await b.storage.from('classcompass-evidence').createSignedUrl(ownPath,60)).error);
     const injectedPath=`${ownerA}/injected-${randomUUID()}.json`;paths.push(injectedPath);

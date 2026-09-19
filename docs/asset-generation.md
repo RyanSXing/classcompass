@@ -21,19 +21,19 @@ The build has no network calls, credentials, or model dependencies. Bundled font
 
 ## Output contract
 
-The generator creates 25 cataloged files:
+The generator creates 59 cataloged files across five assignments:
 
-- Two one-page US Letter blank worksheet PDFs.
-- Eight baseline and eight follow-up PNGs at exactly 1700 by 2200 pixels.
-- The original September 23 lesson PDF and runtime import JSON for September 23 and September 25.
+- Five one-page US Letter blank worksheet PDFs.
+- Forty PNGs at exactly 1700 by 2200 pixels: one per student for each assignment.
+- Five original lesson PDFs and their runtime import JSON files.
 - Targeted, extension, and exit student practice PDFs, each one page.
-- A separate two-page teacher answer key covering baseline, targeted work, independent entry check and application, extension, exit, and follow-up.
+- A separate three-page teacher answer key covering all five assignments and practice activities.
 
-The runtime JSON import files use `schemaVersion: 1`, `lessonId`, objective IDs, five `whole_class` blocks, and `instructions` rather than the authored seed's `content`. Both original lessons total 45 minutes. Their practice block is 12 minutes.
+The runtime JSON import files use `schemaVersion: 1`, `lessonId`, objective IDs, five `whole_class` blocks, and `instructions` rather than the authored seed's `content`. Each lesson totals 45 minutes. Its practice block is 12 minutes.
 
 `public/demo/manifest.json` contains **only** `{assets:[{id,filename,studentId?,templateId?,sha256,type}]}`. It contains no answer fields, expected groups, or reference transcripts. The downloadable teacher key is explicitly separate from the student pages.
 
-`lib/fixtures/extractions.json` is the **server-only prepared extraction fixture**, indexed by the SHA-256 of each exact original PNG. Entries are `{templateId,studentId,responses,preparedCorrection?}`. Each response has `questionId`, `workingText`, `answerText`, `legibility`, `alternatives`, and `uncertaintyNote`. The file has 16 submissions and all 48 responses, including blank answers. It must never be imported into a browser component, sent to a live model, or used to silently substitute for live model output.
+`lib/fixtures/extractions.json` is the **server-only prepared extraction fixture**, indexed by the SHA-256 of each exact original PNG. Entries are `{templateId,studentId,responses,preparedCorrection?}`. Each response has `questionId`, `workingText`, `answerText`, `legibility`, `alternatives`, and `uncertaintyNote`. The file has 40 submissions and all 120 responses, including blank answers. It must never be imported into a browser component, sent to a live model, or used to silently substitute for live model output.
 
 Finley's baseline q-03 source image actually reads `1/2`. Its prepared fixture deliberately reads `1/5`, marks the response uncertain, retains `1/2` as an alternative, and includes the explicit disclosure **“Prepared correction example - simulated extraction error.”** A live extraction must preserve its actual output. This prepared example may be used only in a visibly identified playback/correction demonstration.
 
@@ -54,7 +54,7 @@ The exact normalized top-left question regions come from `templates[].questionRe
 
 The generator checks image dimensions, manifest field allowlists, all hashes, submission and response counts, handwriting fit, and Finley's deliberately different prepared reading. It leaves review contact sheets in `tmp/pdfs/baseline-contact.png` and `tmp/pdfs/followup-contact.png`.
 
-All 16 pages were visually inspected in contact sheets against the authored responses, including Emery's valid nonleast common denominators, Blake's unreduced follow-up answer, Harper's blanks, and Finley's actual `1/2`. All seven final PDFs were rendered with Poppler and inspected, including both teacher-key pages. No clipped text, question-region overflow, or answer keys on student pages were found.
+All 40 pages were visually inspected in contact sheets against the authored responses, including Emery's valid nonleast common denominators, Blake's unreduced follow-up answer, Harper's blanks, and Finley's actual `1/2`. All 14 PDFs were rendered with Poppler and inspected, including the three teacher-key pages. No clipped text, question-region overflow, or answer keys on student pages were found.
 
 For a new render check (requires Poppler):
 
@@ -63,3 +63,7 @@ pdftoppm -scale-to 1400 -png public/demo/targeted-equal-parts-v1.pdf tmp/pdfs/ta
 ```
 
 Teacher review of the curriculum and actual live model recognition remain separate validation steps; asset generation does not establish either.
+
+## September 19 analytics expansion
+
+The current manifest contains 59 assets, including 40 student scans across five assignments, five blank worksheets, five lesson JSON/PDF pairs and an expanded three-page answer key. There are 120 responses and 15 distinct worksheet questions. The original 16 scan hashes are unchanged. New assignment pages and lesson PDFs were visually inspected; metadata and file hashes are checked by the automated asset tests.

@@ -9,7 +9,7 @@ import { configuration } from '@/lib/server/config';
 import { repository } from '@/lib/server/repository';
 import { boundedBytes, finalizeUpload, getObject, MAX_FILE, prepareUploads, putObject } from '@/lib/server/storage';
 import { cancelJob, queueJob, retryJob, runNext } from '@/lib/server/jobs';
-import { loadDemo } from '@/lib/server/demo';
+import { loadDemo, analyzeDemo } from '@/lib/server/demo';
 import { importLesson } from '@/lib/server/imports';
 
 export const runtime = 'nodejs';
@@ -66,6 +66,7 @@ async function route(request: Request, context: Context) {
       return new Response(new Uint8Array(bytes), { headers: { 'Content-Type': normalized ? asset.normalizedMimeType! : asset.mimeType, 'Content-Length': String(bytes.length), 'Cache-Control': 'private, no-store', 'X-Content-Type-Options': 'nosniff', 'Content-Disposition': `inline; filename="${asset.name.replace(/[^a-zA-Z0-9._-]/g, '_')}"` } });
     }
     if (area === 'demo' && method === 'POST') {
+      if (id === 'analyze') return ok(await analyzeDemo(actor, repo, await body(request)));
       if (id === 'load') return ok(await loadDemo(actor, repo, await body(request)), 201);
       if (id === 'reset') {
         if (config.dataBackend !== 'local' || config.aiMode !== 'fixture') throw new DomainError('RESET_DISABLED', 403, 'Demo reset is available only in local fixture mode.');

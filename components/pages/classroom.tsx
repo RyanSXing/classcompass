@@ -2,450 +2,299 @@
 import Link from "next/link";
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import {
-  ArrowRight,
-  Upload,
-  FileStack,
-  ListChecks,
-  CalendarCheck2,
-  BookOpen,
-  ClipboardCheck,
-  Sprout,
-  ChevronRight,
-  Plus,
-  Check,
-  Sparkles,
-  RotateCcw,
-} from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { useWorkspace } from "@/components/workspace-provider";
-import { PageGate, PageHeading, StatusBadge, Modal } from "@/components/shared";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { PageGate, PageHeading, EmptyState } from "@/components/shared";
 import { Card } from "@/components/ui/card";
+import { Select } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { UploadDialog } from "@/components/upload-dialog";
-import { currentFindings } from "@/lib/client/derived";
+import {
+  AssignmentTrend,
+  ResultCards,
+  ResultCounts,
+} from "@/components/analytics";
+import { SampleLoader } from "@/components/sample-loader";
+import {
+  getAssignmentAnalytics,
+  currentAssignmentFindings,
+} from "@/lib/analytics";
+import { getPlanningFindings } from "@/lib/domain";
+import { assignments } from "@/lib/assignments";
+import { assignmentHref } from "@/lib/client/links";
 import { dateLabel } from "@/lib/utils";
-
-function Cover({ kind }: { kind: "lesson" | "baseline" | "followup" }) {
-  const Icon =
-    kind === "lesson"
-      ? BookOpen
-      : kind === "baseline"
-        ? ClipboardCheck
-        : Sprout;
-  return (
-    <div
-      className={`library-cover ${kind === "baseline" ? "teal" : kind === "followup" ? "peach" : ""}`}
-    >
-      <div className="cover-shape" />
-      <div className="cover-shape two" />
-      <div className="cover-dots">
-        {Array.from({ length: 9 }, (_, i) => (
-          <i key={i} />
-        ))}
-      </div>
-      <Icon className="cover-icon" />
-      <span className="cover-fraction">
-        {kind === "lesson" ? "½ + ⅓" : kind === "baseline" ? "⅔" : "¾"}
-      </span>
-    </div>
-  );
-}
 function ClassroomContent() {
-  const { data, mutate, notify } = useWorkspace();
-  const router = useRouter();
+  const { data } = useWorkspace();
   const search = useSearchParams();
-  const [upload, setUpload] = useState<"work" | "lesson" | null>(null);
-  const shownUpload =
-    upload ?? (search.get("upload") === "work" ? "work" : null);
-  const [reset, setReset] = useState(false);
-  const [resetting, setResetting] = useState(false);
+  const router = useRouter();
+  const [upload, setUpload] = useState(false);
   if (!data) return null;
   const { state } = data;
-  const baseline = state.batches.filter((b) => b.kind === "baseline").at(-1);
-  const followup = state.batches.filter((b) => b.kind === "followup").at(-1);
-  const plan =
-    state.plans.find(
-      (p) => p.id === (followup ? "lesson-2026-09-25" : "lesson-2026-09-23"),
-    ) ?? state.plans[0];
-  const version = state.planVersions.find(
-    (v) => v.id === plan?.currentVersionId,
-  );
-  const awaiting = currentFindings(state.findings).filter(
+  const latest =
+    [...assignments]
+      .reverse()
+      .find((a) => state.batches.some((b) => b.templateId === a.templateId)) ??
+    assignments[0];
+  const selected =
+    assignments.find((a) => a.templateId === search.get("assignment")) ??
+    latest;
+  const analytics = getAssignmentAnalytics(state, selected.templateId);
+  const { counts } = analytics;
+  const notes = currentAssignmentFindings(state, selected.templateId);
+  const pending = notes.filter(
     (f) => f.status === "candidate" || f.status === "stale",
   );
-  const drafts = state.proposals.filter((p) => p.status === "draft");
-  const confirmed = state.findings.filter((f) => f.status === "confirmed");
-  const latest = followup ?? baseline;
-  const nextHref =
-    awaiting.length && latest
-      ? `/review/${latest.id}`
-      : confirmed.length
-        ? `/plans/${plan.id}`
-        : baseline
-          ? `/review/${baseline.id}`
-          : "";
+  const eligible = new Set(
+    getPlanningFindings(
+      state,
+      selected.targetLessonId.replace("lesson-", ""),
+    ).map((f) => f.id),
+  );
+  const confirmed = notes.filter(
+    (f) => f.status === "confirmed" && eligible.has(f.id),
+  );
+  const hasWork = state.submissions.length > 0;
   return (
     <div className="page">
-      <PageHeading
-        title="Your classroom"
-        description="A little evidence. A clearer next step."
-      >
-        <Button variant="outline" onClick={() => setUpload("lesson")}>
-          <Plus />
-          Import lesson
-        </Button>
-      </PageHeading>
-      <div className="workflow">
-        {[
-          "Upload work",
-          "Review findings",
-          "Adjust instruction",
-          "Check progress",
-        ].map((x, i) => (
-          <div key={x} style={{ display: "contents" }}>
-            {i > 0 && <span className="workflow-line" />}
-            <span
-              className={`workflow-step ${i === (followup ? 3 : confirmed.length ? 2 : baseline ? 1 : 0) ? "active" : ""}`}
-            >
-              <span className="step-number">{i + 1}</span>
-              {x}
-            </span>
-          </div>
-        ))}
-      </div>
-      <section className="hero">
-        <div className="hero-text">
-          <div className="eyebrow">FROM STUDENT WORK TO WHAT’S NEXT</div>
-          <h2>
-            {awaiting.length
-              ? "Their work is in. Let’s look closer."
-              : confirmed.length
-                ? "You know more. Teach what’s next."
-                : "Every worksheet tells you something."}
-          </h2>
-          <p>
-            {awaiting.length
-              ? `${awaiting.length} findings are ready for your review. See the original work, add your classroom context, and decide what should change.`
-              : confirmed.length
-                ? "Turn the evidence you’ve confirmed into a practical lesson adjustment. Every student gets a next step, within the time you already have."
-                : "See what students are showing you, review the evidence, and shape a lesson that meets them where they are."}
-          </p>
-          {nextHref ? (
-            <Button asChild>
-              <Link href={nextHref}>
-                {awaiting.length
-                  ? "Review student evidence"
-                  : confirmed.length
-                    ? "Shape the next lesson"
-                    : "Open student work"}
+      <PageHeading title="Overview" description="Grade 5 · Fraction addition" />
+      {!hasWork ? (
+        <Card>
+          <EmptyState
+            title="Add student work"
+            text="Upload worksheets or explore five sample assignments for eight fictional students."
+            action={
+              <div className="inline-actions">
+                <Button onClick={() => setUpload(true)}>Upload work</Button>
+                <SampleLoader />
+              </div>
+            }
+          />
+        </Card>
+      ) : (
+        <>
+          <div className="analytics-toolbar overview-toolbar">
+            <label className="field">
+              <span>Assignment</span>
+              <Select
+                aria-label="Assignment"
+                value={selected.templateId}
+                onChange={(event) =>
+                  router.replace(`/classroom?assignment=${event.target.value}`)
+                }
+              >
+                {assignments.map((a) => (
+                  <option value={a.templateId} key={a.id}>
+                    {a.title} · {dateLabel(a.date)}
+                  </option>
+                ))}
+              </Select>
+            </label>
+            <Button variant="outline" asChild>
+              <Link href={assignmentHref(state, selected.templateId)}>
+                Open answers
                 <ArrowRight />
               </Link>
             </Button>
-          ) : (
-            <Button onClick={() => setUpload("work")}>
-              <Upload />
-              Add your first worksheets
-            </Button>
-          )}
-        </div>
-        <div className="hero-art" aria-hidden="true">
-          <Sparkles className="art-star" size={24} />
-          <div className="paper-art">
-            <div className="fraction-bar">
-              <i />
-              <i />
-              <i className="empty" />
-            </div>
-            <div className="fraction-bar">
-              <i />
-              <i />
-              <i />
-              <i className="empty" />
-              <i className="empty" />
-              <i className="empty" />
-            </div>
-            <div className="paper-lines" />
-            <div className="paper-lines" style={{ width: 64 }} />
+            <span className="text-small muted">
+              {analytics.submittedStudents} of {analytics.expectedStudents}{" "}
+              worksheets received
+            </span>
           </div>
-          <div className="art-badge">
-            <Check size={28} strokeWidth={3} />
-          </div>
-        </div>
-      </section>
-      <div className="stats-grid">
-        <Card className="stat">
-          <div className="stat-icon">
-            <FileStack size={23} />
-          </div>
-          <div>
-            <div className="stat-number">{state.submissions.length}</div>
-            <div className="stat-label">Worksheets received</div>
-          </div>
-        </Card>
-        <Card className="stat">
-          <div className="stat-icon amber">
-            <ListChecks size={23} />
-          </div>
-          <div>
-            <div className="stat-number">{awaiting.length}</div>
-            <div className="stat-label">Findings to review</div>
-          </div>
-        </Card>
-        <Card className="stat">
-          <div className="stat-icon aqua">
-            <CalendarCheck2 size={23} />
-          </div>
-          <div>
-            <div className="stat-number">
-              {drafts.reduce((n, p) => n + p.changes.length, 0)}
-            </div>
-            <div className="stat-label">Changes to consider</div>
-          </div>
-        </Card>
-      </div>
-      <div className="section-title">
-        <h2>Your fraction addition unit</h2>
-        <span className="text-small muted">Sep 21 – Oct 2</span>
-      </div>
-      <div className="library-grid">
-        <Card className="library-card">
-          <Cover kind="lesson" />
-          <div className="library-body">
-            <div>
-              <Badge tone="violet">LESSON PLAN</Badge>
-            </div>
-            <h3>{plan?.title ?? "Apply fraction addition"}</h3>
-            <p>
-              Keep the goal. Make room for the next step each student needs.
+          <ResultCards state={state} templateId={selected.templateId} />
+          {(counts.unprocessed > 0 || counts.not_received > 0) && (
+            <p className="help-note mb-16">
+              {counts.unprocessed > 0
+                ? `${counts.unprocessed} answers not analyzed. `
+                : ""}
+              {counts.not_received > 0
+                ? `${counts.not_received} answers not received.`
+                : ""}
             </p>
-            <div className="library-footer">
-              <small>
-                {plan ? dateLabel(plan.date) : "Sep 23"} · 45 min · v
-                {version?.versionNumber ?? 1}
-              </small>
-              <Button variant="outline" size="sm" asChild>
-                <Link href={`/plans/${plan?.id ?? "lesson-2026-09-23"}`}>
-                  Open plan
-                  <ArrowRight />
+          )}
+          <div className="analytics-columns">
+            <Card className="analytics-panel">
+              <div className="panel-head">
+                <h2>Results over time</h2>
+                <Link className="text-link text-small" href="/assignments">
+                  All assignments
                 </Link>
-              </Button>
-            </div>
-          </div>
-        </Card>
-        {(["baseline", "followup"] as const).map((kind) => {
-          const batch = kind === "baseline" ? baseline : followup;
-          return (
-            <Card className="library-card" key={kind}>
-              <Cover kind={kind} />
-              <div className="library-body">
-                <div>
-                  <Badge tone={kind === "baseline" ? "aqua" : "amber"}>
-                    {kind === "baseline"
-                      ? "STUDENT EVIDENCE"
-                      : "FOLLOW-UP CHECK"}
-                  </Badge>
-                </div>
-                <h3>
-                  {kind === "baseline"
-                    ? "Let’s add fractions"
-                    : "A fresh fraction check"}
-                </h3>
-                <p>
-                  {kind === "baseline"
-                    ? "Four questions. Eight perspectives. Start with the work in front of you."
-                    : "Two new questions to see what changed after your lesson."}
-                </p>
-                <div className="library-footer">
-                  <small>
-                    {batch
-                      ? `${batch.submissionIds.length} worksheets`
-                      : `${kind === "baseline" ? "Sep 22" : "Sep 24"} · ${kind === "baseline" ? 4 : 2} questions`}
-                  </small>
-                  {batch ? (
-                    <Button variant="outline" size="sm" asChild>
-                      <Link href={`/review/${batch.id}`}>
-                        Review
-                        <ArrowRight />
-                      </Link>
-                    </Button>
-                  ) : (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setUpload("work")}
+              </div>
+              <AssignmentTrend state={state} />
+            </Card>
+            <Card className="analytics-panel">
+              <div className="panel-head">
+                <h2>Next actions</h2>
+              </div>
+              <ul className="action-list">
+                {counts.flagged > 0 && (
+                  <li>
+                    <Link
+                      href={assignmentHref(state, selected.templateId, {
+                        result: "flagged",
+                      })}
                     >
-                      Add work
-                      <Plus />
-                    </Button>
+                      Check {counts.flagged} flagged{" "}
+                      {counts.flagged === 1 ? "reading" : "readings"}
+                      <ArrowRight size={16} />
+                    </Link>
+                    <p>Check the original work before using these results.</p>
+                  </li>
+                )}
+                {counts.incorrect > 0 && (
+                  <li>
+                    <Link
+                      href={assignmentHref(state, selected.templateId, {
+                        result: "incorrect",
+                      })}
+                    >
+                      Inspect {counts.incorrect} incorrect{" "}
+                      {counts.incorrect === 1 ? "answer" : "answers"}
+                      <ArrowRight size={16} />
+                    </Link>
+                    <p>See the working behind each answer.</p>
+                  </li>
+                )}
+                {counts.unanswered > 0 && (
+                  <li>
+                    <Link
+                      href={assignmentHref(state, selected.templateId, {
+                        result: "unanswered",
+                      })}
+                    >
+                      Follow up on {counts.unanswered} unanswered{" "}
+                      {counts.unanswered === 1 ? "question" : "questions"}
+                      <ArrowRight size={16} />
+                    </Link>
+                  </li>
+                )}
+                {pending.length > 0 && (
+                  <li>
+                    <Link
+                      href={`${assignmentHref(state, selected.templateId)}#teaching-notes`}
+                    >
+                      Review {pending.length} teaching{" "}
+                      {pending.length === 1 ? "note" : "notes"}
+                      <ArrowRight size={16} />
+                    </Link>
+                    <p>Confirm or edit suggestions before planning.</p>
+                  </li>
+                )}
+                {confirmed.length > 0 && (
+                  <li>
+                    <Link href={`/plans/${selected.targetLessonId}`}>
+                      Plan the{" "}
+                      {dateLabel(
+                        selected.targetLessonId.replace("lesson-", ""),
+                      )}{" "}
+                      lesson
+                      <ArrowRight size={16} />
+                    </Link>
+                    <p>
+                      {confirmed.length} teacher-approved notes from this
+                      assignment.
+                    </p>
+                  </li>
+                )}
+                {!counts.flagged &&
+                  !counts.incorrect &&
+                  !counts.unanswered &&
+                  !pending.length &&
+                  !confirmed.length && (
+                    <li>
+                      <Link href={assignmentHref(state, selected.templateId)}>
+                        Review this assignment
+                        <ArrowRight size={16} />
+                      </Link>
+                      <p>Read the work and add a teaching note.</p>
+                    </li>
                   )}
-                </div>
+              </ul>
+            </Card>
+          </div>
+          <section className="analytics-section">
+            <div className="section-heading">
+              <h2>Questions in {selected.title}</h2>
+            </div>
+            <Card>
+              <div className="table-wrap">
+                <table className="data-table compact-table">
+                  <thead>
+                    <tr>
+                      <th scope="col">Question</th>
+                      <th scope="col">Results</th>
+                      <th scope="col">Work</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.curriculum.templates
+                      .find((t) => t.id === selected.templateId)
+                      ?.questionIds.map((id, index) => {
+                        const question = data.curriculum.questions.find(
+                          (q) => q.id === id,
+                        )!;
+                        const result = getAssignmentAnalytics(
+                          state,
+                          selected.templateId,
+                          { questionId: id },
+                        );
+                        return (
+                          <tr key={id}>
+                            <th scope="row">
+                              Q{index + 1}
+                              <small>{question.prompt}</small>
+                            </th>
+                            <td>
+                              <ResultCounts
+                                counts={result.counts}
+                                href={(bucket) =>
+                                  assignmentHref(state, selected.templateId, {
+                                    question: id,
+                                    result: bucket,
+                                  })
+                                }
+                              />
+                            </td>
+                            <td>
+                              <Link
+                                className="text-link text-small"
+                                href={assignmentHref(
+                                  state,
+                                  selected.templateId,
+                                  { question: id },
+                                )}
+                              >
+                                See answers
+                              </Link>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                  </tbody>
+                </table>
               </div>
             </Card>
-          );
-        })}
-      </div>
-      {state.batches.length > 0 && (
-        <>
-          <div className="section-title">
-            <h2>Recent work</h2>
-            <Button variant="ghost" size="sm" onClick={() => setUpload("work")}>
-              <Plus />
-              Add work
-            </Button>
-          </div>
-          <Card>
-            <div className="table-wrap">
-              <table className="data-table">
-                <thead>
-                  <tr>
-                    <th>Assignment</th>
-                    <th>Completed</th>
-                    <th>Students</th>
-                    <th>Status</th>
-                    <th />
-                  </tr>
-                </thead>
-                <tbody>
-                  {[...state.batches].reverse().map((batch) => {
-                    const job = state.jobs.find(
-                      (j) => j.id === batch.latestJobId,
-                    );
-                    return (
-                      <tr key={batch.id}>
-                        <td>
-                          <strong>{batch.title}</strong>
-                          <small>
-                            {batch.kind === "baseline"
-                              ? "Baseline evidence"
-                              : "Follow-up evidence"}
-                          </small>
-                        </td>
-                        <td>{dateLabel(batch.activityDate)}</td>
-                        <td>{batch.submissionIds.length} of 8</td>
-                        <td>
-                          <StatusBadge status={job?.status ?? "ready"} />
-                        </td>
-                        <td>
-                          <Button variant="ghost" size="sm" asChild>
-                            <Link href={`/review/${batch.id}`}>
-                              Open
-                              <ChevronRight />
-                            </Link>
-                          </Button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </Card>
+          </section>
         </>
       )}
-      <div className="section-title">
-        <h2>Meet your classroom</h2>
-        <small>8 fictional students</small>
-      </div>
-      <div className="roster">
-        {state.students.map((student) => (
-          <Link
-            href={`/students/${student.id}`}
-            className="student-card"
-            key={student.id}
-          >
-            <div className="student-avatar">{student.displayName[0]}</div>
-            <div>
-              <strong>{student.displayName}</strong>
-              <small>
-                {
-                  state.observations.filter(
-                    (o) => o.studentId === student.id && !o.superseded,
-                  ).length
-                }{" "}
-                reviewed observations
-              </small>
-            </div>
-            <ChevronRight />
-          </Link>
-        ))}
-      </div>
-      <div
-        style={{
-          marginTop: 28,
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          gap: 15,
-        }}
-      >
-        <p className="text-small muted">
-          You review the evidence. You make the teaching decisions.
-        </p>
-        {data.config.aiMode === "fixture" &&
-          data.config.dataBackend === "local" && (
-            <Button variant="ghost" size="sm" onClick={() => setReset(true)}>
-              <RotateCcw />
-              Reset demo
-            </Button>
-          )}
-      </div>
-      {shownUpload && (
+      {(upload || search.get("upload") === "work") && (
         <UploadDialog
-          initialTab={shownUpload}
+          initialTemplateId={search.get("assignment") ?? undefined}
           onClose={(navigated) => {
-            setUpload(null);
-            if (search.get("upload") && !navigated)
-              router.replace("/classroom", { scroll: false });
+            setUpload(false);
+            if (!navigated && search.get("upload"))
+              router.replace("/classroom");
           }}
         />
-      )}{" "}
-      {reset && (
-        <Modal
-          title="Start a fresh demonstration?"
-          onClose={() => setReset(false)}
-          footer={
-            <>
-              <Button variant="ghost" onClick={() => setReset(false)}>
-                Keep my work
-              </Button>
-              <Button
-                variant="destructive"
-                disabled={resetting}
-                onClick={async () => {
-                  setResetting(true);
-                  try {
-                    await mutate("/api/demo/reset", { confirm: true });
-                    setReset(false);
-                    notify("Fictional classroom reset. Ready for a fresh run.");
-                  } finally {
-                    setResetting(false);
-                  }
-                }}
-              >
-                Reset fictional work
-              </Button>
-            </>
-          }
-        >
-          <p>
-            This clears uploaded demo work, reviews and saved adjustments in
-            this local workspace. The authored lessons and sample files remain
-            available.
-          </p>
-        </Modal>
       )}
     </div>
   );
 }
 export default function ClassroomPage() {
   return (
-    <Suspense
-      fallback={<div className="loading-page">Opening your classroom…</div>}
-    >
-      <PageGate>
+    <PageGate>
+      <Suspense fallback={null}>
         <ClassroomContent />
-      </PageGate>
-    </Suspense>
+      </Suspense>
+    </PageGate>
   );
 }

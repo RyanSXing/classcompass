@@ -1,5 +1,6 @@
 "use client";
-import { useState } from "react";
+import { Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
   LockKeyhole,
@@ -21,21 +22,15 @@ import type { CalendarEntry } from "@/lib/contracts";
 function CalendarContent() {
   const { data } = useWorkspace();
   const [view, setView] = useState<"unit" | "wider">("unit");
-  const [preview, setPreview] = useState("");
+  const search = useSearchParams();
+  const router = useRouter();
   const [entry, setEntry] = useState<CalendarEntry | null>(null);
   if (!data) return null;
   const { state, curriculum } = data;
   const proposals = state.proposals.filter(
     (p) => p.status === "draft" || p.status === "stale",
   );
-  const selected = proposals.find(
-    (p) =>
-      p.id ===
-      (preview ||
-        (typeof window !== "undefined"
-          ? new URLSearchParams(location.search).get("proposal")
-          : "")),
-  );
+  const selected = proposals.find((p) => p.id === search.get("proposal"));
   const stale =
     selected &&
     (selected.status === "stale" ||
@@ -53,14 +48,15 @@ function CalendarContent() {
   return (
     <div className="page">
       <PageHeading
-        title="Room for what comes next"
-        description="Targeted support fits inside your plan. The wider class keeps moving."
+        title="Unit calendar"
+        description="Saved lessons, fixed dates and suggested follow-up checks."
         breadcrumb="Unit calendar"
       >
         <div className="segmented">
           <button
             className={view === "unit" ? "active" : ""}
             onClick={() => setView("unit")}
+            aria-pressed={view === "unit"}
           >
             <CalendarDays size={15} />
             This unit
@@ -68,6 +64,7 @@ function CalendarContent() {
           <button
             className={view === "wider" ? "active" : ""}
             onClick={() => setView("wider")}
+            aria-pressed={view === "wider"}
           >
             Wider calendar
           </button>
@@ -77,15 +74,18 @@ function CalendarContent() {
         <h2 style={{ fontSize: 23 }}>
           {view === "unit"
             ? "September 21 – October 2, 2026"
-            : "A view beyond this unit"}
+            : "Later units and dates"}
         </h2>
         <Select
-          aria-label="Proposal calendar preview"
+          aria-label="Suggested schedule preview"
           value={selected?.id ?? ""}
           onChange={(e) => {
-            setPreview(e.target.value);
-            if (!e.target.value && typeof window !== "undefined")
-              history.replaceState(null, "", "/calendar");
+            router.replace(
+              e.target.value
+                ? `/calendar?proposal=${e.target.value}`
+                : "/calendar",
+              { scroll: false },
+            );
           }}
           style={{ maxWidth: 320 }}
         >
@@ -97,7 +97,7 @@ function CalendarContent() {
                 state.plans.find((l) => l.id === p.lessonId)?.date ??
                   "2026-09-23",
               )}{" "}
-              lesson changes{p.status === "stale" ? " (stale)" : ""}
+              lesson changes{p.status === "stale" ? " (needs updating)" : ""}
             </option>
           ))}
         </Select>
@@ -107,11 +107,11 @@ function CalendarContent() {
           <Banner tone={stale ? "warning" : "info"}>
             <strong>
               {stale
-                ? "Stale preview — refresh before applying."
-                : "Proposal preview — not yet saved."}
+                ? "This preview needs updating."
+                : "Suggested schedule — not saved."}
             </strong>{" "}
-            Dashed events show suggested checkpoints. Apply the selected changes
-            from the lesson page.
+            Dashed events show suggested checks. Save selected changes from the
+            lesson page.
             <Link
               className="text-link"
               style={{ marginLeft: 8 }}
@@ -138,7 +138,7 @@ function CalendarContent() {
                 return (
                   <div className="calendar-cell" key={date}>
                     <div
-                      className={`calendar-date ${date === "2026-09-23" ? "today" : ""}`}
+                      className="calendar-date"
                       data-day={dateLabel(date, { weekday: "short" })}
                     >
                       {dateLabel(date)}
@@ -243,27 +243,27 @@ function CalendarContent() {
         </div>
         <Card>
           <div className="card-content">
-            <h3 style={{ fontSize: 18 }}>Your guardrails</h3>
+            <h3 style={{ fontSize: 18 }}>Fixed dates and lesson time</h3>
             <div className="constraint-grid">
               <div className="constraint-item">
                 <LockKeyhole />
                 <div>
-                  <strong>Assessment stays put</strong>October 2 is a fixed
+                  <strong>Fixed assessment</strong>October 2 is a fixed
                   assessment date.
                 </div>
               </div>
               <div className="constraint-item">
                 <Clock3 />
                 <div>
-                  <strong>45 minutes means 45</strong>Concurrent groups share
-                  one 12-minute block. Checkpoints fit within a session.
+                  <strong>45-minute lessons</strong>Groups work at the same
+                  time. Follow-up checks use time within an existing lesson.
                 </div>
               </div>
               <div className="constraint-item">
                 <BookOpen />
                 <div>
-                  <strong>Learning goals stay intact</strong>Required objectives
-                  and prerequisite order are preserved.
+                  <strong>Required learning goals</strong>Required skills and
+                  the order of topics stay in the plan.
                 </div>
               </div>
             </div>
@@ -279,7 +279,7 @@ function CalendarContent() {
       </div>
       <div className="inline-actions mt-24">
         <span className="text-small muted">Solid = saved schedule</span>
-        <span className="text-small muted">Dashed = proposal preview</span>
+        <span className="text-small muted">Dashed = suggested change</span>
       </div>
       {entry && (
         <Modal
@@ -349,8 +349,12 @@ function CalendarContent() {
 }
 export default function CalendarPage() {
   return (
-    <PageGate>
-      <CalendarContent />
-    </PageGate>
+    <Suspense
+      fallback={<div className="loading-page">Opening the calendar…</div>}
+    >
+      <PageGate>
+        <CalendarContent />
+      </PageGate>
+    </Suspense>
   );
 }

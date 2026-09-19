@@ -4,7 +4,7 @@
 
 Upload work → review the evidence → adjust instruction → teach → check progress.
 
-ClassCompass is a working Grade 5 fraction-addition prototype with an original, Blooket-inspired teacher dashboard. The central planner places original student work beside a proposed lesson change. Teachers can correct readings, record actual help, edit interpretations, accept individual changes, print activities, and see how fresh work changes the next lesson.
+ClassCompass is a working Grade 5 fraction-addition prototype with classroom analytics and an original teacher interface. The central planner places original student work beside a proposed lesson change. Teachers can correct readings, record actual help, edit interpretations, accept individual changes, print activities, and see how fresh work changes the next lesson.
 
 [Demo and recording guide](docs/demo-guide.md) · [Implementation reference](docs/implementation.md) · [Supabase setup](docs/supabase-setup.md) · [Public repository](https://github.com/RyanSXing/classcompass)
 
@@ -19,7 +19,7 @@ cp .env.example .env.local
 npm run dev
 ```
 
-Open [ClassCompass](http://127.0.0.1:3000). Choose **Upload work → Load fictional baseline work**, then **Start analysis**. The eight synthetic worksheets use clearly labeled prepared outputs. The application recomputes findings and plans from teacher corrections; it does not play a fixed sequence of screens.
+Open [ClassCompass](http://127.0.0.1:3000). Choose **Assignments → Load sample class** to explore five assignments, 40 worksheets and 120 answers from the same eight fictional students. This uses prepared results and preserves existing corrections and reviews. For the step-by-step correction demo, choose **Upload work → First check → Load sample worksheets**, then **Analyze this upload**.
 
 Local work persists in `.local/classcompass` across reloads and restarts. Local mode is restricted to loopback access and is refused in a hosted deployment. Credentials and runtime data are Git-ignored.
 
@@ -30,16 +30,18 @@ npm run build
 npm start
 ```
 
-The UI also includes a confirmed **Reset demo** action in local fixture mode.
+Use the reset command only for a dedicated fictional demo workspace.
 
 ## What the demo covers
 
-- Eight fictional students, four baseline questions, two follow-up questions, and two 45-minute lessons.
+- Eight fictional students, five dated assignments, 120 answers and five 45-minute lesson plans.
+- Overview, Assignments, Students and Lessons; clickable result counts, question breakdowns, student filters and dated comparisons.
+- Separate correct, incorrect, flagged, unanswered, unprocessed and missing results. Help, units and reasoning stay visible as separate details.
 - PNG/JPEG and one-page worksheet PDF uploads, student mapping, support context, private originals, and source crops.
 - Editable lesson imports from the supplied PDF or structured JSON, with an explicit preview before saving.
 - Exact rational arithmetic, equivalent unreduced answers, contradictory steps, uncertain readings, and incomplete work.
 - Separate candidate findings, teacher confirmations, dated skill observations, and accepted lesson versions.
-- A 12-minute practice block with three concurrent pathways, an optional exit activity, and an optional eight-minute follow-up checkpoint within the existing teaching time.
+- A 12-minute practice block with three groups working at the same time, an optional exit activity, and an optional eight-minute follow-up checkpoint within the existing teaching time.
 - A ten-day unit calendar with a fixed assessment and a wider calendar preview.
 - Version-bound student printables and separate teacher keys. Historical evidence and accepted plans remain inspectable.
 - Saved processing jobs, retries, cancellation, duplicate-request protection, and rejection of stale model results.
@@ -98,5 +100,6 @@ This prototype supports one known Grade 5 unit and previews its calendar impact.
 | [08 — Sources and assumptions](docs/08-sources-and-assumptions.md) | External sources and volatile assumptions |
 | [09 — Specification verification](docs/09-specification-verification.md) | Historical document/fixture verification |
 | [10 — Visual design](docs/10-visual-design.md) | Design tokens and original visual direction |
+| [11 — UX and analytics revamp](docs/11-ux-analytics-revamp.md) | Current navigation, result rules and five-assignment scope |
 
-The numbered documents preserve the original specification. The implementation reference and verification results describe what was built and tested. The [classroom fixture](docs/fixtures/classroom.json) is authored reference/test data; its historical “specified-not-generated” flags are not the current delivery status. The actual generated files are listed in [the asset manifest](public/demo/manifest.json).
+Documents 00–10 preserve the original specification. Document 11 supersedes their screen layouts and two-assignment limits. The implementation reference and verification results describe what was built and tested. The [classroom fixture](docs/fixtures/classroom.json) is authored reference/test data; its historical “specified-not-generated” flags are not the current delivery status. The actual generated files are listed in [the asset manifest](public/demo/manifest.json).

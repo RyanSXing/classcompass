@@ -2,6 +2,9 @@ import { promises as fs } from 'node:fs';
 import { createHash, randomUUID } from 'node:crypto';
 import path from 'node:path';
 import type { AppState, Asset, Batch, Job, LessonImport, MaterialSet, PlanVersion, Proposal } from '../lib/contracts';
+import { assignments, CATALOG_VERSION } from '../lib/assignments';
+import { curriculum } from '../lib/curriculum';
+import { getAssignmentAnalytics } from '../lib/analytics';
 
 // Explicit connected integration check. Preserves the fictional teacher workspace;
 // reruns resume its latest batches and accepted versions without resetting history.
@@ -70,10 +73,10 @@ async function analyze(batch: Batch) {
   const queued = await api<{ jobId: string }>(`/api/batches/${batch.id}/analyze`, { body: { expectedRevision: batch.revision }, key: randomUUID() });
   return runJob(queued.jobId);
 }
-async function batchFor(kind: 'baseline' | 'followup') {
-  const current = await state(), existing = current.batches.filter(b => b.kind === kind).at(-1);
+async function batchFor(templateId: string) {
+  const current = await state(), existing = current.batches.filter(b => b.templateId === templateId).at(-1);
   if (existing) { report.resumed = true; return existing; }
-  const loaded = await api<{ batchId: string }>('/api/demo/load', { body: { phase: kind }, timeoutMs: 120_000 });
+  const loaded = await api<{ batchId: string }>('/api/demo/load', { body: { templateId }, timeoutMs: 120_000 });
   const refreshed = await state(), batch = refreshed.batches.find(b => b.id === loaded.batchId);
   check(batch, 'LOADED_BATCH_MISSING'); return batch;
 }
@@ -128,6 +131,65 @@ async function verifyPDFImport(projectURL: string) {
   previewAssetId = asset.id;
   pass('Private signed PDF upload, verification, source preview and lesson import');
 }
+async function verifyExpandedAssignments() {
+  const before = await state();
+  const allLaterAssignmentsAreNew = assignments.slice(2).every(assignment => !before.batches.some(batch => batch.templateId === assignment.templateId));
+  check(before.plans.length === curriculum.lessons.length && before.plans.length === 5, 'EXPANDED_LESSON_CATALOG');
+  check(before.classroom.catalogVersion === CATALOG_VERSION, 'PERSISTED_CATALOG_VERSION');
+  const preserved = {
+    versions: JSON.stringify(before.planVersions),
+    observations: JSON.stringify(before.observations),
+    materials: JSON.stringify(before.materialSets),
+    reviewed: before.findings.filter(f => ['confirmed','rejected'].includes(f.status)).map(f => ({ id:f.id, serialized:JSON.stringify(f) })),
+    corrected: before.responses.filter(r => before.responseRevisions.some(history => history.responseId === r.id)).map(r => ({ id:r.id, serialized:JSON.stringify(r) })),
+  };
+  pass('Five saved catalog lessons are available alongside the original accepted versions');
+  for (const assignment of assignments.slice(2)) {
+    stage = `sample-${assignment.id}`;
+    console.log(`CHECK: ${assignment.title} private sample upload and prepared analysis.`);
+    const batch = await batchFor(assignment.templateId);
+    const existing = await state();
+    const confirmedIds = new Set(existing.findings.filter(f => f.status === 'confirmed').map(f => f.id));
+    const analyzed = await api<{ mode:string; findingsCreated:number }>('/api/demo/analyze',{body:{batchId:batch.id},timeoutMs:60_000});
+    check(analyzed.mode === 'fixture','SAMPLE_ANALYSIS_MODE');
+    const current = await state();
+    check(current.findings.filter(f => f.status === 'confirmed').every(f => confirmedIds.has(f.id)), 'SAMPLE_AUTO_CONFIRMATION');
+    const analytics = getAssignmentAnalytics(current,assignment.templateId);
+    check(analytics.submittedStudents === 8 && analytics.expectedStudents === 8 && analytics.allSlots.length === 24, 'EXPANDED_RESPONSE_COVERAGE');
+    check(analytics.allSlots.every(slot => slot.response && slot.batchId === batch.id), 'EXPANDED_EFFECTIVE_RESPONSE');
+    check(current.extractions.filter(extraction => batch.submissionIds.includes(extraction.submissionId)).every(extraction => extraction.provenance.mode === 'fixture'), 'SAMPLE_EXTRACTION_PROVENANCE');
+    const snapshot = JSON.stringify({batches:current.batches,submissions:current.submissions,responses:current.responses,extractions:current.extractions,findings:current.findings,observations:current.observations});
+    const repeatLoad = await api<{batchId:string;existing:boolean}>('/api/demo/load',{body:{templateId:assignment.templateId},timeoutMs:60_000});
+    const repeatAnalysis = await api<{findingsCreated:number;alreadyAnalyzed:boolean}>('/api/demo/analyze',{body:{batchId:batch.id},timeoutMs:60_000});
+    check(repeatLoad.batchId === batch.id && repeatLoad.existing && repeatAnalysis.alreadyAnalyzed && repeatAnalysis.findingsCreated === 0, 'SAMPLE_NOT_IDEMPOTENT');
+    const repeated = await state();
+    check(JSON.stringify({batches:repeated.batches,submissions:repeated.submissions,responses:repeated.responses,extractions:repeated.extractions,findings:repeated.findings,observations:repeated.observations}) === snapshot, 'SAMPLE_REPEAT_CHANGED_EVIDENCE');
+    pass(`${assignment.title}: 24 source-linked responses, no automatic approval, idempotent reload`);
+  }
+  const after = await state(), results = assignments.map(assignment => getAssignmentAnalytics(after,assignment.templateId));
+  check(results.reduce((sum,result) => sum+result.allSlots.length,0) === 120,'ALL_ASSIGNMENT_SLOT_COUNT');
+  check(results.reduce((sum,result) => sum+result.submittedStudents,0) === 40,'ALL_ASSIGNMENT_SUBMISSION_COUNT');
+  for (const { counts, slots } of results) {
+    check(counts.total === counts.correct+counts.incorrect+counts.flagged+counts.unanswered+counts.unprocessed+counts.not_received,'DISJOINT_RESULT_COUNTS');
+    check(counts.unprocessed === 0 && counts.not_received === 0,'UNPROCESSED_SAMPLE_RESPONSES');
+    check(counts.usable === counts.correct+counts.incorrect,'USABLE_DENOMINATOR');
+    check(slots.filter(slot => slot.bucket === 'incorrect').every(slot => slot.numericResult === 'incorrect'),'FLAGGED_COUNTED_WRONG');
+  }
+  const laterSlots = results.slice(2).flatMap(result => result.slots);
+  // Exact prepared outcomes are checked only on first load. A later teacher
+  // correction may legitimately remove a flag or update the assistance record.
+  if (allLaterAssignmentsAreNew) {
+    check(laterSlots.some(slot => slot.bucket === 'correct' && slot.supportLevel === 'supported'),'SUPPORTED_SUCCESS_NOT_PRESERVED');
+    check(laterSlots.some(slot => slot.bucket === 'correct' && slot.supportLevel === 'unknown'),'UNKNOWN_SUPPORT_NOT_SEPARATE');
+    check(laterSlots.some(slot => slot.bucket === 'flagged') && laterSlots.some(slot => slot.bucket === 'unanswered') && laterSlots.some(slot => slot.bucket === 'incorrect'),'SAMPLE_MIXED_EVIDENCE_MISSING');
+  }
+  check(JSON.stringify(after.planVersions) === preserved.versions && JSON.stringify(after.materialSets) === preserved.materials,'EXPANSION_REWROTE_ACCEPTED_LESSONS');
+  check(JSON.stringify(after.observations) === preserved.observations,'EXPANSION_CHANGED_REVIEWED_OBSERVATIONS');
+  check(preserved.reviewed.every(item => JSON.stringify(after.findings.find(f=>f.id===item.id))===item.serialized),'EXPANSION_CHANGED_TEACHER_REVIEW');
+  check(preserved.corrected.every(item => JSON.stringify(after.responses.find(r=>r.id===item.id))===item.serialized),'EXPANSION_CHANGED_CORRECTION');
+  report.counts.assignments=results.length;report.counts.effectiveWorksheets=40;report.counts.effectiveResponses=120;report.counts.savedLessons=after.plans.length;
+  pass('All 120 effective results reconcile; flags, wrong answers and assistance remain distinct; approved history is unchanged');
+}
 async function main() {
   check(['127.0.0.1', 'localhost', '[::1]'].includes(baseURL.hostname), 'LOOPBACK_SERVER_REQUIRED');
   const login = JSON.parse(await fs.readFile(credentialsFile, 'utf8')) as { email: string; password: string; projectURL: string };
@@ -138,7 +200,7 @@ async function main() {
   check(cookies.size > 0, 'SESSION_COOKIE_MISSING'); await state();
   pass('Anonymous denial and real teacher cookie authentication');
   stage = 'lesson-import'; await verifyPDFImport(login.projectURL);
-  stage = 'baseline'; const baseline = await batchFor('baseline');
+  stage = 'baseline'; const baseline = await batchFor('baseline-template-v1');
   let current = await state();
   if (current.responses.filter(r => baseline.submissionIds.includes(r.submissionId)).length < 32) await analyze(baseline);
   current = await state();
@@ -169,7 +231,7 @@ async function main() {
   check(calendar.entries.some(e => e.date === '2026-10-02' && e.locked), 'FIXED_ASSESSMENT');
   check(calendar.entries.some(e => e.date === '2026-10-05' && e.preview), 'NEXT_UNIT_PRESERVED');
   pass('September 23 accepted once with all students, materials and fixed calendar constraints');
-  stage = 'followup'; const followup = await batchFor('followup'); await analyze(followup); await confirmBatch(followup);
+  stage = 'followup'; const followup = await batchFor('followup-template-v1'); await analyze(followup); await confirmBatch(followup);
   current = await state();
   check(current.responses.filter(r => followup.submissionIds.includes(r.submissionId)).length === 16, 'FOLLOWUP_RESPONSE_COUNT');
   const blake = current.submissions.find(s => s.batchId === followup.id && s.studentId === 'stu-02')!;
@@ -184,6 +246,7 @@ async function main() {
   check(grayProgress.observations.some(o => !o.superseded && o.observationStatus === 'supported') && grayProgress.observations.some(o => !o.superseded && o.observationStatus === 'independent'), 'GRAY_DATED_HISTORY');
   report.counts = { baselineResponses: 32, followupResponses: 16, baselineStudents: 8, followupStudents: 8, acceptedLessons: 2, checks: report.checks.length + 2 };
   pass('September 25 accepted; taught September 23 and dated progress history preserved');
+  stage = 'expanded-catalog'; await verifyExpandedAssignments();
   stage = 'logout'; await api('/api/auth/logout', { body: {} }); signedIn = false;
   check((await request('/api/classroom')).status === 401, 'LOGOUT_SESSION_REMAINS');
   check((await request(`/api/assets/${previewAssetId}`)).status === 401, 'LOGOUT_PRIVATE_ASSET_ACCESS');

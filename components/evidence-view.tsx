@@ -97,6 +97,7 @@ export function EvidenceView({
               key={id}
               onClick={() => onQuestionChange(id)}
               aria-label={`Show question ${i + 1}`}
+              aria-pressed={id === questionId}
             >
               Q{i + 1}
             </button>
@@ -157,12 +158,6 @@ export function EvidenceView({
       </div>
       <div className="evidence-caption">
         <strong>{question?.prompt}</strong>
-        {!compact && (
-          <p style={{ marginTop: 8 }}>
-            Source pixels stay unchanged. The highlighted region comes from the
-            known worksheet template.
-          </p>
-        )}
         <a
           href={`/api/assets/${asset.id}?variant=original`}
           target="_blank"

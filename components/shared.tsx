@@ -52,11 +52,13 @@ export function PageHeading({
 }) {
   return (
     <>
-      <div className="breadcrumb">
-        <Link href="/classroom">Workspace</Link>
-        <ChevronRight size={12} />
-        <span>{breadcrumb ?? title}</span>
-      </div>
+      {title !== "Overview" && (
+        <div className="breadcrumb">
+          <Link href="/classroom">Overview</Link>
+          <ChevronRight size={12} />
+          <span>{breadcrumb ?? title}</span>
+        </div>
+      )}
       <div className="page-heading">
         <div>
           <h1>{title}</h1>
@@ -131,10 +133,18 @@ export function StatusBadge({ status }: { status: string }) {
   return (
     <Badge tone={tone}>
       {status === "candidate"
-        ? "Needs review"
+        ? "Needs approval"
         : status === "stale"
-          ? "Needs reconfirmation"
-          : humanize(status)}
+          ? "Needs updating"
+          : status === "resolved"
+            ? "Reviewed"
+            : status === "uncertain"
+              ? "Unclear"
+              : status === "blocked"
+                ? "Needs a check"
+                : status === "cancelled"
+                  ? "Stopped"
+                  : humanize(status)}
     </Badge>
   );
 }

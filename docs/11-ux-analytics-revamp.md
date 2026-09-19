@@ -1,6 +1,6 @@
 # ClassCompass UX and analytics revamp
 
-Status: approved implementation direction from the September 19 user request. This plan supersedes conflicting screen layout, wording and two-assignment limits in the original specification. Teacher approval, private source work, immutable history and the fixed assessment remain required.
+Status: implemented from the September 19 user request. This plan supersedes conflicting screen layout, wording and two-assignment limits in the original specification. Teacher approval, private source work, immutable history and the fixed assessment remain required. See [verification results](verification-results.md) for tested scope and live-model limits.
 
 ## What needs fixing
 

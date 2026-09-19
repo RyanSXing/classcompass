@@ -14,6 +14,7 @@ import { Modal, Banner } from "@/components/shared";
 import { Button } from "@/components/ui/button";
 import { Input, Select, Textarea } from "@/components/ui/input";
 import { api } from "@/lib/client/api";
+import { assignments, getAssignment } from "@/lib/assignments";
 import { inspectFile, uploadFile } from "@/lib/client/uploads";
 import type {
   Batch,
@@ -33,16 +34,23 @@ type UploadItem = {
 export function UploadDialog({
   onClose,
   initialTab = "work",
+  initialTemplateId,
 }: {
   onClose: (navigated?: boolean) => void;
   initialTab?: "work" | "lesson";
+  initialTemplateId?: string;
 }) {
   const { data, refresh, notify } = useWorkspace();
   const router = useRouter();
   const previewURLs = useRef<string[]>([]);
   const [tab, setTab] = useState(initialTab);
-  const [phase, setPhase] = useState<"baseline" | "followup">("baseline");
-  const [date, setDate] = useState("2026-09-22");
+  const [templateId, setTemplateId] = useState(
+    getAssignment(initialTemplateId ?? "")?.templateId ??
+      assignments[0].templateId,
+  );
+  const [date, setDate] = useState(
+    getAssignment(initialTemplateId ?? "")?.date ?? assignments[0].date,
+  );
   const [items, setItems] = useState<UploadItem[]>([]);
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
@@ -58,9 +66,8 @@ export function UploadDialog({
   );
   if (!data) return null;
   const { state, curriculum } = data;
-  const template = curriculum.templates.find(
-    (t) => t.id === `${phase}-template-v1`,
-  )!;
+  const template = curriculum.templates.find((t) => t.id === templateId)!;
+  const assignment = getAssignment(templateId)!;
   async function filesAdded(files: FileList | null) {
     if (!files) return;
     setError("");
@@ -102,9 +109,7 @@ export function UploadDialog({
   }
   async function submitWork() {
     if (new Set(items.map((i) => i.studentId)).size !== items.length) {
-      setError(
-        "Each student can have one worksheet in this batch. Please check the mapping.",
-      );
+      setError("Choose one worksheet per student.");
       return;
     }
     setError("");
@@ -131,15 +136,19 @@ export function UploadDialog({
         });
       }
       setBusy("Saving your assignment…");
-      const prior = state.batches.filter((b) => b.kind === "baseline").at(-1);
-      const plan = state.plans.find((p) => p.id === "lesson-2026-09-23");
+      const prior = state.batches
+        .filter((b) => b.activityDate < date)
+        .sort((a, b) => b.activityDate.localeCompare(a.activityDate))[0];
+      const plan = state.plans.find((p) => p.id === assignment.sourceLessonId);
       const batch = await api<Batch>("/api/batches", {
         templateId: template.id,
         activityDate: date,
-        kind: phase,
+        kind: assignment.kind,
         submissions,
-        ...(phase === "followup" && prior ? { previousBatchId: prior.id } : {}),
-        ...(phase === "followup" && plan
+        ...(assignment.kind === "followup" && prior
+          ? { previousBatchId: prior.id }
+          : {}),
+        ...(assignment.kind === "followup" && plan
           ? { sourcePlanVersionId: plan.currentVersionId }
           : {}),
       });
@@ -161,12 +170,12 @@ export function UploadDialog({
     setBusy("Loading the fictional worksheets…");
     try {
       const result = await api<{ batchId: string }>("/api/demo/load", {
-        phase,
+        templateId,
       });
       await refresh();
       router.push(`/review/${result.batchId}`);
       onClose(true);
-      notify("Sample work loaded. Review the context, then start analysis.");
+      notify("Sample worksheets loaded. Start analysis to see results.");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not load the sample.");
     } finally {
@@ -249,7 +258,7 @@ export function UploadDialog({
   }
   return (
     <Modal
-      title="Bring your classroom into focus"
+      title={tab === "work" ? "Upload work" : "Import lesson"}
       onClose={() => {
         if (!busy) onClose();
       }}
@@ -276,7 +285,7 @@ export function UploadDialog({
               disabled={!items.length || !!busy}
               onClick={() => void submitWork()}
             >
-              Analyze {items.length || ""} worksheet
+              Upload and analyze {items.length || ""} worksheet
               {items.length === 1 ? "" : "s"}
               <ArrowRight />
             </Button>
@@ -299,6 +308,8 @@ export function UploadDialog({
       <div className="segmented mb-16">
         <button
           className={tab === "work" ? "active" : ""}
+          aria-pressed={tab === "work"}
+          disabled={!!busy}
           onClick={() => setTab("work")}
         >
           <Upload size={15} />
@@ -306,6 +317,8 @@ export function UploadDialog({
         </button>
         <button
           className={tab === "lesson" ? "active" : ""}
+          aria-pressed={tab === "lesson"}
+          disabled={!!busy}
           onClick={() => setTab("lesson")}
         >
           <BookOpen size={15} />
@@ -321,20 +334,21 @@ export function UploadDialog({
         <div className="spaced">
           <div className="form-grid">
             <label className="field">
-              <span>Known assignment</span>
+              <span>Assignment</span>
               <Select
-                aria-label="Known assignment"
-                value={phase}
+                aria-label="Assignment"
+                value={templateId}
+                disabled={!!busy || items.length > 0}
                 onChange={(e) => {
-                  const p = e.target.value as "baseline" | "followup";
-                  setPhase(p);
-                  setDate(p === "baseline" ? "2026-09-22" : "2026-09-24");
+                  setTemplateId(e.target.value);
+                  setDate(getAssignment(e.target.value)!.date);
                 }}
               >
-                <option value="baseline">Fraction addition · Baseline</option>
-                <option value="followup">
-                  A fresh fraction check · Follow-up
-                </option>
+                {assignments.map((a) => (
+                  <option key={a.id} value={a.templateId}>
+                    {a.title}
+                  </option>
+                ))}
               </Select>
             </label>
             <label className="field">
@@ -342,6 +356,7 @@ export function UploadDialog({
               <Input
                 aria-label="Work completed on"
                 type="date"
+                disabled
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
               />
@@ -358,8 +373,7 @@ export function UploadDialog({
               </p>
             ))}
             <p style={{ marginTop: 9 }}>
-              Look for equivalent fractions, a common unit, and an explanation.
-              Correct unreduced fractions are welcome.
+              Equivalent unreduced answers are accepted.
             </p>
           </div>
           <label className="drop-zone">
@@ -380,9 +394,7 @@ export function UploadDialog({
           {items.length > 0 && (
             <>
               <div className="inline-actions">
-                <strong className="text-small">
-                  Map students & record help
-                </strong>
+                <strong className="text-small">Student and help given</strong>
                 <span className="muted text-small">
                   Applies to every answer on that page.
                 </span>
@@ -455,11 +467,8 @@ export function UploadDialog({
           <div className="banner">
             <FileText />
             <div>
-              <strong>Taking a look around?</strong>
-              <p>
-                Load eight fictional, synthetically handwritten worksheets
-                through the same review flow.
-              </p>
+              <strong>Sample worksheets</strong>
+              <p>Load eight fictional worksheets for this assignment.</p>
               <Button
                 variant="outline"
                 size="sm"
@@ -467,7 +476,7 @@ export function UploadDialog({
                 onClick={() => void loadSample()}
                 disabled={!!busy}
               >
-                Load fictional {phase} work
+                Load sample worksheets
                 <ArrowRight />
               </Button>
             </div>

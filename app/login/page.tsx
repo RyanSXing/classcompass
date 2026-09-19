@@ -20,7 +20,7 @@ export default function Login() {
     <div className="login-page">
       <Card className="login-card">
         <Brand />
-        <h1>Your next great lesson starts here.</h1>
+        <h1>Teacher sign in</h1>
         <p>Sign in to your private teacher workspace.</p>
         {error && (
           <div className="mb-16">
@@ -71,7 +71,7 @@ export default function Login() {
               />
             </label>
             <Button type="submit" disabled={busy}>
-              {busy ? <LoaderCircle className="spin" /> : null}Open my classroom
+              {busy ? <LoaderCircle className="spin" /> : null}Sign in
               <ArrowRight />
             </Button>
           </form>
@@ -81,8 +81,7 @@ export default function Login() {
             size={12}
             style={{ display: "inline", marginRight: 4 }}
           />
-          Use your provisioned teacher account.
-          <br />A classroom made for teaching, not tracking students.
+          Use your teacher account.
         </p>
       </Card>
     </div>

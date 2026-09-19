@@ -2,60 +2,61 @@ import { test, expect, type Page } from "@playwright/test";
 import path from "node:path";
 import { mkdir } from "node:fs/promises";
 import type { AppState } from "../../lib/contracts";
-
 test.describe.configure({ mode: "serial" });
-
 async function stateFrom(page: Page): Promise<AppState> {
   const response = await page.request.get("/api/classroom");
   expect(response.ok()).toBeTruthy();
   return (await response.json()).data.state;
 }
-
 async function finishAnalysis(page: Page) {
   await expect(
-    page.getByRole("button", { name: "Refresh findings", exact: true }),
-  ).toBeVisible({ timeout: 70_000 });
+    page.getByRole("button", { name: "Update teaching notes", exact: true }),
+  ).toBeEnabled({ timeout: 70_000 });
   await expect(page.locator(".job-panel")).toHaveCount(0);
 }
-
-async function confirmCurrentStudents(page: Page) {
+async function approveVisible(page: Page) {
+  const checks = page.getByRole("checkbox", {
+    name: /Select teaching note for/,
+  });
+  await expect(checks.first()).toBeVisible();
+  const count = await checks.count();
+  expect(count).toBeGreaterThan(0);
+  for (const box of await checks.all()) await box.check();
   await page
-    .getByRole("button", { name: "Individual work", exact: true })
+    .getByRole("button", { name: `Approve ${count} selected`, exact: true })
     .click();
-  for (let i = 1; i <= 8; i++) {
-    await page
-      .getByLabel("Choose student", { exact: true })
-      .selectOption(`stu-0${i}`);
-    // A student can have both affirmative evidence and an incomplete-work limitation.
-    const confirms = page.getByRole("button", {
-      name: "Confirm finding",
-      exact: true,
-    });
-    while (await confirms.count()) {
-      const before = await confirms.count();
-      await expect(confirms.first()).toBeEnabled();
-      await confirms.first().click();
-      await expect(confirms).toHaveCount(before - 1);
-    }
-  }
+  await expect(checks).toHaveCount(0);
 }
-
-test("complete teacher-controlled baseline → correction → selected lesson → fresh progress loop", async ({
+async function loadSingle(page: Page, templateId = "baseline-template-v1") {
+  await page.getByRole("link", { name: "Upload work", exact: true }).click();
+  await page
+    .getByRole("dialog", { name: "Upload work" })
+    .getByLabel("Assignment", { exact: true })
+    .selectOption(templateId);
+  await page
+    .getByRole("button", { name: "Load sample worksheets", exact: true })
+    .click();
+  await expect(page).toHaveURL(/\/review\//);
+  await page
+    .getByRole("button", { name: "Analyze this upload", exact: true })
+    .click();
+  await finishAnalysis(page);
+}
+test("teacher corrects a flagged reading, reviews notes and saves selected changes", async ({
   page,
 }) => {
-  const browserErrors: string[] = [];
-  page.on("pageerror", (error) => browserErrors.push(error.message));
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
   await page.goto("/classroom");
   await expect(
-    page.getByRole("heading", { name: "Your classroom", exact: true }),
+    page.getByRole("heading", { name: "Overview", exact: true }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "Reset demo", exact: true }).click();
-  await page
-    .getByRole("button", { name: "Reset fictional work", exact: true })
-    .click();
-  await expect(page.getByRole("dialog")).toHaveCount(0);
-
-  // Import a real runtime lesson JSON through the same file pipeline used by teachers.
+  const reset = await page.request.post("/api/demo/reset", {
+    data: { confirm: true },
+    headers: { origin: "http://127.0.0.1:3001" },
+  });
+  expect(reset.ok()).toBeTruthy();
+  await page.goto("/plans");
   await page
     .getByRole("button", { name: "Import lesson", exact: true })
     .click();
@@ -69,28 +70,29 @@ test("complete teacher-controlled baseline → correction → selected lesson �
     .getByRole("button", { name: "Confirm lesson import", exact: true })
     .click();
   await expect(page).toHaveURL(/\/plans\/lesson-2026-09-23/);
-
-  await page.getByRole("link", { name: "Upload work", exact: true }).click();
-  await page
-    .getByRole("button", { name: "Load fictional baseline work", exact: true })
-    .click();
-  await expect(page).toHaveURL(/\/review\//);
+  await loadSingle(page);
   const baselineUrl = page.url();
   await expect(
-    page.getByText("Prepared demo analysis.", { exact: true }),
-  ).toBeVisible();
-  await page
-    .getByRole("button", { name: "Start analysis", exact: true })
-    .click();
-  await finishAnalysis(page);
-  await expect(
-    page.getByText("Prepared reading", { exact: true }),
+    page.getByRole("heading", { name: "First check", exact: true }),
   ).toBeVisible();
   await expect(
-    page.getByText(/This original prepared reading includes a simulated/),
+    page.getByRole("button", {
+      name: "Finley, question 3: Flagged, 1/5",
+      exact: true,
+    }),
+  ).toBeVisible();
+  await page.getByLabel("Filter result").selectOption("flagged");
+  await expect(
+    page.getByRole("button", { name: /question \d: Incorrect/ }),
   ).toHaveCount(0);
-
-  // Changing the configured mode must not relabel already saved extraction origins.
+  await page
+    .getByRole("button", {
+      name: "Finley, question 3: Flagged, 1/5",
+      exact: true,
+    })
+    .click();
+  await expect(page.locator(".transcript")).toContainText("1/5");
+  // Saved sample provenance must survive switching the configured mode.
   await page.route("**/api/classroom", async (route) => {
     const response = await route.fetch();
     const body = await response.json();
@@ -98,34 +100,12 @@ test("complete teacher-controlled baseline → correction → selected lesson �
     await route.fulfill({ response, json: body });
   });
   await page.reload();
-  await expect(
-    page.getByText("Saved reading origins: 32 prepared.", { exact: true }),
-  ).toBeVisible();
-  await expect(
-    page.getByText("Prepared reading", { exact: true }),
-  ).toBeVisible();
+  await expect(page.getByText("Sample reading", { exact: true })).toBeVisible();
   await expect(page.getByText("Live reading", { exact: true })).toHaveCount(0);
   await page.unrouteAll({ behavior: "wait" });
-
-  // Correct one extraction, preserving the image and original extraction.
+  await page.getByRole("button", { name: "Edit reading", exact: true }).click();
   await page
-    .getByRole("button", { name: "Individual work", exact: true })
-    .click();
-  await page
-    .getByLabel("Choose student", { exact: true })
-    .selectOption("stu-06");
-  await page
-    .getByRole("button", { name: "Show question 3", exact: true })
-    .click();
-  await expect(page.locator(".transcript")).toContainText("1/5");
-  await expect(
-    page.getByText(/This original prepared reading includes a simulated/),
-  ).toBeVisible();
-  await page
-    .getByRole("button", { name: "Edit / verify reading", exact: true })
-    .click();
-  await page
-    .getByRole("textbox", { name: "Working shown on the page" })
+    .getByLabel("Working shown on the page")
     .fill("2/5 = 4/10; 4/10 + 1/10 = 5/10 = 1/2");
   await page.getByLabel("Final answer", { exact: true }).fill("1/2");
   await page
@@ -133,110 +113,59 @@ test("complete teacher-controlled baseline → correction → selected lesson �
     .selectOption("clear");
   await page
     .getByLabel("Reason or review note", { exact: true })
-    .fill("The original final denominator is 2; the prior step is 5/10.");
+    .fill("The final denominator is 2; the prior step is 5/10.");
+  await page.getByRole("button", { name: "Save reading", exact: true }).click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await page.getByLabel("Filter result").selectOption("all");
+  await page.getByLabel("Filter student").selectOption("stu-07");
   await page
-    .getByRole("button", { name: "Save reviewed reading", exact: true })
-    .click();
-  await expect(page.locator(".transcript")).toContainText("1/2");
-  await expect(
-    page.getByText("Prepared reading", { exact: true }),
-  ).toBeVisible();
-  await expect(
-    page.getByText("Teacher corrected", { exact: true }),
-  ).toBeVisible();
-
-  // Correct classroom context separately; numerical correctness must stay intact.
-  await page
-    .getByLabel("Choose student", { exact: true })
-    .selectOption("stu-07");
-  await page
-    .getByRole("button", { name: "Edit recorded help", exact: true })
+    .getByRole("button", { name: "Edit help given", exact: true })
     .click();
   await page
-    .getByLabel("Task conditions", { exact: true })
+    .getByLabel("Help given", { exact: true })
     .selectOption("supported");
   await page
-    .getByRole("textbox", { name: "What help was provided or verified?" })
-    .fill("I prompted Gray to find a common denominator on each question.");
+    .getByLabel("What help was provided or verified?", { exact: true })
+    .fill("I prompted Gray to find a common denominator.");
   await page
-    .getByRole("button", { name: "Save support context", exact: true })
+    .getByRole("button", { name: "Save help given", exact: true })
     .click();
-  await expect(
-    page.locator(".fact-row").filter({ hasText: "Mathematical check" }),
-  ).toContainText("Correct");
-  await expect(
-    page.locator(".fact-row").filter({ hasText: "Recorded help" }),
-  ).toContainText("Supported");
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await page.getByLabel("Filter student").selectOption("");
   await page
-    .getByRole("button", { name: "Refresh findings", exact: true })
+    .getByRole("button", { name: "Update teaching notes", exact: true })
     .click();
   await finishAnalysis(page);
-  await page.getByRole("button", { name: "Patterns", exact: true }).click();
-  await page.getByRole("button", { name: /Adding the denominators/ }).click();
-  for (const name of ["Avery", "Blake", "Casey"]) {
-    await page
-      .locator(".pattern-roster .selection-chip")
-      .filter({ hasText: name })
-      .getByRole("checkbox")
-      .check();
-  }
+  await approveVisible(page);
   await page
-    .getByRole("button", { name: "Confirm selected", exact: true })
-    .click();
-  await expect(page.locator(".pattern-card.active")).toContainText(
-    "3 confirmed",
-  );
-  await confirmCurrentStudents(page);
-
-  await page
-    .getByRole("link", { name: "Adjust instruction", exact: true })
+    .getByRole("link", { name: "Plan the next lesson", exact: true })
     .click();
   await page
     .getByRole("button", { name: "Suggest lesson changes", exact: true })
     .click();
   await expect(
-    page.getByRole("button", { name: "Apply selected changes", exact: true }),
+    page.getByRole("button", { name: "Save selected changes", exact: true }),
   ).toBeEnabled({ timeout: 40_000 });
-  await expect(
-    page.getByText("One 12-minute block. Three concurrent activities.", {
-      exact: true,
-    }),
-  ).toBeVisible();
-
-  // Keep the original exit task while accepting practice and the fresh checkpoint.
-  const exitChange = page
-    .locator(".change-card")
-    .filter({
-      has: page.getByRole("heading", {
-        name: "Check the next small step",
-        exact: true,
-      }),
-    });
-  await exitChange
-    .getByRole("button", { name: "Keep original", exact: true })
-    .click();
-  await expect(page.locator(".sticky-actions")).toContainText(
-    "2 changes selected",
-  );
   await page
-    .getByRole("button", { name: "Apply selected changes", exact: true })
+    .getByRole("checkbox", {
+      name: "Save change: Change the exit question",
+      exact: true,
+    })
+    .uncheck();
+  await page
+    .getByRole("button", { name: "Save selected changes", exact: true })
     .click();
   await expect(
-    page.getByRole("heading", { name: "Your saved lesson", exact: true }),
+    page.getByRole("heading", { name: "Saved lesson", exact: true }),
   ).toBeVisible();
-  const accepted = await stateFrom(page);
-  const september23 = accepted.plans.find((p) => p.id === "lesson-2026-09-23")!;
-  const firstAccepted = accepted.planVersions.find(
-    (v) => v.id === september23.currentVersionId,
+  const saved = await stateFrom(page);
+  const plan = saved.plans.find((p) => p.id === "lesson-2026-09-23")!;
+  const version = saved.planVersions.find(
+    (v) => v.id === plan.currentVersionId,
   )!;
-  expect(
-    firstAccepted.snapshot.blocks.reduce((n, block) => n + block.minutes, 0),
-  ).toBe(45);
-  expect(firstAccepted.selectedChangeIds).toHaveLength(2);
-  const practice = firstAccepted.snapshot.blocks.find(
-    (block) => block.id === "practice",
-  )!;
-  expect(practice.minutes).toBe(12);
+  expect(version.selectedChangeIds).toHaveLength(2);
+  expect(version.snapshot.blocks.reduce((n, b) => n + b.minutes, 0)).toBe(45);
+  const practice = version.snapshot.blocks.find((b) => b.id === "practice")!;
   expect(practice.lanes?.find((l) => l.id === "targeted")?.studentIds).toEqual([
     "stu-01",
     "stu-02",
@@ -245,148 +174,243 @@ test("complete teacher-controlled baseline → correction → selected lesson �
   expect(practice.lanes?.find((l) => l.id === "extension")?.studentIds).toEqual(
     ["stu-04", "stu-05", "stu-06"],
   );
-  expect(
-    practice.lanes?.find((l) => l.id === "independent")?.entryCheckStudentIds,
-  ).toEqual(["stu-07", "stu-08"]);
-  const preservedSeptember23 = JSON.stringify(firstAccepted);
-
+  const preserved = JSON.stringify(version);
   await page.reload();
-  await expect(
-    page.getByRole("heading", { name: "Your saved lesson", exact: true }),
-  ).toBeVisible();
-  await page.getByRole("link", { name: "Open materials", exact: true }).click();
+  await page
+    .getByRole("link", { name: "Print materials", exact: true })
+    .click();
   await expect(page.locator(".print-sheet")).toBeVisible();
   await expect(page.locator(".print-key")).toHaveCount(0);
-  await expect(page.locator('.directions')).toContainText('Show your thinking with a drawing or a calculation.');
-  await expect(page.locator('.print-sheet')).not.toContainText('Record hints');
-  await expect(page.locator('.print-sheet')).not.toContainText('Provide equal-length');
   await page.emulateMedia({ media: "print" });
-  await expect(page.locator(".sidebar")).toBeHidden();
-  await expect(page.locator(".print-sheet")).toBeVisible();
-  await mkdir(path.resolve('.local/print-qa'), { recursive: true });
-  await page.pdf({ path: '.local/print-qa/materials-letter.pdf', format: 'Letter', preferCSSPageSize: false, printBackground: true });
-  await page.pdf({ path: '.local/print-qa/materials-a4.pdf', format: 'A4', preferCSSPageSize: false, printBackground: true });
+  await expect(page.locator(".desktop-sidebar")).toBeHidden();
+  await mkdir(path.resolve(".local/print-qa"), { recursive: true });
+  await page.pdf({
+    path: ".local/print-qa/materials-letter.pdf",
+    format: "Letter",
+    printBackground: true,
+  });
+  await page.pdf({
+    path: ".local/print-qa/materials-a4.pdf",
+    format: "A4",
+    printBackground: true,
+  });
   await page.emulateMedia({ media: "screen" });
   await page.getByRole("button", { name: /Teacher guidance/ }).click();
   await expect(page.locator(".print-key").first()).toBeVisible();
-  await expect(page.locator('.print-sheet')).toContainText('Provide equal-length');
-  await expect(page.locator('.print-sheet')).toContainText('Record hints');
-  await page.emulateMedia({ media: 'print' });
-  await page.pdf({ path: '.local/print-qa/teacher-key.pdf', format: 'Letter', preferCSSPageSize: false, printBackground: true });
-  await page.emulateMedia({ media: 'screen' });
-
-  await page.getByRole("link", { name: "Calendar", exact: true }).click();
-  await expect(
-    page.getByText("Assessment stays put", { exact: true }),
-  ).toBeVisible();
+  await page.emulateMedia({ media: "print" });
+  await page.pdf({
+    path: ".local/print-qa/teacher-key.pdf",
+    format: "Letter",
+    printBackground: true,
+  });
+  await page.emulateMedia({ media: "screen" });
+  await page.goto("/calendar");
   await expect(
     page.locator(".calendar-cell").filter({ hasText: "Oct 2" }),
   ).toContainText("Fixed date");
-  await expect(
-    page.locator(".calendar-cell").filter({ hasText: "Sep 24" }),
-  ).toContainText("Fresh fraction check");
-
-  // Fresh work enters the same loop and targets September 25, never the taught lesson.
-  await page.getByRole("link", { name: "Upload work", exact: true }).click();
+  await loadSingle(page, "followup-template-v1");
+  await approveVisible(page);
   await page
-    .getByLabel("Known assignment", { exact: true })
-    .selectOption("followup");
-  await page
-    .getByRole("button", { name: "Load fictional followup work", exact: true })
+    .getByRole("link", { name: "Plan the next lesson", exact: true })
     .click();
-  await page
-    .getByRole("button", { name: "Start analysis", exact: true })
-    .click();
-  await finishAnalysis(page);
-  await confirmCurrentStudents(page);
-  await page
-    .getByRole("link", { name: "Adjust Sep 25 lesson", exact: true })
-    .last()
-    .click();
-  await expect(page).toHaveURL(/\/plans\/lesson-2026-09-25/);
+  await expect(page).toHaveURL(/lesson-2026-09-25/);
   await page
     .getByRole("button", { name: "Suggest lesson changes", exact: true })
     .click();
   await expect(
-    page.getByRole("button", { name: "Apply selected changes", exact: true }),
+    page.getByRole("button", { name: "Save selected changes", exact: true }),
   ).toBeEnabled({ timeout: 40_000 });
   await page
-    .getByRole("button", { name: "Apply selected changes", exact: true })
+    .getByRole("button", { name: "Save selected changes", exact: true })
     .click();
   await expect(
-    page.getByRole("heading", { name: "Your saved lesson", exact: true }),
+    page.getByRole("heading", { name: "Saved lesson", exact: true }),
   ).toBeVisible();
-  const finalState = await stateFrom(page);
+  const final = await stateFrom(page);
   expect(
-    JSON.stringify(
-      finalState.planVersions.find((v) => v.id === firstAccepted.id),
-    ),
-  ).toBe(preservedSeptember23);
-  const finalPlan = finalState.plans.find((p) => p.id === "lesson-2026-09-25")!;
-  const finalPractice = finalState.planVersions
-    .find((v) => v.id === finalPlan.currentVersionId)!
-    .snapshot.blocks.find((b) => b.id === "practice")!;
+    JSON.stringify(final.planVersions.find((v) => v.id === version.id)),
+  ).toBe(preserved);
+  const current = final.planVersions.find(
+    (v) =>
+      v.id ===
+      final.plans.find((p) => p.id === "lesson-2026-09-25")!.currentVersionId,
+  )!;
   expect(
-    finalPractice.lanes?.find((l) => l.id === "targeted")?.studentIds,
+    current.snapshot.blocks
+      .find((b) => b.id === "practice")
+      ?.lanes?.find((l) => l.id === "targeted")?.studentIds,
   ).toEqual(["stu-03"]);
-  expect(
-    finalState.observations
-      .filter((o) => o.studentId === "stu-07" && !o.superseded)
-      .map((o) => o.observationStatus),
-  ).toContain("independent");
-
   await page.goto("/students/stu-07");
-  await expect(
-    page.getByText("Demonstrated with support", { exact: true }),
-  ).toBeVisible();
   await expect(
     page.getByText("Demonstrated independently", { exact: true }),
   ).toBeVisible();
+  await page.getByText(/Earlier reviews \(/).click();
+  await expect(
+    page.getByText("Demonstrated with help", { exact: true }),
+  ).toBeVisible();
   await page.goto(baselineUrl);
   await expect(
-    page.getByRole("heading", {
-      name: "Let’s look at the evidence",
+    page.getByRole("heading", { name: "First check", exact: true }),
+  ).toBeVisible();
+  expect(errors).toEqual([]);
+});
+test("five assignments give linked class and individual analytics without erasing reviews", async ({
+  page,
+}) => {
+  const errors: string[] = [];
+  page.on("pageerror", (e) => errors.push(e.message));
+  const before = await stateFrom(page);
+  const accepted = before.planVersions.filter((v) => v.proposalId);
+  const corrections = JSON.stringify(before.responseRevisions);
+  await page.goto("/assignments");
+  await page
+    .getByRole("button", { name: "Load sample class", exact: true })
+    .click();
+  await expect(
+    page.getByText("Sample assignments loaded. Existing work kept.", {
       exact: true,
     }),
+  ).toBeVisible({ timeout: 100_000 });
+  const state = await stateFrom(page);
+  expect(state.students).toHaveLength(8);
+  expect(state.batches).toHaveLength(5);
+  expect(state.responses).toHaveLength(120);
+  expect(state.submissions).toHaveLength(40);
+  expect(JSON.stringify(state.responseRevisions)).toBe(corrections);
+  for (const v of accepted)
+    expect(state.planVersions.find((item) => item.id === v.id)).toEqual(v);
+  expect(state.findings.filter((f) => f.status === "confirmed")).toHaveLength(
+    before.findings.filter((f) => f.status === "confirmed").length,
+  );
+  await page
+    .getByRole("button", { name: "Load sample class", exact: true })
+    .click();
+  await expect(
+    page.getByRole("button", { name: "Load sample class", exact: true }),
+  ).toBeVisible({ timeout: 100_000 });
+  expect((await stateFrom(page)).responses).toHaveLength(120);
+  await page.goto("/classroom");
+  await page
+    .getByLabel("Assignment", { exact: true })
+    .selectOption("word-problems-template-v1");
+  await page.getByRole("link", { name: /1 Flagged Check the reading/ }).click();
+  await expect(page.getByLabel("Filter result")).toHaveValue("flagged");
+  await expect(
+    page.getByRole("button", { name: /question \d: Flagged/ }),
+  ).toHaveCount(1);
+  await expect(
+    page.getByRole("button", { name: /question \d: Incorrect/ }),
+  ).toHaveCount(0);
+  await page.getByLabel("Filter result").selectOption("incorrect");
+  await expect(
+    page.getByRole("button", { name: /question \d: Incorrect/ }),
+  ).toHaveCount(2);
+  await page.goto(
+    "/students/stu-03?assignment=fraction-practice-template-v1&support=supported",
+  );
+  await expect(
+    page.getByRole("heading", { name: "Casey", exact: true }),
   ).toBeVisible();
-  expect(browserErrors).toEqual([]);
+  await expect(page.getByRole("table")).toContainText("With help");
+  await page.getByRole("link", { name: "See work", exact: true }).click();
+  await expect(page.getByLabel("Filter student")).toHaveValue("stu-03");
+  await expect(page.getByLabel("Filter help given")).toHaveValue("supported");
+  await page.goto(
+    `/review/${state.batches.find((b) => b.templateId === "independent-check-template-v1")!.id}`,
+  );
+  await approveVisible(page);
+  await page
+    .getByRole("link", { name: "Plan the next lesson", exact: true })
+    .click();
+  await expect(page).toHaveURL(/lesson-2026-10-01/);
+  await page
+    .getByRole("button", { name: "Suggest lesson changes", exact: true })
+    .click();
+  await expect(
+    page.getByRole("button", { name: "Save selected changes", exact: true }),
+  ).toBeEnabled({ timeout: 40_000 });
+  await page
+    .getByRole("button", { name: "Save selected changes", exact: true })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "Saved lesson", exact: true }),
+  ).toBeVisible();
+  const final = await stateFrom(page);
+  const version = final.planVersions.find(
+    (v) =>
+      v.id ===
+      final.plans.find((p) => p.id === "lesson-2026-10-01")!.currentVersionId,
+  )!;
+  expect(
+    version.snapshot.blocks
+      .find((b) => b.id === "practice")
+      ?.lanes?.find((l) => l.id === "extension")?.studentIds,
+  ).toContain("stu-01");
+  expect(
+    final.calendarEntries.find((e) => e.date === "2026-10-02")?.locked,
+  ).toBe(true);
+  await page.goto("/plans/lesson-2026-09-23");
+  await expect(
+    page.getByRole("button", { name: "Suggest lesson changes", exact: true }),
+  ).toBeDisabled();
+  await expect(
+    page.getByRole("link", { name: "Open Oct 1 lesson", exact: true }),
+  ).toBeVisible();
+  expect(errors).toEqual([]);
 });
-
-test("390 px layout keeps classroom, review, lesson and calendar usable without horizontal overflow", async ({
+test("390px screens and modal navigation support keyboard use without page overflow", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   const state = await stateFrom(page);
-  const batch = state.batches.find((b) => b.kind === "baseline")!;
   for (const route of [
     "/classroom",
-    `/review/${batch.id}`,
-    "/plans/lesson-2026-09-23",
+    "/assignments",
+    "/students",
+    "/students/stu-01",
+    `/review/${state.batches[0].id}`,
+    "/plans",
+    "/plans/lesson-2026-10-01",
     "/calendar",
   ]) {
     await page.goto(route);
     await expect(page.locator("h1").first()).toBeVisible();
-    const fits = await page.evaluate(
-      () => document.documentElement.scrollWidth <= window.innerWidth,
-    );
-    expect(fits, `horizontal overflow on ${route}`).toBeTruthy();
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= window.innerWidth,
+      ),
+      route,
+    ).toBeTruthy();
   }
   await page
     .getByRole("button", { name: "Open navigation", exact: true })
     .click();
+  const dialog = page.getByRole("dialog", { name: "Navigation", exact: true });
+  await expect(dialog).toBeVisible();
+  for (let i = 0; i < 9; i++) await page.keyboard.press("Tab");
+  expect(
+    await dialog.evaluate((element) =>
+      element.contains(document.activeElement),
+    ),
+  ).toBeTruthy();
+  await page.keyboard.press("Escape");
+  await expect(dialog).toHaveCount(0);
   await expect(
-    page.getByRole("link", { name: "Upload work", exact: true }),
-  ).toBeVisible();
-  await page.getByRole("link", { name: "Classroom", exact: true }).click();
+    page.getByRole("button", { name: "Open navigation", exact: true }),
+  ).toBeFocused();
+  await page
+    .getByRole("button", { name: "Open navigation", exact: true })
+    .click();
+  await dialog.getByRole("link", { name: "Overview", exact: true }).click();
   await expect(
-    page.getByRole("heading", { name: "Your classroom", exact: true }),
+    page.getByRole("heading", { name: "Overview", exact: true }),
   ).toBeVisible();
+  await expect(dialog).toHaveCount(0);
 });
-
-test("real worksheet PNG uploads are mapped and lesson PDF imports are rendered before confirmation", async ({
+test("real PNG upload and source PDF lesson import still use the complete pipeline", async ({
   page,
 }) => {
-  await page.goto("/classroom");
+  await page.goto("/plans");
   await page
     .getByRole("button", { name: "Import lesson", exact: true })
     .click();
@@ -407,7 +431,7 @@ test("real worksheet PNG uploads are mapped and lesson PDF imports are rendered 
   await page
     .getByRole("button", { name: "Confirm lesson import", exact: true })
     .click();
-  await expect(page).toHaveURL(/\/plans\/lesson-2026-09-23/);
+  await expect(page).toHaveURL(/lesson-2026-09-23/);
   await page.getByRole("link", { name: "Upload work", exact: true }).click();
   await page
     .getByLabel("Choose student worksheets", { exact: true })
@@ -419,12 +443,152 @@ test("real worksheet PNG uploads are mapped and lesson PDF imports are rendered 
     .getByLabel("Help provided for baseline-stu-01.png", { exact: true })
     .selectOption("independent");
   await page
-    .getByRole("button", { name: "Analyze 1 worksheet", exact: true })
+    .getByRole("button", {
+      name: "Upload and analyze 1 worksheet",
+      exact: true,
+    })
     .click();
   await expect(page).toHaveURL(/\/review\//);
   await finishAnalysis(page);
   await expect(page.locator(".scan-paper img")).toBeVisible();
+  await page.goto("/classroom?assignment=baseline-template-v1");
   await expect(
-    page.getByRole("heading", { name: "Adding the denominators", exact: true }),
+    page.getByText("8 of 8 worksheets received", { exact: true }),
+  ).toBeVisible();
+});
+test("partial uploads process the selected source and uncertain readings keep their flags", async ({
+  page,
+}) => {
+  const initial = await stateFrom(page);
+  const created: string[] = [];
+  for (const studentId of ["stu-01", "stu-02"]) {
+    const source = initial.submissions.find(
+      (s) =>
+        s.studentId === studentId &&
+        initial.batches.some(
+          (b) => b.id === s.batchId && b.templateId === "baseline-template-v1",
+        ),
+    )!;
+    const response = await page.request.post("/api/batches", {
+      headers: { origin: "http://127.0.0.1:3001" },
+      data: {
+        templateId: "baseline-template-v1",
+        activityDate: "2026-09-22",
+        kind: "baseline",
+        submissions: [
+          {
+            studentId,
+            assetId: source.assetId,
+            support: {
+              level: "independent",
+              source: "teacher-recorded",
+              note: "Independent check",
+            },
+          },
+        ],
+      },
+    });
+    expect(response.ok()).toBeTruthy();
+    created.push((await response.json()).data.id);
+  }
+  await page.goto(`/review/${created[1]}?student=stu-01`);
+  await expect(
+    page.getByRole("button", {
+      name: "Avery, question 1: Not analyzed",
+      exact: true,
+    }),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Analyze this upload", exact: true })
+    .click();
+  await finishAnalysis(page);
+  let current = await stateFrom(page);
+  const a = current.submissions.find((s) => s.batchId === created[0])!;
+  const b = current.submissions.find((s) => s.batchId === created[1])!;
+  expect(current.responses.filter((r) => r.submissionId === a.id)).toHaveLength(
+    4,
+  );
+  expect(current.responses.filter((r) => r.submissionId === b.id)).toHaveLength(
+    0,
+  );
+  await page.getByLabel("Filter student").selectOption("stu-02");
+  await page
+    .getByRole("button", { name: "Analyze this upload", exact: true })
+    .click();
+  await finishAnalysis(page);
+  current = await stateFrom(page);
+  expect(current.responses.filter((r) => r.submissionId === b.id)).toHaveLength(
+    4,
+  );
+  const word = current.batches.find(
+    (b) => b.templateId === "word-problems-template-v1",
+  )!;
+  await page.goto(`/review/${word.id}?result=flagged`);
+  await page
+    .getByRole("button", { name: /Finley, question 3: Flagged/ })
+    .click();
+  await page.getByText("Reading details and history", { exact: true }).click();
+  await expect(page.getByText(/simulated/i).first()).toBeVisible();
+  await page.getByRole("button", { name: "Edit reading", exact: true }).click();
+  await page
+    .getByLabel("How readable is this response?", { exact: true })
+    .selectOption("uncertain");
+  await page
+    .getByLabel("Reason or review note", { exact: true })
+    .fill("I still cannot read the final denominator reliably.");
+  await page.getByRole("button", { name: "Save reading", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: /Finley, question 3: Flagged/ }),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Check and move to next", exact: true })
+    .click();
+  await page
+    .getByLabel("Working shown on the page")
+    .fill("1/4 = 5/20; 1/10 = 2/20; 5/20 + 2/20 = 7/20 meter");
+  await page.getByLabel("Final answer", { exact: true }).fill("7/20 meter");
+  await page
+    .getByLabel("How readable is this response?", { exact: true })
+    .selectOption("clear");
+  await page
+    .getByLabel("Reason or review note", { exact: true })
+    .fill("The source shows a denominator of20.");
+  await page
+    .getByRole("button", { name: "Save and next", exact: true })
+    .click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "Return to results", exact: true }),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Return to results", exact: true })
+    .click();
+  await expect(
+    page.getByRole("button", {
+      name: /Finley, question 3: Correct, 7\/20 meter/,
+    }),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: /Finley, question 3: Correct, 7\/20 meter/ })
+    .click();
+  const firstRevision = page.getByRole("button", {
+    name: "View revision 1",
+    exact: true,
+  });
+  if (!(await firstRevision.isVisible()))
+    await page
+      .getByText("Reading details and history", { exact: true })
+      .click();
+  await firstRevision.click();
+  await expect(page.locator(".transcript")).toContainText("7/30 meter");
+  await expect(
+    page.getByRole("button", { name: "Edit reading", exact: true }),
+  ).toHaveCount(0);
+  await page
+    .getByRole("button", { name: "View current results", exact: true })
+    .click();
+  await expect(page.locator(".transcript")).toContainText("7/20 meter");
+  await expect(
+    page.getByRole("heading", { name: "Finley · Question 3", exact: true }),
   ).toBeVisible();
 });

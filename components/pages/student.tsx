@@ -1,29 +1,46 @@
 "use client";
 import Link from "next/link";
-import {
-  ArrowRight,
-  FileText,
-  CalendarDays,
-  UsersRound,
-  Lightbulb,
-  History,
-} from "lucide-react";
+import { Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { useWorkspace } from "@/components/workspace-provider";
-import { PageGate, EmptyState, Banner } from "@/components/shared";
-import { Button } from "@/components/ui/button";
+import { PageGate, EmptyState } from "@/components/shared";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { dateLabel, humanize } from "@/lib/utils";
-import type { ObservationStatus } from "@/lib/contracts";
+import { Select } from "@/components/ui/input";
+import {
+  AssignmentTrend,
+  ResultCounts,
+  resultLabels,
+  resultOrder,
+} from "@/components/analytics";
+import { getPlanningFindings } from "@/lib/domain";
+import { assignments, getAssignment } from "@/lib/assignments";
+import {
+  getAssignmentAnalytics,
+  selectResponseRevision,
+  type ResultBucket,
+} from "@/lib/analytics";
+import {
+  assignmentHref,
+  supportLabels,
+  nextStepLabels,
+} from "@/lib/client/links";
+import { dateLabel } from "@/lib/utils";
+import type {
+  Observation,
+  ObservationStatus,
+  SupportContext,
+} from "@/lib/contracts";
 const statusLabels: Record<ObservationStatus, string> = {
   independent: "Demonstrated independently",
-  supported: "Demonstrated with support",
-  not_demonstrated: "Not yet demonstrated in this work",
-  insufficient: "Not enough evidence yet",
-  unknown_support: "Support context unknown",
+  supported: "Demonstrated with help",
+  not_demonstrated: "Needs practice",
+  insufficient: "More evidence needed",
+  unknown_support: "Help not recorded",
 };
 function StudentContent({ studentId }: { studentId: string }) {
   const { data } = useWorkspace();
+  const search = useSearchParams();
   if (!data) return null;
   const { state, curriculum } = data;
   const student = state.students.find((s) => s.id === studentId);
@@ -32,219 +49,357 @@ function StudentContent({ studentId }: { studentId: string }) {
       <div className="page">
         <EmptyState
           title="Student not found"
-          text="Choose a student from your classroom roster."
+          text="Choose a student from the student list."
+          action={
+            <Link className="text-link" href="/students">
+              Students
+            </Link>
+          }
         />
       </div>
     );
+  const current = getPlanningFindings(state, "9999-12-31").filter(
+    (f) => f.studentId === studentId,
+  );
+  const latestWork = assignments
+    .filter((assignment) =>
+      state.submissions.some(
+        (submission) =>
+          submission.studentId === studentId &&
+          state.batches.some(
+            (batch) =>
+              batch.id === submission.batchId &&
+              batch.templateId === assignment.templateId,
+          ),
+      ),
+    )
+    .at(-1);
+  const currentIds = new Set(current.map((f) => f.id));
   const observations = state.observations
     .filter((o) => o.studentId === studentId)
     .sort(
       (a, b) =>
         b.date.localeCompare(a.date) || b.createdAt.localeCompare(a.createdAt),
     );
-  const current = observations.find((o) => !o.superseded);
-  const submissions = state.submissions.filter(
-    (s) => s.studentId === studentId,
+  const currentObservations = observations.filter(
+    (o) =>
+      !o.superseded &&
+      currentIds.has(o.findingId) &&
+      current.some(
+        (f) => f.id === o.findingId && f.revision === o.findingRevision,
+      ),
   );
+  const history = observations.filter((o) => !currentObservations.includes(o));
+  const result = (
+    resultOrder.includes(search.get("result") as ResultBucket)
+      ? search.get("result")
+      : "all"
+  ) as ResultBucket | "all";
+  const support = (
+    ["independent", "supported", "unknown"].includes(
+      search.get("support") ?? "",
+    )
+      ? search.get("support")
+      : "all"
+  ) as SupportContext["level"] | "all";
+  const chosen = search.get("assignment") ?? "all";
+  function filter(key: string, value: string) {
+    const params = new URLSearchParams(window.location.search);
+    if (value === "all") params.delete(key);
+    else params.set(key, value);
+    window.history.replaceState(null, "", `/students/${studentId}?${params}`);
+  }
+  function observationCard(o: Observation, old = false) {
+    return (
+      <Card className="observation-row" key={o.id}>
+        <div className="inline-actions">
+          <Badge
+            tone={
+              old
+                ? "neutral"
+                : o.observationStatus === "independent"
+                  ? "green"
+                  : "amber"
+            }
+          >
+            {statusLabels[o.observationStatus]}
+          </Badge>
+          <span className="text-small muted">
+            {dateLabel(o.date)} ·{" "}
+            {getAssignment(o.templateId)?.title ?? "Assignment"}
+          </span>
+        </div>
+        <p>{o.interpretation}</p>
+        <div className="help-note">
+          {
+            curriculum.objectives.find((obj) => obj.id === o.objectiveId)
+              ?.description
+          }{" "}
+          ·{" "}
+          {o.difficulty === "core"
+            ? "Core task"
+            : o.difficulty === "extension"
+              ? "Extension task"
+              : o.difficulty}
+        </div>
+        <div className="help-note">
+          {o.supportSnapshots
+            .map((s) => supportLabels[s.support.level])
+            .join(" · ")}
+        </div>
+        {!old && (
+          <p>
+            <strong>Next:</strong>{" "}
+            {nextStepLabels[o.suggestedNextStep] ?? o.suggestedNextStep}
+          </p>
+        )}
+        <div className="result-counts">
+          {o.evidence.map((ref, index) => {
+            const reading = selectResponseRevision(
+              state,
+              ref.responseId,
+              ref.responseRevision,
+            );
+            const sub = state.submissions.find(
+              (s) => s.id === reading?.submissionId,
+            );
+            return sub ? (
+              <Link
+                key={`${ref.responseId}:${ref.responseRevision}`}
+                className="text-link text-small"
+                href={`/review/${sub.batchId}?student=${studentId}&response=${ref.responseId}&revision=${ref.responseRevision}&observation=${o.id}`}
+              >
+                Answer {index + 1}
+                {old ? ` · review ${ref.responseRevision}` : ""}
+              </Link>
+            ) : null;
+          })}
+        </div>
+        {old && o.supersededReason && (
+          <p className="help-note">{o.supersededReason}</p>
+        )}
+      </Card>
+    );
+  }
   return (
     <div className="page">
       <div className="breadcrumb">
-        <Link href="/classroom">Classroom</Link>
+        <Link href="/students">Students</Link>
         <span>›</span>
-        <span>Student evidence</span>
+        <span>{student.displayName}</span>
       </div>
       <div className="page-heading">
-        <div className="student-profile">
+        <div className="student-title">
           <div className="student-avatar">{student.displayName[0]}</div>
           <div>
-            <h1>{student.displayName}’s learning story</h1>
-            <p>Fraction addition · Grade 5 · Fictional student</p>
+            <h1>{student.displayName}</h1>
+            <p>Grade 5 · Fraction addition</p>
           </div>
         </div>
-        <Badge tone="violet">
-          {observations.filter((o) => !o.superseded).length} current
-          observations
-        </Badge>
       </div>
-      <div className="progress-layout">
-        <div>
-          <div className="section-title" style={{ marginTop: 0 }}>
-            <h2>Evidence over time</h2>
-            <History size={19} color="#9a88b0" />
+      <div className="analytics-columns">
+        <Card className="analytics-panel">
+          <div className="panel-head">
+            <h2>Results over time</h2>
           </div>
-          {observations.length ? (
-            observations.map((o) => {
-              const first = state.responses.find(
-                (r) => r.id === o.evidence[0]?.responseId,
-              );
-              const submission = state.submissions.find(
-                (s) => s.id === first?.submissionId,
-              );
-              return (
-                <Card
-                  className={`observation ${o.superseded ? "superseded" : ""}`}
-                  key={o.id}
-                >
-                  <div className="observation-header">
-                    <Badge
-                      tone={
-                        o.superseded
-                          ? "neutral"
-                          : o.observationStatus === "independent"
-                            ? "green"
-                            : o.observationStatus === "supported"
-                              ? "violet"
-                              : "amber"
-                      }
-                    >
-                      {o.superseded
-                        ? "Superseded observation"
-                        : statusLabels[o.observationStatus]}
-                    </Badge>
-                    <span className="text-small muted">
-                      {dateLabel(o.date)}
-                    </span>
-                  </div>
-                  <h3>
-                    {curriculum.templates.find((t) => t.id === o.templateId)
-                      ?.title ?? "Classroom observation"}
-                  </h3>
-                  <p>{o.interpretation}</p>
-                  <div className="observation-meta">
-                    <span>
-                      <CalendarDays
-                        size={13}
-                        style={{ display: "inline", marginRight: 5 }}
-                      />
-                      {dateLabel(o.date, {
-                        month: "long",
-                        day: "numeric",
-                        year: "numeric",
-                      })}
-                    </span>
-                    <span>Difficulty: {humanize(o.difficulty)}</span>
-                    <span>{o.evidence.length} linked answers</span>
-                  </div>
-                  {o.supportSnapshots.map((s) => (
-                    <div
-                      className="banner"
-                      key={s.submissionId}
-                      style={{ padding: 12, marginTop: 10 }}
-                    >
-                      <UsersRound size={16} />
-                      <div>
-                        <strong>
-                          Recorded help: {humanize(s.support.level)}
-                        </strong>
-                        {s.support.note && <p>{s.support.note}</p>}
-                      </div>
-                    </div>
-                  ))}
-                  {o.superseded && (
-                    <p className="finding-limit">
-                      {o.supersededReason ??
-                        "Later evidence or a correction changed this interpretation. Kept here so the learning history stays visible."}
-                    </p>
-                  )}
-                  <div className="inline-actions mt-16">
-                    <Badge tone="neutral">
-                      Next: {humanize(o.suggestedNextStep)}
-                    </Badge>
-                    {submission && (
-                      <Button variant="outline" size="sm" asChild>
-                        <Link
-                          href={`/review/${submission.batchId}?student=${studentId}`}
-                        >
-                          <FileText />
-                          See the original work
-                        </Link>
-                      </Button>
-                    )}
-                  </div>
-                </Card>
-              );
-            })
-          ) : (
-            <Card>
-              <EmptyState
-                title="A story starts with a piece of work"
-                text={`${student.displayName} doesn’t have teacher-confirmed observations yet. Review uploaded work to begin a dated evidence history.`}
-                action={
-                  <Button asChild>
+          <AssignmentTrend state={state} studentId={studentId} />
+        </Card>
+        <Card className="analytics-panel">
+          <div className="panel-head">
+            <h2>Next steps</h2>
+          </div>
+          {current.length ? (
+            <ul className="action-list">
+              {current.map((f) => {
+                const batch = state.batches.find((b) => b.id === f.batchId)!;
+                return (
+                  <li key={f.id}>
                     <Link
-                      href={
-                        submissions[0]
-                          ? `/review/${submissions[0].batchId}`
-                          : "/classroom"
-                      }
+                      href={`/review/${batch.id}?student=${studentId}#teaching-notes`}
                     >
-                      Review student work
-                      <ArrowRight />
+                      {nextStepLabels[f.suggestedNextStep]}
                     </Link>
-                  </Button>
+                    <p>
+                      {dateLabel(batch.activityDate)} ·{" "}
+                      {getAssignment(batch.templateId)?.title}
+                    </p>
+                    <p>{f.explanation}</p>
+                  </li>
+                );
+              })}
+            </ul>
+          ) : (
+            <div>
+              <p className="text-small muted">
+                {latestWork
+                  ? "Review the latest work to add a next step."
+                  : "Upload work to get started."}
+              </p>
+              <Link
+                className="text-link"
+                href={
+                  latestWork
+                    ? `${assignmentHref(state, latestWork.templateId, { student: studentId })}#teaching-notes`
+                    : "/classroom?upload=work"
                 }
-              />
-            </Card>
+              >
+                {latestWork ? "Review latest work" : "Upload work"}
+              </Link>
+            </div>
+          )}
+        </Card>
+      </div>
+      <section className="analytics-section">
+        <div className="section-heading">
+          <h2>Assignment results</h2>
+        </div>
+        <div className="analytics-toolbar">
+          <label className="field">
+            <span>Assignment</span>
+            <Select
+              aria-label="Assignment"
+              value={chosen}
+              onChange={(e) => filter("assignment", e.target.value)}
+            >
+              <option value="all">All assignments</option>
+              {assignments.map((a) => (
+                <option value={a.templateId} key={a.id}>
+                  {a.title}
+                </option>
+              ))}
+            </Select>
+          </label>
+          <label className="field">
+            <span>Answer result</span>
+            <Select
+              aria-label="Answer result"
+              value={result}
+              onChange={(e) => filter("result", e.target.value)}
+            >
+              <option value="all">All results</option>
+              {resultOrder.map((r) => (
+                <option key={r} value={r}>
+                  {resultLabels[r]}
+                </option>
+              ))}
+            </Select>
+          </label>
+          <label className="field">
+            <span>Help given</span>
+            <Select
+              aria-label="Help given"
+              value={support}
+              onChange={(e) => filter("support", e.target.value)}
+            >
+              <option value="all">Any help</option>
+              {Object.entries(supportLabels).map(([key, label]) => (
+                <option key={key} value={key}>
+                  {label}
+                </option>
+              ))}
+            </Select>
+          </label>
+        </div>
+        <Card>
+          <div className="table-wrap">
+            <table className="data-table compact-table">
+              <thead>
+                <tr>
+                  <th scope="col">Assignment</th>
+                  <th scope="col">Results</th>
+                  <th scope="col">Help given</th>
+                  <th scope="col">Answers</th>
+                </tr>
+              </thead>
+              <tbody>
+                {assignments
+                  .filter((a) => chosen === "all" || a.templateId === chosen)
+                  .map((a) => {
+                    const stats = getAssignmentAnalytics(state, a.templateId, {
+                      studentId,
+                      result,
+                      support,
+                    });
+                    if (!stats.slots.length) return null;
+                    return (
+                      <tr key={a.id}>
+                        <th scope="row">
+                          {a.title}
+                          <small>{dateLabel(a.date)}</small>
+                        </th>
+                        <td>
+                          <ResultCounts
+                            counts={stats.counts}
+                            href={(bucket) =>
+                              assignmentHref(state, a.templateId, {
+                                student: studentId,
+                                result: bucket,
+                                support:
+                                  support === "all" ? undefined : support,
+                              })
+                            }
+                          />
+                        </td>
+                        <td>
+                          {[
+                            ...new Set(
+                              stats.slots
+                                .filter((s) => s.submission)
+                                .map((s) => supportLabels[s.supportLevel]),
+                            ),
+                          ].join(" · ") || "—"}
+                        </td>
+                        <td>
+                          <Link
+                            className="text-link text-small"
+                            href={assignmentHref(state, a.templateId, {
+                              student: studentId,
+                              result: result === "all" ? undefined : result,
+                              support: support === "all" ? undefined : support,
+                            })}
+                          >
+                            See work
+                          </Link>
+                        </td>
+                      </tr>
+                    );
+                  })}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      </section>
+      <section className="analytics-section">
+        <div className="section-heading">
+          <h2>Teacher-reviewed evidence</h2>
+        </div>
+        <div className="observation-list">
+          {currentObservations.length ? (
+            currentObservations.map((o) => observationCard(o))
+          ) : (
+            <p className="empty-inline">
+              No current reviewed evidence. Earlier reviews remain below.
+            </p>
           )}
         </div>
-        <aside className="spaced">
-          <Card>
-            <div className="card-content">
-              <div
-                className="empty-icon"
-                style={{
-                  width: 42,
-                  height: 42,
-                  borderRadius: 12,
-                  marginBottom: 15,
-                }}
-              >
-                <Lightbulb size={22} />
-              </div>
-              <h3>A useful next step</h3>
-              {current ? (
-                <>
-                  <h4 style={{ marginTop: 15, color: "#6b3db8" }}>
-                    {humanize(current.suggestedNextStep)}
-                  </h4>
-                  <p className="muted text-small" style={{ marginTop: 10 }}>
-                    Based on the latest reviewed work from{" "}
-                    {dateLabel(current.date)}. Revisit this suggestion when new
-                    evidence arrives.
-                  </p>
-                </>
-              ) : (
-                <p className="muted text-small" style={{ marginTop: 12 }}>
-                  Start with a reviewed response. A blank worksheet or uncertain
-                  reading does not define what a student can do.
-                </p>
-              )}
-            </div>
-          </Card>
-          <Banner>
-            These are dated observations, not permanent labels. The task,
-            difficulty, and help provided travel with each piece of evidence.
-          </Banner>
-          <Card>
-            <div className="card-content">
-              <h3 style={{ fontSize: 18 }}>Learning objectives</h3>
-              {curriculum.objectives.map((o) => (
-                <div key={o.id} className="constraint-item">
-                  <span>•</span>
-                  <p>{o.description}</p>
-                </div>
-              ))}
-            </div>
-          </Card>
-        </aside>
-      </div>
+      </section>
+      {history.length > 0 && (
+        <details className="history-details">
+          <summary>Earlier reviews ({history.length})</summary>
+          <div className="observation-list">
+            {history.map((o) => observationCard(o, true))}
+          </div>
+        </details>
+      )}
     </div>
   );
 }
 export default function StudentPage({ studentId }: { studentId: string }) {
   return (
     <PageGate>
-      <StudentContent studentId={studentId} />
+      <Suspense fallback={null}>
+        <StudentContent studentId={studentId} />
+      </Suspense>
     </PageGate>
   );
 }

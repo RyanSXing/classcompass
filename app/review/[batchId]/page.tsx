@@ -4,7 +4,10 @@ export default async function Page({
   searchParams,
 }: {
   params: Promise<{ batchId: string }>;
-  searchParams: Promise<{ run?: string | string[]; student?: string | string[] }>;
+  searchParams: Promise<{
+    run?: string | string[];
+    student?: string | string[];
+  }>;
 }) {
   const [{ batchId }, query] = await Promise.all([params, searchParams]);
   return (
@@ -12,7 +15,6 @@ export default async function Page({
       key={batchId}
       batchId={batchId}
       startAnalysis={query.run === "1"}
-      initialStudentId={typeof query.student === "string" ? query.student : ""}
     />
   );
 }

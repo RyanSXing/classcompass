@@ -27,6 +27,7 @@ export function Button({
   variant,
   size,
   asChild = false,
+  disabled,
   ...props
 }: React.ComponentProps<"button"> &
   VariantProps<typeof buttonVariants> & { asChild?: boolean }) {
@@ -36,6 +37,17 @@ export function Button({
       data-slot="button"
       className={cn(buttonVariants({ variant, size }), className)}
       {...props}
+      disabled={asChild ? undefined : disabled}
+      aria-disabled={disabled || undefined}
+      tabIndex={disabled ? -1 : props.tabIndex}
+      onClick={
+        disabled
+          ? (event) => {
+              event.preventDefault();
+              event.stopPropagation();
+            }
+          : props.onClick
+      }
     />
   );
 }

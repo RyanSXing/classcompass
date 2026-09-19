@@ -1,6 +1,6 @@
 # Implementation reference
 
-ClassCompass implements one Grade 5 fraction-addition unit with two dated lesson plans and a wider calendar preview. Teachers inspect original work, correct transcription or assistance context, confirm findings, and accept selected lesson changes. A follow-up revises the future lesson while preserving earlier observations and accepted plans.
+ClassCompass implements one Grade 5 fraction-addition unit with five dated assignments and five lesson plans and a wider calendar preview. Teachers inspect original work, correct transcription or assistance context, confirm findings, and accept selected lesson changes. A follow-up revises the future lesson while preserving earlier observations and accepted plans.
 
 ## Architecture
 
@@ -13,7 +13,7 @@ ClassCompass implements one Grade 5 fraction-addition unit with two dated lesson
 | Persistence | [`lib/server/repository.ts`](../lib/server/repository.ts) provides the same read/transaction interface for local files and Supabase. [`storage.ts`](../lib/server/storage.ts) handles verified source/normalized upload objects. |
 | AI | [`lib/server/ai.ts`](../lib/server/ai.ts) uses **native server-side `fetch` to OpenRouter**. There is no Vercel AI SDK or AI Gateway dependency. Each operation performs at most one provider call; the job service owns retries. |
 | Jobs | [`lib/server/jobs.ts`](../lib/server/jobs.ts) persists extraction, analysis and proposal steps, claims expiring leases, enforces live request spacing, and rejects stale or late outputs. |
-| Assets | [`public/demo`](../public/demo) contains explicitly fictional templates, 16 synthetic handwriting images, plan imports and sample PDFs. [`scripts/generate-assets.py`](../scripts/generate-assets.py) regenerates them deterministically. |
+| Assets | [`public/demo`](../public/demo) contains explicitly fictional templates, 40 synthetic handwriting images, plan imports and sample PDFs. [`scripts/generate-assets.py`](../scripts/generate-assets.py) regenerates them deterministically. |
 
 The model boundary is `extractWorksheet → analyzeEvidence → proposeLesson`. Live extraction uses `google/gemma-4-26b-a4b-it:free`; analysis and planning use the text-only `deepseek/deepseek-v4-flash-0731:free`. Extraction receives known questions and pixels, without reference transcripts, teacher support notes, intended cases or future answers. Analysis groups effective readings, recorded help and computed mathematics checks by student. Its output schema constrains finding codes to valid claim scopes and next-step categories. Proposals receive current confirmed evidence, lesson constraints and authored material options; their schema fixes valid block IDs, durations and material IDs. These constraints do not inject expected student groups. Zod and domain validation run before outputs become reviewable candidates.
 
@@ -33,20 +33,33 @@ Uploads are prepared, written and finalized before a batch can use them. Finaliz
 
 | Browser route | Purpose |
 | --- | --- |
-| `/classroom` | Roster, original/accepted lessons, batch entry points and import/upload dialogs. `?upload=work` opens work upload. |
-| `/review/[batchId]` | Source regions, effective responses, pattern/individual findings, support corrections and teacher review. |
+| `/classroom` | Assignment results, dated count distributions, question breakdowns and next actions. `?upload=work` opens upload. |
+| `/assignments` | Five dated assignment summaries and the idempotent sample-class loader. |
+| `/students` | Searchable roster with assignment-specific results. |
+| `/plans` | Explicit dated lesson list, import and calendar access. |
+| `/review/[batchId]` | Student-by-question results table, source inspector, separate reading checks and teaching notes. Filters use `student`, `question`, `result`, `support`; `response`, `revision` and `observation` select exact historical evidence. |
 | `/plans/[lessonId]` | Current version, proposed before/after changes, bounded edits and selected application. |
 | `/materials/[planVersionId]` | Materials tied to an accepted version; student sheets and separate teacher guidance. |
 | `/calendar` | Authored schedule, accepted checkpoint and separately labeled pending proposal effects. |
-| `/students/[studentId]` | Dated evidence history distinguishing independent, supported and insufficient observations. |
+| `/students/[studentId]` | Dated assignment counts, result/help filters, current skill evidence and earlier reviewed versions. |
 | `/login` | Connected teacher sign-in. `/` redirects to the classroom. |
 
 Key API families are `/api/uploads/prepare`, `/api/uploads/:id/{content,complete}`, `/api/lesson-imports`, `/api/batches`, `/api/jobs/:id/{run-next,retry,cancel}`, `/api/responses/:id`, `/api/submissions/:id/support`, `/api/findings/review`, `/api/plans/:id/proposals`, and `/api/proposals/:id/apply`. Reads include classroom, batch, asset, proposal, calendar, student-progress and version-material endpoints. [The dispatcher](../app/api/%5B...path%5D/route.ts) is authoritative for implemented routes; [document 03](03-data-and-api-contracts.md) explains their contracts. Responses use `{data: ...}` or `{error: {code, message, ...}}`.
 
+## Analytics and sample catalog
+
+`lib/assignments.ts` maps five known templates to dates, lesson targets and eligibility rules. `lib/analytics.ts` supplies pure selectors shared by the overview, assignment table and student pages. It selects the latest effective upload per assignment/student, counts every expected question once, and keeps unresolved flags out of incorrect-answer totals. Numeric correctness, working, units, assistance and teacher approval are independent facets. Charts use counts; differing tasks or assistance are not presented as measured growth.
+
+`getCurrentSkillFindings` selects current confirmed evidence per student and objective. Newer unreviewed work prevents an old note from appearing current. Historical links resolve recorded response revisions and assistance snapshots. Checker version 2 revalidates current interpretations without rewriting stored earlier checks.
+
+The additive catalog upgrade appends missing lessons and calendar associations to existing local and Supabase state, preserving saved versions and corrections. A catalog version participates in job fingerprints. Schema version 1 and the existing persisted entity arrays remain compatible.
+
+`POST /api/demo/load` accepts `templateId` (legacy `phase` remains supported); `POST /api/demo/analyze` accepts `batchId` and explicitly uses prepared readings for verified sample files, regardless of the live-mode setting. Neither approves teaching notes. The UI processes one assignment at a time, reports progress and can resume without resetting existing work.
+
 ## Revision and instructional safeguards
 
 - Effective response and assistance corrections preserve source extraction and append history. They stale dependent findings/drafts while preserving unrelated confirmations and accepted plan versions.
-- Findings cite the exact student response revisions. They must include current-batch work, cannot borrow later work, and cannot turn blank/uncertain evidence or unknown assistance into demonstrated independence. Continued extension requires reviewed prior evidence plus both fresh independent responses.
+- Findings cite the exact student response revisions. They must include current-batch work, cannot borrow later work, and cannot turn blank/uncertain evidence or unknown assistance into demonstrated independence. The original quick check requires reviewed prior extension plus both fresh independent responses. Later assignments can newly qualify extension using their own catalog evidence threshold.
 - A proposal binds the current lesson version, evidence revision and calendar revision. Selected application is transactional and idempotent. Conflicts require a fresh proposal; zero selected changes preserves the saved plan.
 - Blocks remain `5 + 8 + 12 + 15 + 5 = 45` minutes. Three concurrent practice pathways cover every active student once within the same 12 minutes, with at most one teacher-led pathway. Fixed assessment dates, objectives and teaching-day constraints remain checked.
 - Published material sets come from accepted content. An unselected change cannot publish its exclusive printable. Later revisions retain material references for an accepted checkpoint, while earlier material sets remain immutable.
@@ -62,6 +75,6 @@ For a bounded text-only diagnostic after preparing the fictional local classroom
 
 `npm run test:connected` runs the real HTTP workflow against an already running **Supabase + fixture** server. `CONNECTED_BASE_URL` defaults to `http://127.0.0.1:3002` and must target loopback. `CONNECTED_LOGIN_FILE` defaults to the ignored, private `.local/teacher-login.json` containing the pre-provisioned teacher's `email`, `password` and `projectURL`. Keep this file mode `0600`; never commit it. The script keeps cookies in memory, performs a signed private PDF upload and preview, runs both worksheet/review/accepted-lesson cycles, checks progress/history, then logs out and verifies unauthorized access fails. It intentionally writes and preserves real **fictional demonstration state** in that teacher's connected classroom; reruns reuse the latest batches and accepted plans instead of resetting history. It does not use mocks or call external models. Ordinary requests have a 20-second timeout and the eight-file sample load has a 120-second timeout. The credential-free summary is written to `.local/connected-verification.json`. Unlike the temporary-account isolation suite, use this command only for the designated demo teacher, not an unrelated classroom.
 
-The prototype is bounded to eight fictional students, two registered worksheet layouts, one skill-focused unit and authored material choices. It does not establish OCR quality on real children's handwriting, educational efficacy, time savings, autonomous curriculum generation, whole-school scaling or production readiness. The year view is a constraint-preserving preview. Teacher support context is submission-wide. A real Grade 5 teacher's participation and classroom validation remain unconfirmed.
+The prototype is bounded to eight fictional students, five registered worksheet layouts, one skill-focused unit and authored material choices. It does not establish OCR quality on real children's handwriting, educational efficacy, time savings, autonomous curriculum generation, whole-school scaling or production readiness. The year view is a constraint-preserving preview. Teacher support context is submission-wide. A real Grade 5 teacher's participation and classroom validation remain unconfirmed.
 
 CI configuration references were checked through Context7 and current official sources: [GitHub Node.js workflows](https://docs.github.com/en/actions/tutorials/build-and-test-code/nodejs), [checkout v7](https://github.com/actions/checkout), [setup-node v7](https://github.com/actions/setup-node), [upload-artifact v7](https://github.com/actions/upload-artifact), and [Playwright CI](https://playwright.dev/docs/ci). Provider catalog reference: [OpenRouter models API](https://openrouter.ai/api/v1/models).

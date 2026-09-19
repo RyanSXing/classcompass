@@ -2,17 +2,18 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
+import * as Dialog from "@radix-ui/react-dialog";
 import {
   LayoutGrid,
   BookOpen,
-  CalendarDays,
   Upload,
   ChevronDown,
   Menu,
   LogOut,
-  Sparkles,
   School,
   X,
+  Files,
+  Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -38,9 +39,7 @@ export function Brand() {
   return (
     <Link href="/classroom" className="brand">
       <CompassMark />
-      <span className="brand-name">
-        ClassCompass<span className="brand-caption">A clearer next step</span>
-      </span>
+      <span className="brand-name">ClassCompass</span>
     </Link>
   );
 }
@@ -50,155 +49,160 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   const { data } = useWorkspace();
   if (path === "/login") return <>{children}</>;
-  const latestLesson = data?.state.batches.some((b) => b.kind === "followup")
-    ? "lesson-2026-09-25"
-    : "lesson-2026-09-23";
   const links = [
     {
       href: "/classroom",
-      label: "Classroom",
+      label: "Overview",
       icon: LayoutGrid,
-      active:
-        path === "/classroom" ||
-        path.startsWith("/review") ||
-        path.startsWith("/students"),
+      active: path === "/classroom",
     },
     {
-      href: `/plans/${latestLesson}`,
-      label: "Lesson plan",
+      href: "/assignments",
+      label: "Assignments",
+      icon: Files,
+      active: path.startsWith("/assignments") || path.startsWith("/review"),
+    },
+    {
+      href: "/students",
+      label: "Students",
+      icon: Users,
+      active: path.startsWith("/students"),
+    },
+    {
+      href: "/plans",
+      label: "Lessons",
       icon: BookOpen,
-      active: path.startsWith("/plans") || path.startsWith("/materials"),
-    },
-    {
-      href: "/calendar",
-      label: "Calendar",
-      icon: CalendarDays,
-      active: path === "/calendar",
+      active:
+        path.startsWith("/plans") ||
+        path.startsWith("/materials") ||
+        path === "/calendar",
     },
   ];
+  const navigation = (
+    <>
+      <Brand />
+      <Button variant="aqua" className="sidebar-upload" asChild>
+        <Link href="/classroom?upload=work" onClick={() => setOpen(false)}>
+          <Upload size={19} />
+          Upload work
+        </Link>
+      </Button>
+      <nav aria-label="Main navigation">
+        {links.map((link) => (
+          <Link
+            key={link.href}
+            className={`nav-item ${link.active ? "active" : ""}`}
+            href={link.href}
+            onClick={() => setOpen(false)}
+            aria-current={link.active ? "page" : undefined}
+          >
+            <link.icon size={20} />
+            {link.label}
+          </Link>
+        ))}
+      </nav>
+      <div className="sidebar-bottom">
+        <div className="teacher">
+          <div className="teacher-avatar">T</div>
+          <div>
+            <strong>{data?.config.teacher || "Teacher"}</strong>
+            <small>Grade 5 · Mathematics</small>
+          </div>
+          {data?.config.dataBackend === "supabase" && (
+            <button
+              aria-label="Sign out"
+              className="button button-ghost button-icon sign-out"
+              onClick={async () => {
+                await api("/api/auth/logout", {});
+                router.push("/login");
+              }}
+            >
+              <LogOut size={16} />
+            </button>
+          )}
+        </div>
+      </div>
+    </>
+  );
   return (
     <div className="app-shell">
-      <a className="sr-only" href="#main-content">
+      <a className="skip-link" href="#main-content">
         Skip to main content
       </a>
-      {open && (
-        <button
-          className="mobile-scrim"
-          aria-label="Close navigation"
-          onClick={() => setOpen(false)}
-        />
-      )}
-      <aside
-        className={`sidebar ${open ? "open" : ""}`}
-        aria-label="Main navigation"
-      >
-        <Brand />
-        <Button variant="aqua" className="sidebar-upload" asChild>
-          <Link href="/classroom?upload=work" onClick={() => setOpen(false)}>
-            <Upload size={19} />
-            Upload work
-          </Link>
-        </Button>
-        <p className="nav-label">YOUR WORKSPACE</p>
-        <nav>
-          {links.map((link) => (
-            <Link
-              key={link.label}
-              className={`nav-item ${link.active ? "active" : ""}`}
-              href={link.href}
-              onClick={() => setOpen(false)}
-              aria-current={link.active ? "page" : undefined}
-            >
-              <link.icon size={20} />
-              {link.label}
-            </Link>
-          ))}
-        </nav>
-        <div className="sidebar-bottom">
-          <div className="sidebar-note">
-            <Sparkles size={21} style={{ marginBottom: 8 }} />
-            <strong>Your classroom. Your call.</strong>AI connects the dots.
-            <br />
-            You choose the next step.
-          </div>
-          <div className="teacher">
-            <div className="teacher-avatar">T</div>
-            <div>
-              <strong>{data?.config.teacher || "Teacher workspace"}</strong>
-              <small>Grade 5 · Mathematics</small>
-            </div>
-            {data?.config.dataBackend === "supabase" && (
-              <button
-                aria-label="Sign out"
-                className="button button-ghost button-icon"
-                style={{ color: "white", minWidth: 28, width: 28, padding: 4 }}
-                onClick={async () => {
-                  await api("/api/auth/logout", {});
-                  router.push("/login");
-                }}
-              >
-                <LogOut size={16} />
-              </button>
-            )}
-          </div>
-        </div>
-      </aside>
+      <aside className="sidebar desktop-sidebar">{navigation}</aside>
       <div className="workspace">
         <header className="utility-bar">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="mobile-menu-button"
-            aria-label={open ? "Close navigation" : "Open navigation"}
-            onClick={() => setOpen(!open)}
-          >
-            {open ? <X /> : <Menu />}
-          </Button>
+          <Dialog.Root open={open} onOpenChange={setOpen}>
+            <Dialog.Trigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="mobile-menu-button"
+                aria-label="Open navigation"
+              >
+                <Menu />
+              </Button>
+            </Dialog.Trigger>
+            <Dialog.Portal>
+              <Dialog.Overlay className="navigation-overlay" />
+              <Dialog.Content className="sidebar navigation-drawer">
+                <Dialog.Title className="sr-only">Navigation</Dialog.Title>
+                <Dialog.Description className="sr-only">
+                  Classroom sections
+                </Dialog.Description>
+                <Dialog.Close asChild>
+                  <Button
+                    className="drawer-close"
+                    variant="ghost"
+                    size="icon"
+                    aria-label="Close navigation"
+                  >
+                    <X />
+                  </Button>
+                </Dialog.Close>
+                {navigation}
+              </Dialog.Content>
+            </Dialog.Portal>
+          </Dialog.Root>
           <div className="utility-class">
-            <School size={18} color="#927cae" />
-            Grade 5 <span className="muted">/</span> Mathematics
+            <School size={18} />
+            Grade 5 <span className="muted">/</span> Fractions
           </div>
           <div className="utility-tags">
-            <Badge tone="neutral" className="fiction-badge">
-              Fictional student data
-            </Badge>
             <details className="info-disclosure">
               <summary>
                 <Badge
                   tone={data?.config.aiMode === "live" ? "aqua" : "violet"}
                 >
-                  {data?.config.aiMode === "live"
-                    ? "Live analysis"
-                    : "Fixture analysis"}
+                  {data?.config.aiMode === "live" ? "Live AI" : "Sample mode"}
                   <ChevronDown size={12} />
                 </Badge>
               </summary>
               <div className="info-panel">
                 <strong>
                   {data?.config.aiMode === "live"
-                    ? "Connected model analysis"
-                    : "Prepared demonstration outputs"}
+                    ? "Live AI"
+                    : "Prepared sample results"}
                 </strong>
                 <p>
                   {data?.config.aiMode === "live"
-                    ? "Uploaded work is analyzed through OpenRouter. Every interpretation remains yours to review."
-                    : "Fixture results are prepared for known sample worksheets. They are not current live model output."}
+                    ? "Uploads use OpenRouter. Sample work uses prepared readings."
+                    : "Sample results are prepared, not live model output."}
                 </p>
                 <p>
-                  Data:{" "}
-                  <b>
-                    {data?.config.dataBackend === "supabase"
-                      ? "Supabase private storage"
-                      : "Local workspace"}
-                  </b>
-                  <br />
-                  All eight student identities are fictional.
+                  Eight fictional students. Files are saved{" "}
+                  {data?.config.dataBackend === "supabase"
+                    ? "privately in Supabase"
+                    : "in this local workspace"}
+                  .
                 </p>
               </div>
             </details>
           </div>
         </header>
-        <main id="main-content">{children}</main>
+        <main id="main-content" tabIndex={-1}>
+          {children}
+        </main>
       </div>
     </div>
   );

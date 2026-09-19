@@ -48,12 +48,12 @@ function MaterialsContent({ planVersionId }: { planVersionId: string }) {
       <div className="page">
         <PageHeading
           title="Teaching materials"
-          description="Printables are tied to the lesson version you choose to teach."
+          description="Choose a saved lesson to print its activities and answer keys."
         />
         <Card>
           <EmptyState
-            title="Choose the lesson changes first"
-            text="Apply your selected changes to create their teaching materials. Each printable remains attached to that saved lesson version."
+            title="Save lesson changes first"
+            text="Save your chosen lesson changes to prepare student activities and answer keys."
             action={
               <Button asChild>
                 <Link
@@ -70,7 +70,7 @@ function MaterialsContent({ planVersionId }: { planVersionId: string }) {
   return (
     <div className="page">
       <PageHeading
-        title="Ready for your classroom"
+        title="Teaching materials"
         description={`Materials for ${dateLabel(version.snapshot.date)} · Saved lesson version ${version.versionNumber}`}
         breadcrumb="Teaching materials"
       >
@@ -108,6 +108,7 @@ function MaterialsContent({ planVersionId }: { planVersionId: string }) {
               <button
                 className={`material-tab ${m.id === material.id && !keys ? "active" : ""}`}
                 key={m.id}
+                aria-pressed={m.id === material.id && !keys}
                 onClick={() => {
                   setSelected(m.id);
                   setKeys(false);
@@ -124,11 +125,12 @@ function MaterialsContent({ planVersionId }: { planVersionId: string }) {
           <button
             className={`material-tab ${keys ? "active" : ""}`}
             onClick={() => setKeys(true)}
+            aria-pressed={keys}
           >
             <KeyRound />
             <span>
               <strong>Teacher guidance</strong>
-              <small>Answer keys & facilitation notes</small>
+              <small>Answers and teaching notes</small>
             </span>
           </button>
           <div
@@ -164,10 +166,14 @@ function MaterialsContent({ planVersionId }: { planVersionId: string }) {
               <section className="print-question">
                 <h3>Preparation and support</h3>
                 {material.scaffolds && (
-                  <p style={{ fontSize: 12, marginTop: 8 }}>{material.scaffolds}</p>
+                  <p style={{ fontSize: 12, marginTop: 8 }}>
+                    {material.scaffolds}
+                  </p>
                 )}
                 {material.conditions && (
-                  <p style={{ fontSize: 12, marginTop: 8 }}>{material.conditions}</p>
+                  <p style={{ fontSize: 12, marginTop: 8 }}>
+                    {material.conditions}
+                  </p>
                 )}
               </section>
             )}
