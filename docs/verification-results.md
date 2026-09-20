@@ -1,6 +1,17 @@
 # Verification results
 
-Checks performed on September 19, 2026. All work, student identities and handwriting images used in these checks are fictional. Prepared AI results and live provider checks are reported separately.
+Checks performed on September 19–20, 2026. All work, student identities and handwriting images used in these checks are fictional. Prepared AI results and live provider checks are reported separately.
+
+## Notebook workspace and teacher account
+
+The [notebook redesign](notebook-redesign.md) adds the cream paper shell, original compass mark, eight generated student portraits, a dated lesson library, and a teacher sign-in boundary. The previous version is preserved on GitHub as `before-notebook-redesign-2026-09-20` at `eb631b3e74c4fddf0724835733792b4993a626a2`.
+
+- **Account and saved work:** the requested teacher account was provisioned privately. A separate local backup was retained before transferring the existing eight-student, five-assignment classroom. All 80 original/normalized evidence files passed upload/readback hash checks, and the complete saved state matched after ownership transfer. The 40 submissions, 49 reading reviews, 18 observations, six lesson versions and existing assistant history were retained.
+- **Connected access checks:** unsigned pages redirect to sign-in; unsigned classroom and evidence requests return 401. Sign-in, private evidence retrieval and local-session logout passed through the running app. Sample load, analyze and reset requests return 403 in the teacher workspace, and the saved state stayed unchanged during those checks. Normal browser sign-in returned to the requested lesson page; sign-out returned to login.
+- **Automated checks:** the final unit run passed 282 tests across 27 files, including session-cookie refresh checks. ESLint, TypeScript and 674 authored-specification assertions passed. The first 27-scenario browser run passed 26 scenarios; the new roster check used a textbox locator for a searchbox. After correcting that locator, both new notebook scenarios passed, including all eight images loading and student search/navigation at 390 pixels.
+- **Build and presentation:** production compilation passed. The artifact guard checked 38 browser assets and 17 server traces for private transcripts and local credentials/data. Student portraits, lesson selection, assistant presentation and sign-in were visually inspected; the desktop lesson library fits within the viewport.
+
+This revision does not repeat the live model or handwriting evaluation. Historical sample replies remain labeled as sample replies; connecting the account does not reclassify prior AI results. Credentials, transfer scripts and private verification reports are excluded from Git.
 
 ## Visual understanding revision
 

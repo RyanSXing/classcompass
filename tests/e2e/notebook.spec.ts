@@ -37,7 +37,7 @@ test("student portraits load and the roster works on a narrow screen", async ({ 
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(page.getByRole("button", { name: "Open navigation" })).toBeVisible();
   await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
-  await page.getByRole("textbox", { name: "Find a student" }).fill("Avery");
+  await page.getByRole("searchbox", { name: "Find a student" }).fill("Avery");
   await expect(page.locator(".student-summary")).toHaveCount(1);
   await page.getByRole("link", { name: "View student", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Avery", exact: true })).toBeVisible();
