@@ -153,7 +153,7 @@ function GeneratedBrief({
   const paragraphs = brief.content.split(/\n\s*\n/).filter(Boolean);
   const first = paragraphs[0] ?? brief.content;
   const summary =
-    first.length > 560 ? `${first.slice(0, 557).trimEnd()}…` : first;
+    first.length > 280 ? `${first.slice(0, 277).trimEnd()}…` : first;
   return (
     <div className={`generated-brief${brief.stale ? " brief-stale" : ""}`}>
       <div className="brief-provenance">
@@ -173,7 +173,6 @@ function GeneratedBrief({
           using its suggestions.
         </Banner>
       )}
-      <h3>{brief.title}</h3>
       <p className="brief-summary">{summary}</p>
       <div className="brief-action-grid">
         {brief.actions.slice(0, 3).map((action, index) => {
@@ -183,7 +182,7 @@ function GeneratedBrief({
           return (
             <article className="brief-action" key={action.id}>
               <span className="decision-number">0{index + 1}</span>
-              <h4>{action.title}</h4>
+              <h3>{action.title}</h3>
               <p>{action.description}</p>
               {citation && (
                 <div className="brief-action-source">

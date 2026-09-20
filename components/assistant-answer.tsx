@@ -42,7 +42,11 @@ export function AssistantAnswer({
               <h3>{action.title}</h3>
               <p>{action.description}</p>
               <Link href={action.href} className="text-link">
-                Open supporting work <ArrowUpRight size={13} />
+                {citations.find((source) => source.id === action.citationId)
+                  ?.kind === "lesson"
+                  ? "Open lesson"
+                  : "Open supporting work"}{" "}
+                <ArrowUpRight size={13} />
               </Link>
             </div>
           ))}
