@@ -11,7 +11,7 @@ ClassCompass implements one Grade 5 fraction-addition unit with five dated assig
 | Contracts and curriculum | [`lib/contracts.ts`](../lib/contracts.ts) defines Zod schemas and entity types. [`lib/curriculum.ts`](../lib/curriculum.ts) exposes authored questions, criteria, lessons, calendar constraints and materials. Student reference answers are separate from live request construction. |
 | Domain | [`lib/domain`](../lib/domain) owns rational arithmetic, evidence eligibility, review revisions, plan timing/roster checks, selected application and immutable accepted versions. Model output cannot directly save a plan. |
 | Persistence | [`lib/server/repository.ts`](../lib/server/repository.ts) provides the same read/transaction interface for local files and Supabase. [`storage.ts`](../lib/server/storage.ts) handles verified source/normalized upload objects. |
-| AI | [`lib/server/ai.ts`](../lib/server/ai.ts) uses **native server-side `fetch` to the configured DeepSeek or OpenRouter endpoint**. There is no Vercel AI SDK or AI Gateway dependency. Each operation performs at most one provider call; the job service owns retries. |
+| AI | [`lib/server/ai.ts`](../lib/server/ai.ts) uses **native server-side `fetch` to the configured DeepSeek or OpenRouter endpoint**. There is no Vercel AI SDK or AI Gateway dependency. Analysis and proposal generation allow one targeted validation repair, for up to two provider calls per attempt; the job service owns subsequent retries. |
 | Jobs | [`lib/server/jobs.ts`](../lib/server/jobs.ts) persists extraction, analysis and proposal steps, claims expiring leases, enforces live request spacing, and rejects stale or late outputs. |
 | Assets | [`public/demo`](../public/demo) contains explicitly fictional templates, 40 synthetic handwriting images, plan imports and sample PDFs. [`scripts/generate-assets.py`](../scripts/generate-assets.py) regenerates them deterministically. |
 
@@ -33,7 +33,7 @@ Uploads are prepared, written and finalized before a batch can use them. Finaliz
 
 | Browser route | Purpose |
 | --- | --- |
-| `/classroom` | Assignment results, dated count distributions, question breakdowns and next actions. `?upload=work` opens upload. |
+| `/classroom` | Next teaching decision, dated learning trends and student follow-ups, with detailed results under Explore the evidence. `?upload=work` opens upload. |
 | `/assignments` | Five dated assignment summaries and the idempotent sample-class loader. |
 | `/students` | Searchable roster with assignment-specific results. |
 | `/plans` | Explicit dated lesson list, import and calendar access. |
@@ -63,7 +63,7 @@ The additive catalog upgrade appends missing lessons and calendar associations t
 - A proposal binds the current lesson version, evidence revision and calendar revision. Selected application is transactional and idempotent. Conflicts require a fresh proposal; zero selected changes preserves the saved plan.
 - Blocks remain `5 + 8 + 12 + 15 + 5 = 45` minutes. Three concurrent practice pathways cover every active student once within the same 12 minutes, with at most one teacher-led pathway. Fixed assessment dates, objectives and teaching-day constraints remain checked.
 - Published material sets come from accepted content. An unselected change cannot publish its exclusive printable. Later revisions retain material references for an accepted checkpoint, while earlier material sets remain immutable.
-- Job status reads never invoke a model. The browser explicitly dispatches one step at a time; leaving the page pauses further dispatch. Leases and fingerprints prevent duplicate commits and discard results generated against corrected inputs. Live starts are spaced at least four seconds; provider calls time out within 75 seconds, with at most three configured attempts per step and bounded retry waits.
+- Job status reads never invoke a model. The browser explicitly dispatches one step at a time; leaving the page pauses further dispatch. Leases and fingerprints prevent duplicate commits and discard results generated against corrected inputs. Live job-step starts are spaced at least four seconds; a validation repair within a step does not use that spacing. Provider calls time out within 75 seconds, with at most three configured attempts per step and bounded retry waits.
 
 ## Verification and limits
 
