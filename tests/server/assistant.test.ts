@@ -5,7 +5,7 @@ import path from 'node:path';
 import type { AppState } from '@/lib/contracts';
 import { assignments } from '@/lib/assignments';
 import { createInitialState, analyzeBatch, correctResponse, reviewFindings } from '@/lib/domain';
-import { askClassroomAssistant, buildAssistantContext, buildAssistantModelContext, generateClassroomBrief, getAssistantState, saveTeacherGoals } from '@/lib/server/assistant';
+import { askClassroomAssistant, buildAssistantContext, buildAssistantModelContext, clearAssistantConversation, generateClassroomBrief, getAssistantState, saveTeacherGoals } from '@/lib/server/assistant';
 import { resetDemoState } from '@/lib/server/demo';
 import { LocalRepository, type Repository } from '@/lib/server/repository';
 import { seedAssignment, testProvenance } from '../domain/helpers';
@@ -65,6 +65,29 @@ describe('authoritative assistant context', () => {
 });
 
 describe('persistent teacher-controlled assistant', () => {
+  it('clears only chat history and prevents a pending reply from returning after reset', async () => {
+    const repo = seeded(), before = domainState(repo.state);
+    const savedBrief = await generateClassroomBrief(repo, { requestId: 'clear-keeps-brief', mode: 'fixture' });
+    const sourceId = buildAssistantContext(repo.state).sources.find(source => source.kind === 'response')!.id;
+    let resolveReply: (value: Response) => void = () => {};
+    const fetcher = vi.fn(() => new Promise<Response>(resolve => { resolveReply = resolve; }));
+    vi.stubGlobal('fetch', fetcher);
+    vi.stubEnv('OPENROUTER_API_KEY', 'test');
+    const pending = askClassroomAssistant(repo, { requestId: 'clear-pending-chat', message: 'What should I teach next?', mode: 'live' });
+    await vi.waitFor(() => expect(fetcher).toHaveBeenCalledOnce());
+
+    const cleared = await clearAssistantConversation(repo);
+    expect(cleared.turns).toEqual([]);
+    expect(cleared.requests.filter(request => request.kind === 'chat')).toEqual([]);
+    expect(cleared.goals).toEqual({ text: '', revision: 0, updatedAt: null });
+    expect(cleared.briefs).toHaveLength(1);
+    expect(cleared.brief?.id).toBe(savedBrief.brief.id);
+
+    resolveReply(response(rawReply(sourceId)));
+    await expect(pending).rejects.toMatchObject({ code: 'ASSISTANT_STALE' });
+    expect(getAssistantState(repo.state).turns).toEqual([]);
+    expect(domainState(repo.state)).toEqual(before);
+  });
   it('answers roster questions directly in sample mode without a teaching lecture or model call', async () => {
     const repo = seeded(), fetcher = vi.fn(); vi.stubGlobal('fetch', fetcher);
     for (const [index, message] of ['who are my students', 'name my students', 'Which students are in my class?', 'How many students do I have?', 'Show my class list', 'Who is in my class?'].entries()) {

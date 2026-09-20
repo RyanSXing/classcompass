@@ -726,7 +726,7 @@ function PlanContent({
           <>
             <div className="results-section-heading">
               <div>
-                <h2>Suggested changes</h2>
+                <h2>Suggestions</h2>
                 <p>
                   Compare each suggestion, then check the changes to save.
                 </p>
@@ -899,7 +899,7 @@ function PlanContent({
                         </>
                       )}
                       <details className="selected-change-reason" open>
-                        <summary>Why this change</summary>
+                        <summary>Reason</summary>
                         <p>{activeChange.rationale}</p>
                       </details>
                       {activeChange.dependsOnChangeIds.length > 0 && (
@@ -926,7 +926,7 @@ function PlanContent({
                   aria-label="Evidence for selected change"
                 >
                   <div className="change-evidence-heading">
-                    <h3>Evidence for this change</h3>
+                    <h3>Evidence</h3>
                     <p>{sourceFindings.length} linked teaching notes</p>
                   </div>
                   {refs.length ? (
@@ -1011,7 +1011,7 @@ function PlanContent({
                                 </p>
                               )}
                               <details>
-                                <summary>Approved teaching note</summary>
+                                <summary>Approved note</summary>
                                 <p>
                                   {sourceObservation?.interpretation ??
                                     (fresh

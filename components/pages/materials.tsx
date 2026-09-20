@@ -164,7 +164,7 @@ function MaterialsContent({ planVersionId }: { planVersionId: string }) {
             </p>
             {keys && (material.scaffolds || material.conditions) && (
               <section className="print-question">
-                <h3>Preparation and support</h3>
+                <h3>Support</h3>
                 {material.scaffolds && (
                   <p style={{ fontSize: 12, marginTop: 8 }}>
                     {material.scaffolds}
@@ -215,7 +215,7 @@ function MaterialsContent({ planVersionId }: { planVersionId: string }) {
             ))}
             {keys && material.teacherPrompts && (
               <div className="print-question">
-                <h3>Prompts for discussion</h3>
+                <h3>Discussion prompts</h3>
                 <ul style={{ fontSize: 13, lineHeight: 1.8, paddingLeft: 20 }}>
                   {material.teacherPrompts.map((p) => (
                     <li key={p}>{p}</li>

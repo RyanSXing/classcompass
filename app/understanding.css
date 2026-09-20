@@ -1,10 +1,10 @@
-/* Dated understanding stages use the original ClassCompass purple/aqua palette. */
+/* Status colors match the overview charts; symbols carry meaning too. */
 .understanding-panel,
 .understanding-student-detail {
-  --stage-support: #9c4168;
-  --stage-developing: #996715;
-  --stage-independent: #168b86;
-  --stage-unknown: #b7b3c3;
+  --stage-support: #c6684f;
+  --stage-developing: #b88625;
+  --stage-independent: #238977;
+  --stage-unknown: #a39988;
 }
 .understanding-panel {
   margin: 0 0 24px;
@@ -62,8 +62,8 @@
   font-weight: 900;
 }
 .stage-needs_support {
-  background: #f5e3eb;
-  color: #863052;
+  background: #f8e8df;
+  color: #92432f;
 }
 .stage-developing {
   background: #fff1d7;
@@ -74,8 +74,8 @@
   color: #086c66;
 }
 .stage-insufficient_evidence {
-  background: #eeedf2;
-  color: #686273;
+  background: #efede7;
+  color: #6c665d;
 }
 .understanding-definitions {
   font-size: 12px;
@@ -167,7 +167,7 @@
   min-height: 29px;
   border-radius: 6px;
   overflow: hidden;
-  background: #eeedf2;
+  background: #efede7;
 }
 .understanding-segment {
   display: inline-flex;

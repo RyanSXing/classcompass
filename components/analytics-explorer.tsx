@@ -1,5 +1,4 @@
 "use client";
-import { StudentAvatar } from "@/components/student-avatar";
 import Link from "next/link";
 import { ArrowRight, BarChart3, Grid2X2, ListChecks } from "lucide-react";
 import type { AppState } from "@/lib/contracts";
@@ -23,9 +22,9 @@ import { assignments } from "@/lib/assignments";
 
 export type AnalyticsView = "class" | "students" | "questions";
 const views = [
-  { id: "class", label: "Class results", icon: BarChart3 },
-  { id: "students", label: "Students over time", icon: Grid2X2 },
-  { id: "questions", label: "Question patterns", icon: ListChecks },
+  { id: "class", label: "Results", icon: BarChart3 },
+  { id: "students", label: "Students", icon: Grid2X2 },
+  { id: "questions", label: "Questions", icon: ListChecks },
 ] as const;
 
 function Comparison({
@@ -43,7 +42,7 @@ function Comparison({
   if (!comparison)
     return (
       <div className="comparison-empty">
-        <h3>A starting point for this class</h3>
+        <h3>Starting point</h3>
         <p>
           This is the first available assignment. Add follow-up work to see each
           student’s next observation.
@@ -250,7 +249,7 @@ function ClassResults({
           </div>
         </Card>
         <Card className="help-analysis">
-          <h3>How much help was given?</h3>
+          <h3>Support</h3>
           <p>
             Support is a separate part of the evidence, not a change to
             correctness.
@@ -331,7 +330,7 @@ function StudentMatrix({
   return (
     <Card className="student-matrix-card">
       <div className="analysis-explanation">
-        <h3>Every student, across the unit</h3>
+        <h3>Student progress</h3>
         <p>
           Each cell shows <strong>correct / all questions</strong>. Missing
           answers, reading flags, and help remain visible. Select a result to
@@ -375,7 +374,6 @@ function StudentMatrix({
               <tr key={student.id}>
                 <th scope="row">
                   <Link href={`/students/${student.id}`}>
-                    <StudentAvatar studentId={student.id} size={28} />
                     {student.displayName}
                   </Link>
                 </th>
@@ -574,8 +572,8 @@ export function AnalyticsExplorer({
     >
       <div className="analysis-heading">
         <div>
-          <span className="intelligence-eyebrow">Understand the evidence</span>
-          <h2 id="analytics-explorer-title">The class behind the numbers</h2>
+          <span className="intelligence-eyebrow">Evidence</span>
+          <h2 id="analytics-explorer-title">Results</h2>
         </div>
         <span>
           {insights.analytics.submittedStudents} of{" "}

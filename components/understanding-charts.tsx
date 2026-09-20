@@ -1,5 +1,4 @@
 "use client";
-import { StudentAvatar } from "@/components/student-avatar";
 
 import { useId, useState } from "react";
 import Link from "next/link";
@@ -52,7 +51,7 @@ export function ClassUnderstandingBars({
   return (
     <div>
       <div className="understanding-section-heading">
-        <h3>How learning is developing</h3>
+        <h3>Class progress</h3>
       </div>
       <div
         className="understanding-bars"
@@ -123,7 +122,7 @@ export function UnderstandingHeatmap({
   return (
     <div>
       <div className="understanding-section-heading">
-        <h3>Every student, every check</h3>
+        <h3>History</h3>
         <p>Select a square</p>
       </div>
       <div className="understanding-heatmap-scroll">
@@ -148,7 +147,7 @@ export function UnderstandingHeatmap({
                   ?.cells ?? [];
               return (
                 <tr key={student.studentId}>
-                  <th scope="row"><span className="student-name-with-avatar"><StudentAvatar studentId={student.studentId} size={28} />{student.name}</span></th>
+                  <th scope="row">{student.name}</th>
                   {skill.snapshots.map((snapshot) => {
                     const cell = cells.find(
                       (item) => item.templateId === snapshot.templateId,
@@ -198,7 +197,7 @@ function ObservationEvidence({
   ].filter((group) => group.evidence.length > 0);
   return (
     <details className="learning-evidence">
-      <summary>Show me why</summary>
+      <summary>Evidence</summary>
       {groups.length ? (
         groups.map((group) => (
           <div key={group.label} className="understanding-evidence-group">
@@ -293,7 +292,7 @@ export function StudentUnderstandingChart({
     >
       <div className="understanding-student-heading">
         <div>
-          <h3 id={`${chartId}-heading`} className="student-name-with-avatar"><StudentAvatar studentId={student.studentId} size={36} />{title}</h3>
+          <h3 id={`${chartId}-heading`}>{title}</h3>
           <p>Dated work, with the help conditions kept alongside it.</p>
         </div>
         {showProfileLink && <Link href={`/students/${student.studentId}`} className="text-link">

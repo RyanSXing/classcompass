@@ -1,5 +1,4 @@
 "use client";
-import { StudentAvatar } from "@/components/student-avatar";
 import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { ArrowRight, CheckCircle2, ChartNoAxesCombined } from "lucide-react";
@@ -78,13 +77,13 @@ export function LearningOverview({
       <div className="understanding-heading">
         <div>
           <span className="intelligence-eyebrow">
-            <ChartNoAxesCombined size={14} /> Across the unit
+            <ChartNoAxesCombined size={14} /> Learning
           </span>
-          <h2 id="learning-picture-title">Learning picture</h2>
+          <h2 id="learning-picture-title">Understanding</h2>
           <p>See where students are now and how the work has changed.</p>
         </div>
         <label className="field understanding-skill">
-          <span>Focus on a skill</span>
+          <span>Skill</span>
           <Select
             aria-label="Understanding skill"
             value={skill.id}
@@ -120,7 +119,7 @@ export function LearningOverview({
         onSelectSkill={(skillId) => updateSelection({ skill: skillId })}
       />
       <details className="understanding-definitions">
-        <summary>How to read these stages</summary>
+        <summary>Stage guide</summary>
         <dl>
           {overview.legend.map((item) => (
             <div key={item.stage} className="understanding-definition">
@@ -150,7 +149,7 @@ export function LearningOverview({
             updateSelection({ progress: event.currentTarget.open ? "open" : undefined });
         }}
       >
-        <summary><span>Explore student progress</span><small>Dates, working and next checks</small></summary>
+        <summary><span>Student progress</span><small>Work by date</small></summary>
         <UnderstandingHeatmap
           overview={overview}
           skill={skill}
@@ -192,8 +191,8 @@ export function LearningFollowUps({
     >
       <div className="learning-section-heading">
         <div>
-          <span className="intelligence-eyebrow">Individual follow-ups</span>
-          <h2 id="student-followups-title">Students to check</h2>
+          <span className="intelligence-eyebrow">Support</span>
+          <h2 id="student-followups-title">Follow-ups</h2>
         </div>
         <Link href="/students" className="text-link">
           All students <ArrowRight size={14} />
@@ -213,7 +212,7 @@ export function LearningFollowUps({
           </div>
           {learning.allFollowUps.length > learning.followUps.length && (
             <details className="more-followups">
-              <summary>More student follow-ups</summary>
+              <summary>More students</summary>
               <div className="learning-followups">
                 {learning.allFollowUps
                   .filter(
@@ -260,7 +259,6 @@ function FollowUp({
   return (
     <article className="learning-followup" aria-label={`${name} follow-up`}>
       <div className="followup-person">
-        <StudentAvatar studentId={followUp.studentId} size={36} />
         <Link href={`/students/${followUp.studentId}`}>{name}</Link>
       </div>
       <div className="followup-content">

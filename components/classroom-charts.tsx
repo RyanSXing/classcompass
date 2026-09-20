@@ -1,7 +1,6 @@
 "use client";
 
 import { useId } from "react";
-import { StudentAvatar } from "@/components/student-avatar";
 import type {
   SkillClassSnapshot,
   UnderstandingOverview,
@@ -94,12 +93,12 @@ function StudentStageBars({
     <section className="classroom-chart-card classroom-stage-bars" aria-labelledby={`${barsId}-heading`}>
       <div className="classroom-chart-heading">
         <div>
-          <span className="classroom-chart-kicker">Selected check</span>
-          <h3 id={`${barsId}-heading`}>What this work shows</h3>
+          <h3 id={`${barsId}-heading`}>Students</h3>
           <p>{dateLabel(snapshot.date)} · {snapshot.title}</p>
         </div>
         <span className="classroom-chart-note">Choose a student</span>
       </div>
+      <div className="stage-bars-scroll">
       <div className="stage-bars-plot" role="group" aria-label={`${skill.label}: students by stage on ${dateLabel(snapshot.date)}`}>
         <div className="stage-bars-axis" aria-hidden="true">
           <span>Works independently</span>
@@ -121,6 +120,7 @@ function StudentStageBars({
                 key={student.studentId}
                 aria-pressed={student.studentId === selectedStudentId}
                 aria-label={`${student.name}: ${stagePresentation[stage].label}. Select ${student.name}'s work from ${dateLabel(snapshot.date)}.`}
+                title={`${student.name}: ${stagePresentation[stage].label}`}
                 onClick={() => onSelectStudent(student.studentId, snapshot.templateId)}
               >
                 <span className="stage-bar-column" aria-hidden="true">
@@ -133,13 +133,12 @@ function StudentStageBars({
                     />
                   )}
                 </span>
-                <StudentAvatar studentId={student.studentId} size={30} />
                 <span className="stage-bar-name">{student.name}</span>
-                <span className="stage-bar-stage">{stagePresentation[stage].label}</span>
               </button>
             );
           })}
         </div>
+      </div>
       </div>
       <p className="classroom-chart-caption">
         Select a student to see the work. Dashed columns need more evidence.
@@ -197,8 +196,7 @@ function SkillRadar({
     <section className="classroom-chart-card classroom-radar" aria-labelledby={`${radarId}-heading`}>
       <div className="classroom-chart-heading">
         <div>
-          <span className="classroom-chart-kicker">Across skills</span>
-          <h3 id={`${radarId}-heading`}>Skills at a glance</h3>
+          <h3 id={`${radarId}-heading`}>Skills</h3>
           <p>Students working independently · {dateLabel(selectedSnapshot.date)}</p>
         </div>
       </div>
@@ -293,7 +291,7 @@ function SkillRadar({
           );
         })}
       </div>
-      <p className="classroom-chart-caption">The shape is a quick comparison. Unassessed skills leave a gap.</p>
+      <p className="classroom-chart-caption">Select a skill. Dashed points need more evidence.</p>
     </section>
   );
 }
@@ -313,7 +311,7 @@ function LearningTrend({
   const snapshots = skill.snapshots;
   const activeStudents = overview.students.length;
   const width = 680;
-  const height = 210;
+  const height = 248;
   const padding = { top: 24, right: 24, bottom: 34, left: 37 };
   const chartWidth = width - padding.left - padding.right;
   const chartHeight = height - padding.top - padding.bottom;
@@ -336,21 +334,33 @@ function LearningTrend({
     <section className="classroom-chart-card classroom-trend" aria-labelledby={`${trendId}-heading`}>
       <div className="classroom-chart-heading">
         <div>
-          <span className="classroom-chart-kicker">Across the unit</span>
-          <h3 id={`${trendId}-heading`}>Learning over time</h3>
-          <p>{skill.label} · students working independently</p>
+          <h3 id={`${trendId}-heading`}>Progress</h3>
+          <p>{skill.label}</p>
         </div>
+        <div className="trend-summary">
         <strong className="trend-current">
           {selected.counts.insufficient_evidence === activeStudents
             ? "Needs evidence"
             : `${selected.counts.independent} of ${activeStudents}`}
         </strong>
+        <span>{known(selected) ? "independent · " : ""}{dateLabel(selected.date)}</span>
+        </div>
+      </div>
+      <div className="trend-legend" aria-label="Progress chart legend">
+        <span><i className="trend-key-independent" aria-hidden="true" />Independent</span>
+        <span><i className="trend-key-support" aria-hidden="true" />Needs support</span>
       </div>
       <div className="trend-visual">
         <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-labelledby={`${trendId}-title ${trendId}-desc`}>
-          <title id={`${trendId}-title`}>{skill.label}: students working independently over time</title>
-          <desc id={`${trendId}-desc`}>{snapshots.map((snapshot) => `${dateLabel(snapshot.date)}: ${known(snapshot) ? `${snapshot.counts.independent} of ${activeStudents} students work independently` : "not enough evidence for the class"}`).join(". ")}. Gaps are not treated as zero.</desc>
-          {[0, activeStudents].map((value) => (
+          <title id={`${trendId}-title`}>{skill.label}: independence and support over time</title>
+          <desc id={`${trendId}-desc`}>{snapshots.map((snapshot) => `${dateLabel(snapshot.date)}: ${known(snapshot) ? `${snapshot.counts.independent} of ${activeStudents} students work independently, ${snapshot.counts.needs_support} need support, ${snapshot.counts.developing} are getting there and ${snapshot.counts.insufficient_evidence} need more evidence` : "not enough evidence for the class"}`).join(". ")}. The solid line shows independence. The dashed line shows support needs. Gaps are not treated as zero.</desc>
+          <defs>
+            <linearGradient id={`${trendId}-fill`} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#238977" stopOpacity=".22" />
+              <stop offset="100%" stopColor="#238977" stopOpacity=".02" />
+            </linearGradient>
+          </defs>
+          {[...new Set([0, Math.round(activeStudents / 2), activeStudents])].map((value) => (
             <g key={value}>
               <line x1={padding.left} y1={y(value)} x2={width - padding.right} y2={y(value)} className="trend-grid" />
               <text x={padding.left - 8} y={y(value) + 4} textAnchor="end" className="trend-axis-label">{value}</text>
@@ -361,6 +371,7 @@ function LearningTrend({
               key={`${from.templateId}:${to.templateId}`}
               d={`M ${x(fromIndex)} ${y(from.counts.independent)} L ${x(toIndex)} ${y(to.counts.independent)} L ${x(toIndex)} ${height - padding.bottom} L ${x(fromIndex)} ${height - padding.bottom} Z`}
               className="trend-area"
+              fill={`url(#${trendId}-fill)`}
               data-from-date={from.templateId}
               data-to-date={to.templateId}
             />
@@ -368,10 +379,16 @@ function LearningTrend({
           {segments.map(({ from, to, fromIndex, toIndex }) => (
             <line key={`${from.templateId}:${to.templateId}:line`} x1={x(fromIndex)} y1={y(from.counts.independent)} x2={x(toIndex)} y2={y(to.counts.independent)} className="trend-line" data-from-date={from.templateId} data-to-date={to.templateId} />
           ))}
+          {segments.map(({ from, to, fromIndex, toIndex }) => (
+            <line key={`${from.templateId}:${to.templateId}:support`} x1={x(fromIndex)} y1={y(from.counts.needs_support)} x2={x(toIndex)} y2={y(to.counts.needs_support)} className="trend-support-line" data-from-date={from.templateId} data-to-date={to.templateId} />
+          ))}
           {snapshots.map((snapshot, index) => (
             <g key={snapshot.templateId}>
               {known(snapshot) ? (
+                <>
+                <rect x={x(index) - 4} y={y(snapshot.counts.needs_support) - 4} width="8" height="8" rx="2" className="trend-support-point" />
                 <circle cx={x(index)} cy={y(snapshot.counts.independent)} r={snapshot.templateId === selected.templateId ? 7 : 5} className={`trend-point${snapshot.templateId === selected.templateId ? " trend-point-selected" : ""}`} />
+                </>
               ) : (
                 <rect x={x(index) - 6} y={height - padding.bottom - 13} width="12" height="12" rx="2" className="trend-gap" />
               )}
@@ -396,7 +413,7 @@ function LearningTrend({
           );
         })}
       </div>
-      <p className="classroom-chart-caption">Select a date to see the work. Gaps mean more evidence is needed.</p>
+      <p className="classroom-chart-caption">Counts show students, not scores. Select a date for details.</p>
     </section>
   );
 }

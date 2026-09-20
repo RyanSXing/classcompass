@@ -138,7 +138,7 @@ function Content() {
                 aria-labelledby="lesson-focus-title"
               >
                 <span className="eyebrow">Learning focus</span>
-                <h3 id="lesson-focus-title">What students will practise</h3>
+                <h3 id="lesson-focus-title">Objectives</h3>
                 <ul>
                   {objectiveLabels.map((label) => (
                     <li key={label}>{label}</li>
@@ -152,7 +152,7 @@ function Content() {
                 <div className="lesson-preview-section-head">
                   <div>
                     <span className="eyebrow">Lesson flow</span>
-                    <h3 id="lesson-blocks-title">45 minutes at a glance</h3>
+                    <h3 id="lesson-blocks-title">Lesson timeline</h3>
                   </div>
                   {assignment && (
                     <Link

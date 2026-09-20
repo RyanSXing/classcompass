@@ -19,6 +19,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { useWorkspace } from "@/components/workspace-provider";
 
+const teacherDisplayName = "Ms. Verity";
+
 export function CompassMark() {
   return (
     <svg
@@ -120,9 +122,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </nav>
       <div className="sidebar-bottom">
         <div className="teacher">
-          <div className="teacher-avatar" aria-hidden="true">T</div>
+          <div className="teacher-avatar" aria-hidden="true">M</div>
           <div>
-            <strong>{data?.config.teacher || "Teacher"}</strong>
+            <strong>{teacherDisplayName}</strong>
             <small>Grade 5 mathematics</small>
           </div>
           {data?.config.dataBackend === "supabase" && (

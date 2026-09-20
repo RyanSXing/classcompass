@@ -241,7 +241,7 @@ function CalendarContent() {
         </div>
         <Card>
           <div className="card-content">
-            <h3 style={{ fontSize: 18 }}>Fixed dates and lesson time</h3>
+            <h3 style={{ fontSize: 18 }}>Schedule</h3>
             <div className="constraint-grid">
               <div className="constraint-item">
                 <LockKeyhole />
@@ -328,7 +328,7 @@ function CalendarContent() {
               </Banner>
             )}
             <div>
-              <h4>Learning objectives</h4>
+              <h4>Objectives</h4>
               {entry.objectiveIds.map((id) => (
                 <p
                   className="text-small muted"

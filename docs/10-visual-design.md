@@ -10,7 +10,7 @@ ClassCompass now uses a warm cream paper canvas with restrained horizontal rules
 
 The main product views prioritize a teacher's next decision. The understanding view separates class distribution, the student-by-date map, and a selected student detail into distinct paper cards. The Assistant becomes a two-pane desk: contextual notes on the left and the conversation on the right. Lessons use a dated selector beside a concise saved-plan preview with objectives, timed blocks, linked work, and an explicit route to the full plan. At smaller widths, the navigation becomes a labeled drawer, two-pane views stack, and lesson dates become a compact grid.
 
-Original, low-detail student portraits appear next to student names where they make evidence easier to scan. They identify fictional learners only; name text remains present and is the accessible identifier. See [avatar artwork](avatar-art.md) for generation and asset details.
+Students are identified by name, without portraits or avatars. Status colors highlight understanding and support needs.
 
 ## Reference and intended character
 

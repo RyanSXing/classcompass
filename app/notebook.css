@@ -354,22 +354,6 @@ body {
 .assistant-composer textarea { border-color: #cdb99f; background: #fffefa; }
 .assistant-side .assistant-context-card:first-child { border-top: 4px solid var(--brand-blue); }
 
-/* Shared student art dimensions. The avatar component supplies the actual illustration. */
-.student-portrait {
-  display: inline-grid;
-  width: 42px;
-  height: 42px;
-  flex: 0 0 auto;
-  overflow: hidden;
-  border: 1px solid var(--brand-tan);
-  border-radius: 50%;
-  background: #f2e6d3;
-  box-shadow: 0 2px 0 rgba(151, 118, 76, 0.15);
-}
-.student-portrait img,
-.student-portrait svg { width: 100%; height: 100%; }
-.student-name-with-avatar { display: inline-flex; align-items: center; gap: 9px; }
-
 /* Lessons behave like a small planning notebook: choose a dated tab, then scan the plan. */
 .lesson-library {
   display: grid;
@@ -564,6 +548,4 @@ body {
 @media (max-width: 600px) {
   .student-progress-explorer > summary small { display: block; margin: 4px 0 0 16px; }
   .student-progress-explorer .understanding-heatmap th:first-child { width: 78px; }
-  .student-progress-explorer .student-name-with-avatar { gap: 5px; }
-  .student-progress-explorer .student-portrait { display: none; }
 }

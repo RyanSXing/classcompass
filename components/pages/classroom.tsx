@@ -103,7 +103,7 @@ function ClassroomContent() {
         <>
           <div className="intelligence-assignment-bar">
             <label className="field">
-              <span>Work through</span>
+              <span>Assignment</span>
               <Select
                 aria-label="Assignment"
                 value={selected.templateId}
@@ -167,8 +167,8 @@ function ClassroomContent() {
             }}
           >
             <summary>
-              <span>Explore the evidence</span>
-              <small>Class results, student work, and question patterns</small>
+              <span>Evidence</span>
+              <small>Answers and work</small>
             </summary>
             <AnalyticsExplorer
               state={state}

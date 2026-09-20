@@ -13,9 +13,9 @@ export function LessonTimeline({
   totalMinutes: number;
 }) {
   return (
-    <nav className="lg-timeline" aria-label="Lesson schedule">
+    <nav className="lg-timeline" aria-label={`${totalMinutes}-minute lesson timeline`}>
       <div className="lg-timeline-heading">
-        <h3>Your {totalMinutes}-minute lesson</h3>
+        <h3>Lesson timeline</h3>
         <span>Choose a stage to jump in</span>
       </div>
       <ol className="lg-timeline-stages">

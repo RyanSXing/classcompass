@@ -293,7 +293,7 @@ test("five assignments give linked class and individual analytics without erasin
   await page
     .getByLabel("Assignment", { exact: true })
     .selectOption("word-problems-template-v1");
-  await page.getByText("Explore the evidence", { exact: true }).click();
+  await page.locator(".evidence-explorer > summary").click();
   await page.getByRole("link", { name: /1 Flagged Check the reading/ }).click();
   await expect(page.getByLabel("Filter result")).toHaveValue("flagged");
   await expect(
@@ -417,11 +417,11 @@ test("classroom assistant uses saved goals, answers follow-ups and preserves evi
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto("/assistant?student=stu-03&lesson=lesson-2026-10-01");
   await expect(
-    page.getByRole("heading", { name: "Classroom assistant", exact: true }),
+    page.getByRole("heading", { name: "Assistant", exact: true }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Add goals", exact: true }).click();
   await page
-    .getByLabel("Teaching goals", { exact: true })
+    .getByRole("textbox", { name: "Teaching goals", exact: true })
     .fill(
       "Help Casey show equivalent fractions independently. Keep the October 2 assessment fixed.",
     );
@@ -483,7 +483,7 @@ test("AI briefing connects richer analytics to exact evidence and complete lesso
     "/classroom?assignment=independent-check-template-v1&evidence=open",
   );
   await page
-    .getByRole("tab", { name: "Students over time", exact: true })
+    .getByRole("tab", { name: "Students", exact: true })
     .click();
   const matrix = page.getByRole("region", {
     name: "Student results across assignments",
@@ -505,10 +505,10 @@ test("AI briefing connects richer analytics to exact evidence and complete lesso
     "/classroom?assignment=independent-check-template-v1&evidence=open",
   );
   await page
-    .getByRole("tab", { name: "Question patterns", exact: true })
+    .getByRole("tab", { name: "Questions", exact: true })
     .click();
   await expect(page.locator(".question-pattern-grid > article")).toHaveCount(3);
-  await page.getByRole("tab", { name: "Class results", exact: true }).click();
+  await page.getByRole("tab", { name: "Results", exact: true }).click();
   await page
     .getByLabel("Teaching insights mode", { exact: true })
     .selectOption("fixture");
@@ -530,7 +530,7 @@ test("AI briefing connects richer analytics to exact evidence and complete lesso
   await expect(page.locator(".lesson-guide")).toContainText("Success criteria");
   await expect(page.locator(".lesson-guide")).toContainText("Worked example");
   await expect(page.locator(".lesson-guide")).toContainText(
-    "After the exit check",
+    "Next steps",
   );
   const old = saved.planVersions.find(
     (v) => v.lessonId === plan.id && v.id !== version.id,
@@ -694,7 +694,7 @@ test("partial uploads process the selected source and uncertain readings keep th
   await page
     .getByRole("button", { name: /Finley, question 3: Flagged/ })
     .click();
-  await page.getByText("Reading details and history", { exact: true }).click();
+  await page.getByText("Review history", { exact: true }).click();
   await expect(page.getByText(/simulated/i).first()).toBeVisible();
   await page.getByRole("button", { name: "Edit reading", exact: true }).click();
   await page
@@ -744,7 +744,7 @@ test("partial uploads process the selected source and uncertain readings keep th
   });
   if (!(await firstRevision.isVisible()))
     await page
-      .getByText("Reading details and history", { exact: true })
+      .getByText("Review history", { exact: true })
       .click();
   await firstRevision.click();
   await expect(page.locator(".transcript")).toContainText("7/30 meter");
@@ -766,7 +766,7 @@ test("goal drafts detect concurrent edits and interrupted questions can be asked
   await page.goto("/assistant");
   await page.getByRole("button", { name: "Edit goals", exact: true }).click();
   await page
-    .getByLabel("Teaching goals", { exact: true })
+    .getByRole("textbox", { name: "Teaching goals", exact: true })
     .fill("An older unsaved draft");
   const before = await stateFrom(page);
   const update = await page.request.patch("/api/assistant/goals", {

@@ -1,5 +1,4 @@
 "use client";
-import { StudentAvatar } from "@/components/student-avatar";
 import Link from "next/link";
 import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
@@ -194,7 +193,6 @@ function StudentContent({ studentId }: { studentId: string }) {
       </div>
       <div className="page-heading">
         <div className="student-title">
-          <StudentAvatar studentId={student.id} size={56} />
           <div>
             <h1>{student.displayName}</h1>
             <p>Grade 5 · Fraction addition</p>
@@ -252,7 +250,7 @@ function StudentContent({ studentId }: { studentId: string }) {
       </div>
       <details className="evidence-explorer" open={search.has("result") || search.has("support") || search.has("assignment") || search.get("evidence") === "open"}>
         <summary><span>Assignment results</span><small>Answers, help and totals</small></summary>
-        <details className="student-work-details"><summary>Answer totals over time</summary><AssignmentTrend state={state} studentId={studentId} /></details>
+        <details className="student-work-details"><summary>Answer trend</summary><AssignmentTrend state={state} studentId={studentId} /></details>
         <div className="analytics-toolbar">
           <label className="field">
             <span>Assignment</span>
@@ -396,7 +394,7 @@ function StudentContent({ studentId }: { studentId: string }) {
       </details>
       <section className="analytics-section">
         <div className="section-heading">
-          <h2>Teacher-reviewed evidence</h2>
+          <h2>Evidence</h2>
         </div>
         <div className="observation-list">
           {currentObservations.length ? (

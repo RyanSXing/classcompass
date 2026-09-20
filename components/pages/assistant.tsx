@@ -2,7 +2,7 @@
 import { Suspense, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { ArrowUp, ArrowUpRight, LoaderCircle, Sparkles } from "lucide-react";
+import { ArrowUp, ArrowUpRight, LoaderCircle, Sparkles, Trash2 } from "lucide-react";
 import { useWorkspace } from "@/components/workspace-provider";
 import { PageGate } from "@/components/shared";
 import { Button } from "@/components/ui/button";
@@ -40,7 +40,7 @@ function GoalsCard({ disabled }: { disabled: boolean }) {
       aria-labelledby="teacher-goals-title"
     >
       <div className="teacher-goal-heading">
-        <h2 id="teacher-goals-title">Your teaching goals</h2>
+        <h2 id="teacher-goals-title">Teaching goals</h2>
         {!editing && (
           <button
             className="text-link"
@@ -124,7 +124,7 @@ function Conversation({
   initialPrompt: string;
   initialScope: AssistantScope;
 }) {
-  const { data, mutate, refresh } = useWorkspace();
+  const { data, mutate, notify, refresh } = useWorkspace();
   const [message, setMessage] = useState(initialPrompt);
   const [scope, setScope] = useState(initialScope);
   // Follow refreshed configuration until the teacher explicitly chooses a mode.
@@ -132,6 +132,7 @@ function Conversation({
   const mode = selectedMode ?? data?.config.aiMode ?? "fixture";
   const aiUnavailable = mode === "live" && data?.config.assistantLiveAvailable === false;
   const [busy, setBusy] = useState(false);
+  const [clearing, setClearing] = useState(false);
   const [observedAt, setObservedAt] = useState(() => Date.now());
   const [pendingMessage, setPendingMessage] = useState("");
   const [error, setError] = useState("");
@@ -143,6 +144,8 @@ function Conversation({
   } | null>(null);
   const end = useRef<HTMLDivElement>(null);
   const composer = useRef<HTMLTextAreaElement>(null);
+  const conversationEpoch = useRef(0);
+  const focusComposerAfterClear = useRef(false);
   const turns = data?.state.assistant?.turns ?? [];
   const pendingRequests =
     data?.state.assistant?.requests.some((r) => r.status === "pending") ??
@@ -155,6 +158,12 @@ function Conversation({
   useEffect(() => {
     end.current?.scrollIntoView({ block: "nearest" });
   }, [turns.length, busy]);
+  useEffect(() => {
+    if (!clearing && focusComposerAfterClear.current) {
+      focusComposerAfterClear.current = false;
+      composer.current?.focus();
+    }
+  }, [clearing]);
   if (!data) return null;
   const { state } = data;
   const totals = assignments.map((a) =>
@@ -177,7 +186,8 @@ function Conversation({
         turn.role === "user" && turn.requestId === failedRequest?.requestId,
     );
   async function send(retry = false) {
-    if (busy || aiUnavailable || (!retry && !message.trim())) return;
+    if (busy || clearing || aiUnavailable || (!retry && !message.trim())) return;
+    const requestEpoch = conversationEpoch.current;
     const input =
       retry && failedRequest
         ? failedRequest
@@ -196,20 +206,50 @@ function Conversation({
       setScope(input.scope);
     }
     try {
-      await mutate<AssistantReplyResult>("/api/assistant/chat", input);
+      await mutate<AssistantReplyResult>(
+        "/api/assistant/chat",
+        input,
+        undefined,
+        { suppressErrorNotification: true },
+      );
+      if (conversationEpoch.current !== requestEpoch) return;
       setMessage("");
       setFailedRequest(null);
       setPendingMessage("");
     } catch (e) {
+      if (conversationEpoch.current !== requestEpoch) return;
       await refresh();
+      if (conversationEpoch.current !== requestEpoch) return;
       setError(
         e instanceof Error
           ? e.message
           : "The assistant couldn't finish. Try again.",
       );
     } finally {
-      setBusy(false);
-      composer.current?.focus();
+      if (conversationEpoch.current === requestEpoch) {
+        setBusy(false);
+        composer.current?.focus();
+      }
+    }
+  }
+  async function clearConversation() {
+    if (clearing) return;
+    conversationEpoch.current += 1;
+    setClearing(true);
+    setBusy(false);
+    setMessage("");
+    setPendingMessage("");
+    setError("");
+    setFailedRequest(null);
+    try {
+      await mutate("/api/assistant/chat", {}, "DELETE");
+      notify("Chat cleared.");
+      focusComposerAfterClear.current = true;
+    } catch {
+      // WorkspaceProvider has already surfaced the server error and retained
+      // the saved chat if the reset could not finish.
+    } finally {
+      setClearing(false);
     }
   }
   function focusPrompt(prompt: string) {
@@ -223,7 +263,7 @@ function Conversation({
     <div className="page assistant-page">
       <div className="page-heading">
         <div>
-          <h1>Classroom assistant</h1>
+          <h1>Assistant</h1>
           <p>Ask about student work, your lessons, or what to teach next.</p>
         </div>
       </div>
@@ -235,26 +275,38 @@ function Conversation({
           >
             <div className="assistant-conversation-head">
               <strong>Ask ClassCompass</strong>
-              {data.config.sampleToolsEnabled !== false && <label className="field">
-                <span>Replies</span>
-                <Select
-                  aria-label="Assistant mode"
-                  value={mode}
-                  disabled={busy}
-                  onChange={(e) => {
-                    setMode(e.target.value as "fixture" | "live");
-                    setError("");
-                  }}
+              <div className="assistant-conversation-actions">
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  type="button"
+                  disabled={clearing}
+                  onClick={() => void clearConversation()}
                 >
-                  <option value="fixture">Sample · no model call</option>
-                  <option
-                    value="live"
-                    disabled={data.config.assistantLiveAvailable === false}
+                  <Trash2 size={14} />
+                  {clearing ? "Clearing…" : "Clear chat"}
+                </Button>
+                {data.config.sampleToolsEnabled !== false && <label className="field">
+                  <span>Replies</span>
+                  <Select
+                    aria-label="Assistant mode"
+                    value={mode}
+                    disabled={busy || clearing}
+                    onChange={(e) => {
+                      setMode(e.target.value as "fixture" | "live");
+                      setError("");
+                    }}
                   >
-                    Live AI
-                  </option>
-                </Select>
-              </label>}
+                    <option value="fixture">Sample · no model call</option>
+                    <option
+                      value="live"
+                      disabled={data.config.assistantLiveAvailable === false}
+                    >
+                      Live AI
+                    </option>
+                  </Select>
+                </label>}
+              </div>
             </div>
             <div
               className="assistant-messages"
@@ -268,7 +320,7 @@ function Conversation({
                   <div className="assistant-empty-icon">
                     <Sparkles size={23} />
                   </div>
-                  <h2>Start with a teaching question.</h2>
+                  <h2>Ask a question.</h2>
                   <p>
                     I can use your classroom work, saved lessons, calendar and
                     goals. Answers include sources you can check.
@@ -325,7 +377,7 @@ function Conversation({
                           No answer was saved.{" "}
                           <button
                             className="text-link"
-                            disabled={busy}
+                            disabled={busy || clearing}
                             onClick={() => {
                               setScope(turn.scope);
                               focusPrompt(turn.content);
@@ -388,7 +440,7 @@ function Conversation({
                   <Button
                     size="sm"
                     variant="outline"
-                    disabled={busy}
+                    disabled={busy || clearing}
                     onClick={() => void send(true)}
                   >
                     Retry {failedRequest.mode === "live" ? "Live AI" : "sample"} answer
@@ -410,7 +462,7 @@ function Conversation({
                 ref={composer}
                 id="assistant-message"
                 value={message}
-                disabled={busy}
+                disabled={busy || clearing}
                 maxLength={4000}
                 placeholder="What should I do with Casey in the next lesson?"
                 onChange={(event) => setMessage(event.target.value)}
@@ -432,7 +484,7 @@ function Conversation({
                     ? "Sample replies use saved classroom data."
                     : "Uses your saved classroom. You choose what changes."}
                 </p>
-                <Button disabled={busy || aiUnavailable || !message.trim()} type="submit">
+                <Button disabled={busy || clearing || aiUnavailable || !message.trim()} type="submit">
                   <ArrowUp size={16} />
                   {busy ? "Thinking…" : data.config.sampleToolsEnabled === false ? "Send" : mode === "live" ? "Ask Live AI" : "Get sample reply"}
                 </Button>
@@ -441,12 +493,12 @@ function Conversation({
           </section>
         </div>
         <aside className="assistant-side" aria-label="Assistant context">
-          <GoalsCard disabled={busy} />
+          <GoalsCard disabled={busy || clearing} />
           <section
             className="assistant-context-card"
             aria-labelledby="assistant-context-title"
           >
-            <h2 id="assistant-context-title">Classroom context</h2>
+            <h2 id="assistant-context-title">Context</h2>
             <div className="assistant-context-stats">
               <div>
                 <strong>{state.students.filter((s) => s.active).length}</strong>
@@ -465,7 +517,7 @@ function Conversation({
               <span>Focus on a student</span>
               <Select
                 aria-label="Assistant student focus"
-                disabled={busy}
+                disabled={busy || clearing}
                 value={scope.studentId ?? ""}
                 onChange={(e) => setFocus("studentId", e.target.value)}
               >
@@ -483,7 +535,7 @@ function Conversation({
               <span>Assignment</span>
               <Select
                 aria-label="Assistant assignment focus"
-                disabled={busy}
+                disabled={busy || clearing}
                 value={scope.templateId ?? ""}
                 onChange={(e) => setFocus("templateId", e.target.value)}
               >
@@ -499,7 +551,7 @@ function Conversation({
               <span>Lesson</span>
               <Select
                 aria-label="Assistant lesson focus"
-                disabled={busy}
+                disabled={busy || clearing}
                 value={scope.lessonId ?? ""}
                 onChange={(e) => setFocus("lessonId", e.target.value)}
               >

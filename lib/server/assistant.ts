@@ -306,6 +306,21 @@ export async function saveTeacherGoals(repo: Repository, input: unknown) {
   });
 }
 
+/** Removes only saved chat history; plans, goals, briefs and classroom data stay intact. */
+export async function clearAssistantConversation(repo: Repository): Promise<AssistantState> {
+  await repo.transact(state => {
+    const assistant = state.assistant ??= defaults();
+    const hasChat = assistant.turns.length > 0 || assistant.requests.some(request => request.kind === 'chat');
+    if (!hasChat) return;
+    assistant.turns = [];
+    // Removing a pending request makes an older response fail its final save,
+    // so a cleared conversation cannot reappear after a model call completes.
+    assistant.requests = assistant.requests.filter(request => request.kind !== 'chat');
+    assistant.revision++;
+  });
+  return getAssistantState(await repo.read());
+}
+
 function sampleLearningReply(context: ReturnType<typeof buildAssistantContext>, templateId: string, studentId?: string): AssistantOutput {
   const { classroom } = context;
   const assignment = classroom.assignments.find(item => item.templateId === templateId)!;

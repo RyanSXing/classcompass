@@ -51,11 +51,11 @@ function GeneratedBrief({
       />
       {handoff}
       <details className="brief-full">
-        <summary>Why this matters and sources</summary>
+        <summary>Details</summary>
         <div className="brief-full-text">{brief.content}</div>
         {brief.actions.length > 0 && (
           <>
-            <h3>All suggested actions</h3>
+            <h3>All actions</h3>
             <ul>
               {brief.actions.map((action) => (
                 <li key={action.id}>
@@ -95,7 +95,7 @@ function PriorityEvidence({
 }) {
   return (
     <details className="learning-evidence">
-      <summary>See evidence</summary>
+      <summary>Evidence</summary>
       {action.reason && <p>{action.reason}</p>}
       {action.citation ? (
         <>
@@ -320,12 +320,12 @@ export function DecisionBrief({
       <div className="intelligence-heading">
         <div>
           <span className="intelligence-eyebrow">
-            <Sparkles size={14} /> Your teaching brief
+            <Sparkles size={14} /> Teaching priorities
           </span>
           <h2 id="teaching-decisions-title">
             {newerTemplateId
-              ? "Teaching picture at this point"
-              : "Do these next"}
+              ? "Earlier actions"
+              : "Actions"}
           </h2>
           {lesson && !newerTemplateId && (
             <p>
@@ -413,7 +413,7 @@ export function DecisionBrief({
             state={state}
             templateId={templateId}
           />
-          <h3>{saved ? "Your reviewed changes are saved" : "What the work suggests"}</h3>
+          <h3>{saved ? "Saved lesson" : "Lesson focus"}</h3>
           <p>
             {saved ? nextStep.detail : (direction?.reason ?? learning.summary)}
           </p>
@@ -422,7 +422,7 @@ export function DecisionBrief({
       )}
       {state.assistant?.goals.text && (
         <details className="brief-goal-details">
-          <summary>Your teaching goal</summary>
+          <summary>Teaching goal</summary>
           <p>{state.assistant.goals.text}</p>
           <Link href="/assistant" className="text-link">
             Edit goal
@@ -431,7 +431,7 @@ export function DecisionBrief({
       )}
       {brief?.stale && (
         <details className="brief-full">
-          <summary>Earlier briefing</summary>
+          <summary>Earlier insights</summary>
           <p className="brief-full-text">{brief.content}</p>
         </details>
       )}

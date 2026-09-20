@@ -100,6 +100,7 @@ New authenticated routes:
 | Route | Purpose |
 | --- | --- |
 | `POST /api/assistant/chat` | Answer a question against saved classroom context; persist conversation and provenance |
+| `DELETE /api/assistant/chat` | Clear the owner’s conversation and pending chat requests; preserve goals, briefs, plans and student work |
 | `POST /api/assistant/brief` | Generate and save the selected assignment's teaching brief |
 | `PATCH /api/assistant/goals` | Save teacher goals with an expected revision |
 | `GET /api/assistant/context` | Read the owner's saved assistant state |

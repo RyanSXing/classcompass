@@ -12,7 +12,7 @@ import { cancelJob, queueJob, retryJob, runNext } from '@/lib/server/jobs';
 import { loadDemo, analyzeDemo, resetDemoState } from '@/lib/server/demo';
 import { importLesson } from '@/lib/server/imports';
 import { AIError } from '@/lib/server/ai';
-import { askClassroomAssistant, generateClassroomBrief, getAssistantState, saveTeacherGoals } from '@/lib/server/assistant';
+import { askClassroomAssistant, clearAssistantConversation, generateClassroomBrief, getAssistantState, saveTeacherGoals } from '@/lib/server/assistant';
 
 export const runtime = 'nodejs';
 export const maxDuration = 120;
@@ -55,6 +55,7 @@ async function route(request: Request, context: Context) {
     }
     if (area === 'assistant' && paths.length === 2) {
       if (id === 'chat' && method === 'POST') return ok(await askClassroomAssistant(repo, await body(request)));
+      if (id === 'chat' && method === 'DELETE') return ok(await clearAssistantConversation(repo));
       if (id === 'brief' && method === 'POST') return ok(await generateClassroomBrief(repo, await body(request)));
       if (id === 'goals' && method === 'PATCH') return ok(await saveTeacherGoals(repo, await body(request)));
       if (id === 'context' && method === 'GET') return ok(getAssistantState(await repo.read()));
@@ -149,4 +150,4 @@ async function route(request: Request, context: Context) {
     return Response.json({ error: { code: 'SERVER_ERROR', message: 'This request could not finish. Your saved work is safe; refresh and retry.' } }, { status: 500 });
   }
 }
-export { route as GET, route as POST, route as PATCH, route as PUT };
+export { route as DELETE, route as GET, route as POST, route as PATCH, route as PUT };

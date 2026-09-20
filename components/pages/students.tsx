@@ -1,5 +1,4 @@
 "use client";
-import { StudentAvatar } from "@/components/student-avatar";
 import Link from "next/link";
 import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
@@ -93,7 +92,6 @@ function Content() {
             return (
               <Card className="student-summary" key={student.id}>
                 <div className="student-summary-head">
-                  <StudentAvatar studentId={student.id} size={56} />
                   <div>
                     <h2>
                       <Link href={`/students/${student.id}?assignment=${selected.templateId}`}>

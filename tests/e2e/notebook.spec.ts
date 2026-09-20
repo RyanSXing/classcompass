@@ -25,14 +25,11 @@ test("teacher can choose a dated lesson and open its saved plan", async ({
   ).toHaveAttribute("href", "/plans/lesson-2026-09-25");
 });
 
-test("student portraits load and the roster works on a narrow screen", async ({ page }) => {
+test("student names and teacher identity work on a narrow screen", async ({ page }) => {
   await page.goto("/students");
-  const portraits = page.locator(".student-summary .student-portrait img");
-  await expect(portraits).toHaveCount(8);
-  await expect.poll(() => portraits.evaluateAll(images => images.every(image => {
-    const img = image as HTMLImageElement;
-    return img.complete && img.naturalWidth > 0;
-  }))).toBe(true);
+  await expect(page.locator(".student-summary")).toHaveCount(8);
+  await expect(page.locator(".student-summary img")).toHaveCount(0);
+  await expect(page.getByText("Ms. Verity", { exact: true })).toBeVisible();
 
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(page.getByRole("button", { name: "Open navigation" })).toBeVisible();
@@ -41,5 +38,5 @@ test("student portraits load and the roster works on a narrow screen", async ({ 
   await expect(page.locator(".student-summary")).toHaveCount(1);
   await page.getByRole("link", { name: "View student", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Avery", exact: true })).toBeVisible();
-  await expect(page.locator(".student-portrait img").first()).toBeVisible();
+  await expect(page.locator(".student-portrait")).toHaveCount(0);
 });

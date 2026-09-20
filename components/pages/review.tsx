@@ -1349,7 +1349,7 @@ function ReviewContent({ batchId, startAnalysis = false }: ReviewPageProps) {
                       </div>
                     )}
                     <details className="answer-history">
-                      <summary>Reading details and history</summary>
+                      <summary>Review history</summary>
                       {question && (
                         <>
                           <p>

@@ -43,9 +43,9 @@ test("the overview leads with teaching decisions and dated evidence opens the ed
 }) => {
   await loadSampleClass(page);
   for (const name of [
-    "Do these next",
-    "Learning over time",
-    "Students to check",
+    "Actions",
+    "Progress",
+    "Follow-ups",
   ])
     await expect(
       page.getByRole("heading", { name, exact: true }),
@@ -53,15 +53,15 @@ test("the overview leads with teaching decisions and dated evidence opens the ed
   await expect(page.locator(".quality-score")).toBeHidden();
   await expect(page.locator(".student-assignment-matrix")).toBeHidden();
   await expect(
-    page.getByRole("tab", { name: "Students over time", exact: true }),
+    page.getByRole("tab", { name: "Students", exact: true }),
   ).toBeHidden();
 
-  await page.getByText("Explore student progress", { exact: true }).click();
+  await page.locator(".student-progress-explorer > summary").click();
   const evidence = page.locator(
     ".understanding-observation details.learning-evidence",
   );
   await expect(evidence).not.toHaveAttribute("open");
-  await evidence.getByText("Show me why", { exact: true }).click();
+  await evidence.getByText("Evidence", { exact: true }).click();
   const source = evidence.getByRole("link").first();
   await expect(source).toBeVisible();
   await expect(source).toHaveText(/.+ · Sep \d+ · Q\d+/);
@@ -96,7 +96,7 @@ test("detailed evidence opens on demand and historical work points back to the l
 }) => {
   await loadSampleClass(page);
   const explorer = page.locator("details.evidence-explorer");
-  const toggle = page.getByText("Explore the evidence", { exact: true });
+  const toggle = page.locator(".evidence-explorer > summary");
   await expect(explorer).not.toHaveAttribute("open");
   await toggle.click();
   await expect(explorer).toHaveAttribute("open");
@@ -118,7 +118,7 @@ test("detailed evidence opens on demand and historical work points back to the l
   await page.goto("/classroom?view=students");
   await expect(explorer).toHaveAttribute("open");
   await expect(
-    page.getByRole("tab", { name: "Students over time", exact: true }),
+    page.getByRole("tab", { name: "Students", exact: true }),
   ).toHaveAttribute("aria-selected", "true");
   await expect(page.locator(".student-assignment-matrix")).toBeVisible();
   await toggle.click();
@@ -131,12 +131,12 @@ test("detailed evidence opens on demand and historical work points back to the l
     .selectOption("baseline-template-v1");
   await expect(
     page.getByRole("heading", {
-      name: "Teaching picture at this point",
+      name: "Earlier actions",
       exact: true,
     }),
   ).toBeVisible();
   await expect(
-    page.getByRole("heading", { name: "Do these next", exact: true }),
+    page.getByRole("heading", { name: "Actions", exact: true }),
   ).toHaveCount(0);
   await expect(
     page.getByRole("region", { name: "Next step", exact: true }),
@@ -154,7 +154,7 @@ test("detailed evidence opens on demand and historical work points back to the l
     "independent-check-template-v1",
   );
   await expect(
-    page.getByRole("heading", { name: "Do these next", exact: true }),
+    page.getByRole("heading", { name: "Actions", exact: true }),
   ).toBeVisible();
 });
 

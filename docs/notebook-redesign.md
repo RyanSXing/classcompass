@@ -7,18 +7,18 @@ This document records the current ClassCompass product shell. It changes visual 
 The redesign turns the existing classroom workspace into a calm notebook-like application:
 
 - A warm cream canvas uses subtle ruled lines, tan borders, dark brown body text, dusty-blue primary actions, and a warm yellow upload action.
-- The desktop shell has a compact cream left rail with notebook ring-hole decoration, an original SVG compass mark, named line-icon navigation, and the teacher account area.
+- The desktop shell has a compact cream left rail with notebook ring-hole decoration, an original SVG compass mark, named line-icon navigation, and the teacher account area labeled **Ms. Verity**.
 - The shared shell groups **Overview**, **Assignments**, **Students**, **Lessons**, **Calendar**, and **Assistant** around the teacher workflow. Navigation labels remain visible; icons do not carry meaning alone.
 - The overview begins with two teaching priorities. Each card shows who to check, the next step, supported timing, a success check and the evidence. Fresh AI actions appear when available; saved-work follow-ups are labeled separately and grouped by need.
-- The class picture follows the Figma chart arrangement: student bars beside a skill radar, then a trend line over dated work. Bars show understanding stages; the radar and line count students demonstrating independence. Missing evidence appears as a gap. Selecting a date updates all three views, and selecting a student opens their exact work under **Explore student progress**.
-- The Assistant uses a two-pane desk at wide widths: teaching notes and context on the left, conversation on the right.
+- The class picture follows the Figma chart arrangement: student bars beside a skill radar, then a trend line over dated work. Bars show understanding stages; the radar counts students demonstrating independence, and the progress chart compares independence with support needs. Missing evidence appears as a gap. Selecting a date updates all three views, and selecting a student opens their exact work under **Student progress**.
+- The Assistant uses a two-pane desk at wide widths: teaching notes and context on the left, conversation on the right. **Clear chat** resets saved messages and pending chat requests while keeping goals, briefs, plans and classroom data.
 - The Lessons page uses a dated lesson selector beside a readable current-plan preview. The preview shows the date, saved or draft state, objectives, timed blocks, linked work, and a route to the full plan. Selecting a lesson never changes it.
 
 The design takes inspiration from the supplied Figma prototype's information hierarchy and paper character. ClassCompass keeps its own compass mark, icons, copy, layouts, and assets. It does not reuse Figma source layers or third-party brand assets.
 
-## Student portraits
+## Student names
 
-The eight fictional students have original, low-detail cartoon portraits generated for this product. Portraits support quick scanning beside the written student name; they do not represent evidence, performance, identity, or a student label. The text name remains the accessible identifier. See [avatar artwork](avatar-art.md) for the asset and generation record.
+The eight fictional students are identified by their written names. No student avatars or portraits are shown.
 
 ## Private account boundary
 
@@ -33,6 +33,8 @@ At desktop width, the notebook rail stays fixed and the content workspace fills 
 Keyboard focus remains visible on paper and rail surfaces. Touch targets retain text labels and the existing page controls remain available from the responsive layouts.
 
 ## Chart and priority rules
+
+Section labels use short descriptors such as **Actions**, **Understanding**, **Progress**, **Evidence** and **Objectives**. Teal marks independent work, amber marks developing understanding, and coral marks support needs. Missing evidence stays neutral. The progress chart uses a solid independence line and a dashed support line; the legend and shapes carry meaning alongside color.
 
 The graphs use the existing understanding rules and teacher-effective readings. They add no new mastery score or percent-correct average. Historical selections use evidence available through the chosen assignment; the trend uses the actual spacing between assignment dates. Different task demands and help conditions remain inspectable alongside the work.
 

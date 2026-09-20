@@ -38,6 +38,23 @@
 .assistant-conversation-head strong {
   font-size: 14px;
 }
+.assistant-conversation-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.assistant-conversation-actions .button-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.assistant-conversation-actions .button-ghost:hover {
+  color: var(--ink);
+  background: var(--violet-pale);
+}
 .assistant-conversation-head .field {
   display: flex;
   gap: 8px;
@@ -370,6 +387,12 @@
   }
   .assistant-conversation-head {
     padding: 12px 14px;
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .assistant-conversation-actions {
+    width: 100%;
+    justify-content: space-between;
   }
   .chat-turn-user {
     max-width: 96%;

@@ -25,6 +25,7 @@ export type WorkspaceData = {
   };
   curriculum: typeof curriculum;
 };
+type MutationOptions = { suppressErrorNotification?: boolean };
 type WorkspaceContextValue = {
   data: WorkspaceData | null;
   loading: boolean;
@@ -34,7 +35,12 @@ type WorkspaceContextValue = {
   /** Returns true only after this browser session has ended. */
   signOut: () => Promise<boolean>;
   notify: (message: string, error?: boolean) => void;
-  mutate: <T>(path: string, body: unknown, method?: string) => Promise<T>;
+  mutate: <T>(
+    path: string,
+    body: unknown,
+    method?: string,
+    options?: MutationOptions,
+  ) => Promise<T>;
 };
 const WorkspaceContext = createContext<WorkspaceContextValue | null>(null);
 export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
@@ -47,6 +53,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     error: boolean;
   } | null>(null);
   const workspaceEpoch = useRef(0);
+  const refreshSequence = useRef(0);
   const notify = useCallback(
     (message: string, error = false) => setToast({ message, error }),
     [],
@@ -65,9 +72,14 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
   }, [clearWorkspace, router]);
   const refresh = useCallback(async () => {
     const requestedEpoch = workspaceEpoch.current;
+    const requestedSequence = ++refreshSequence.current;
     try {
       const result = await api<WorkspaceData>("/api/classroom");
-      if (requestedEpoch !== workspaceEpoch.current) return;
+      if (
+        requestedEpoch !== workspaceEpoch.current ||
+        requestedSequence !== refreshSequence.current
+      )
+        return;
       setData(result);
       setError(null);
     } catch (e) {
@@ -75,12 +87,20 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
         handleUnauthenticated();
         return;
       }
-      if (requestedEpoch !== workspaceEpoch.current) return;
+      if (
+        requestedEpoch !== workspaceEpoch.current ||
+        requestedSequence !== refreshSequence.current
+      )
+        return;
       setError(
         e instanceof Error ? e.message : "Unable to load your classroom.",
       );
     } finally {
-      setLoading(false);
+      if (
+        requestedEpoch === workspaceEpoch.current &&
+        requestedSequence === refreshSequence.current
+      )
+        setLoading(false);
     }
   }, [handleUnauthenticated]);
   // Initial external-store fetch; state updates happen only after the request resolves.
@@ -102,7 +122,12 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     return () => clearTimeout(id);
   }, [toast]);
   const mutate = useCallback(
-    async <T,>(path: string, body: unknown, method?: string) => {
+    async <T,>(
+      path: string,
+      body: unknown,
+      method?: string,
+      options?: MutationOptions,
+    ) => {
       try {
         const result = await api<T>(path, body, method);
         await refresh();
@@ -112,10 +137,11 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
           handleUnauthenticated();
           throw e;
         }
-        notify(
-          e instanceof Error ? e.message : "Couldn't save this change.",
-          true,
-        );
+        if (!options?.suppressErrorNotification)
+          notify(
+            e instanceof Error ? e.message : "Couldn't save this change.",
+            true,
+          );
         throw e;
       }
     },

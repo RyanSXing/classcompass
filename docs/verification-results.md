@@ -2,6 +2,18 @@
 
 Checks performed on September 19–20, 2026. All work, student identities and handwriting images used in these checks are fictional. Prepared AI results and live provider checks are reported separately.
 
+## Simpler labels, chart colors and clear chat
+
+Student avatars and their image assets are removed; written student names identify the roster, charts and evidence. The teacher display name is **Ms. Verity**. Short labels such as **Actions**, **Understanding**, **Progress**, **Evidence** and **Objectives** replace sentence-like section titles.
+
+The charts use teal for independence, amber for developing understanding and coral for support needs. The progress chart now includes a dashed support series alongside the solid independence series. Both preserve evidence gaps and dated counts; no understanding percentage or new score is inferred.
+
+- **Clear chat:** the authenticated, same-origin DELETE route removes only chat turns and pending chat requests. Goals, briefings, plans and student work remain. Server coverage prevents an older response saving after clear; browser coverage checks empty history after reload, preserved goals, fresh questions, composer focus and a delayed pre-clear read arriving afterward. Workspace refreshes ignore superseded responses.
+- **Browser checks:** all 30 scenarios passed across the initial run and a 15-scenario targeted rerun after updating selectors for the shorter headings. Chart/date selection, exact evidence links, missing-data gaps, name-only roster, keyboard use, 390/768-pixel layouts, uploads and saved lessons are covered. The initial failures were an old heading expectation and goals selectors that matched both a section and its textarea.
+- **Other checks:** 289 unit tests passed; the final 70 assistant/API tests were checked again after preserving saved briefings in the clear test. ESLint and authored-fixture validation passed. Desktop charts and the assistant header were visually inspected against the running application.
+
+Browser mutations used the isolated localhost test classroom on port 3001. No live model call was needed for verification.
+
 ## Figma-style charts and two teaching priorities
 
 The overview now leads with two supported teaching actions, followed by student-stage bars, a skill radar and an independent-work trend. Detailed student work opens on selection. The graphs use the existing stage rules and dated evidence; no mastery percentage was added.

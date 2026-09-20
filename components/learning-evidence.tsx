@@ -15,7 +15,7 @@ export function LearningEvidence({
 }) {
   return (
     <details className="learning-evidence">
-      <summary>Show me why</summary>
+      <summary>Evidence</summary>
       {children}
       {evidence.length ? (
         <ul>

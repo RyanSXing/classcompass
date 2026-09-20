@@ -29,14 +29,14 @@ test("incomplete answers remain in the total and lead to a clear review step", a
     next.getByRole("link", { name: "Review teaching notes", exact: true }),
   ).toBeVisible();
   await expect(page.locator(".quality-score")).not.toBeVisible();
-  await page.getByText("Explore the evidence", { exact: true }).click();
+  await page.locator(".evidence-explorer > summary").click();
   await expect(page.locator(".quality-score")).toBeVisible();
   await expect(page.locator(".quality-score")).toContainText("21 of 24");
   await expect(page.locator(".question-score-breakdown").last()).toContainText(
     "1 no answer",
   );
   await page
-    .getByRole("tab", { name: "Students over time", exact: true })
+    .getByRole("tab", { name: "Students", exact: true })
     .click();
   const casey = page.getByRole("link", {
     name: "Casey, Independent check: 2 correct of 3 questions",
@@ -103,7 +103,7 @@ test("roster questions get the roster and an untouched mode follows server chang
   live = true;
   await page.getByRole("button", { name: "Add goals", exact: true }).click();
   await page
-    .getByLabel("Teaching goals", { exact: true })
+    .getByRole("textbox", { name: "Teaching goals", exact: true })
     .fill("Collect independent fraction work.");
   await page.getByRole("button", { name: "Save goals", exact: true }).click();
   await expect(page.getByLabel("Assistant mode", { exact: true })).toHaveValue(
@@ -117,7 +117,7 @@ test("roster questions get the roster and an untouched mode follows server chang
     .selectOption("fixture");
   await page.getByRole("button", { name: "Edit goals", exact: true }).click();
   await page
-    .getByLabel("Teaching goals", { exact: true })
+    .getByRole("textbox", { name: "Teaching goals", exact: true })
     .fill("Collect independent fraction work and explanations.");
   await page.getByRole("button", { name: "Save goals", exact: true }).click();
   await expect(page.getByLabel("Assistant mode", { exact: true })).toHaveValue(
