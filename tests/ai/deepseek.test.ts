@@ -62,17 +62,26 @@ describe('explicit direct DeepSeek provider', () => {
     expect(requirements.priorEligibleEvidence.every(ref => !requirements.currentEligibleEvidence.some(current => current.responseId === ref.responseId))).toBe(true);
     expect(input.eligibilityRules.extension).toContain('at least five distinct references total');
   });
-  it('uses named full context and exact canonical citations for a direct assistant reply', async () => {
+  it('uses compact classroom context and resolves direct-provider aliases to exact citations', async () => {
     let state = createInitialState('teacher');
     const repo: Repository = { read: async () => structuredClone(state), transact: async <T>(op: (value: AppState) => T) => { const next = structuredClone(state); const result = op(next); next.revision++; state = next; return result; } };
     const savedPlans = structuredClone(state.planVersions);
     const context = buildAssistantContext(state), source = context.sources.find(s => s.kind === 'assignment')!;
-    const fetcher = provider({ answer: 'There is no submitted work for this assignment yet. Collect the worksheet before interpreting results.', sourceIds: [source.id], actions: [{ title: 'Open the assignment', description: 'Upload the known worksheet and record any help.', sourceId: source.id }] });
+    const fetcher = provider(null).mockImplementationOnce(async (_url, init) => {
+      const payload = JSON.parse(JSON.parse(init.body).messages.at(-1).content);
+      const alias = payload.context.classroom.assignments[0].source;
+      const content = { answer: 'There is no submitted work for this assignment yet. Collect the worksheet before interpreting results.', sourceIds: [alias], actions: [{ title: 'Open the assignment', description: 'Upload the known worksheet and record any help.', sourceId: alias }] };
+      return new Response(JSON.stringify({ choices: [{ finish_reason: 'stop', message: { content: JSON.stringify(content) } }] }), { status: 200 });
+    });
     const answer = await askClassroomAssistant(repo, { message: 'What next?', requestId: 'direct-assistant', mode: 'live' });
     expect(answer.turn.provenance).toMatchObject({ mode: 'live', modelId: 'deepseek-flash' }); expect(answer.turn.citations[0]).toEqual(source); expect(answer.turn.actions[0].href).toBe(source.href);
     expect(fetcher).toHaveBeenCalledTimes(1); expect(state.planVersions).toEqual(savedPlans);
     const body = JSON.parse(fetcher.mock.calls[0][1].body), payload = JSON.parse(body.messages.at(-1).content);
-    expect(payload.context.classroom.assignments[0].responses[0]).toHaveProperty('studentId'); expect(payload.context.classroom.plans[0]).toHaveProperty('teacherGuide');
-    expect(payload.context.focusedContext).toHaveProperty('results'); expect(body.messages[0].content).toContain(source.id);
+    const compact = payload.context.classroom;
+    expect(compact.assignments[0].responses[0][compact.tableColumns.answers.indexOf('studentId')]).toBe('stu-01');
+    expect(compact.plans[0].snapshot).toEqual(savedPlans[0].snapshot);
+    expect(compact.focusedGuide.lessonId).toBe(state.plans[0].id);
+    expect(body.messages[0].content).toContain(compact.assignments[0].source);
+    expect(JSON.stringify(payload.context)).not.toContain(source.id);
   });
 });

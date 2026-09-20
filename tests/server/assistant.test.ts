@@ -19,6 +19,7 @@ const domainState = (state: AppState) => Object.fromEntries(Object.entries(state
 function seeded() { const state = createInitialState('teacher'); for (const assignment of assignments) { const batch = seedAssignment(state, assignment.templateId); analyzeBatch(state, { batchId: batch.id, provenance: testProvenance }); } return new MemoryRepository(state); }
 function rawReply(sourceId: string) { return { answer: 'Review this current answer before planning a short equal-parts example. No change has been applied.', sourceIds: [sourceId], actions: [{ title: 'Inspect the response', description: 'Compare the original writing and recorded assistance.', sourceId }] }; }
 function response(body: unknown) { return new Response(JSON.stringify({ choices: [{ finish_reason: 'stop', message: { content: JSON.stringify(body) } }] }), { status: 200 }); }
+function briefResponse(body: object) { return response({ comparisons: [], ...body }); }
 function mockedProvider(repo: MemoryRepository) { const id = buildAssistantContext(repo.state).sources.find(s => s.kind === 'response')!.id; const fetcher = vi.fn().mockResolvedValue(response(rawReply(id))); vi.stubGlobal('fetch', fetcher); vi.stubEnv('OPENROUTER_API_KEY', 'test-private-api-key'); vi.stubEnv('AI_MODE', 'fixture'); return fetcher; }
 afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs(); });
 
@@ -236,7 +237,7 @@ describe('persistent teacher-controlled assistant', () => {
     const lesson = await askClassroomAssistant(repo, { requestId: 'old-lesson', message: 'Help me teach this lesson', scope: { lessonId: 'lesson-2026-09-23' }, mode: 'fixture' });
     expect(lesson.turn.content).toContain('First check (2026-09-22)'); expect(lesson.turn.content).not.toContain('Independent check'); expect(lesson.turn.content).toContain('Worked example:');
     const compare = await askClassroomAssistant(repo, { requestId: 'compare', message: 'Compare Casey’s progress', mode: 'fixture' });
-    expect(compare.turn.content).toContain('Casey:'); expect(compare.turn.content).toContain('not a standardized growth score');
+    expect(compare.turn.content).toContain('Casey:'); expect(compare.turn.content).toContain('not a standardized growth measure');
   });
   it('rejects a Casey claim supported only by Avery’s work or a roster citation', async () => {
     const repo = seeded(), context = buildAssistantContext(repo.state), avery = context.classroom.assignments[0].responses.find(r => r.studentId === 'stu-01')!;
@@ -288,5 +289,383 @@ describe('persistent teacher-controlled assistant', () => {
     for (const scope of [{ studentId: 'other-class-student' }, { templateId: 'invented' }, { lessonId: 'other-class-lesson' }]) await expect(askClassroomAssistant(repo, { requestId: 'bad', message: 'Help', scope, mode: 'live' })).rejects.toMatchObject({ code: 'ASSISTANT_SCOPE' });
     await expect(askClassroomAssistant(repo, { requestId: 'long', message: 'a'.repeat(4001), mode: 'live' })).rejects.toMatchObject({ code: 'ASSISTANT_INPUT' });
     expect(fetcher).not.toHaveBeenCalled(); expect(repo.state.assistant).toBeUndefined();
+  });
+});
+
+describe('learning-first classroom briefings', () => {
+  it('sends dated learning patterns and actionable follow-ups with resolvable sources to both providers', () => {
+    const repo = seeded(), context = buildAssistantContext(repo.state, { templateId: 'followup-template-v1' });
+    for (const provider of ['deepseek', 'openrouter'] as const) {
+      const model = buildAssistantModelContext(context, provider, 'Describe learning development');
+      const learning = model.classroom.learningDevelopment[0];
+      expect(model.focus.templateId).toBe('followup-template-v1');
+      expect(learning.throughDate).toBe('2026-09-24'); expect(learning.trends.length).toBeGreaterThan(0);
+      expect(learning.followUps.length).toBeGreaterThan(0);
+      const refIds = [...learning.trends.flatMap(trend => trend.evidence), ...learning.followUps.flatMap(followUp => followUp.evidence)];
+      const refs = refIds.map(id => model.classroom.learningEvidence.find(ref => ref.id === id)!);
+      expect(refs.some(ref => ref.activityDate === '2026-09-22')).toBe(true);
+      expect(refs.every(ref => ref.activityDate <= learning.throughDate)).toBe(true);
+      for (const ref of refs) {
+        expect(ref.source).toMatch(/^s\d+$/);
+        expect(context.sources[Number(ref.source!.slice(1)) - 1]).toBeDefined();
+        expect(model.classroom.supportRecords[ref.supportRecord]).toBeDefined();
+        expect(ref.taskDifficulty).toBeTruthy();
+      }
+    }
+  });
+
+  it('deduplicates both model payloads while retaining every answer, dated help, saved edit, goal and deadline', () => {
+    const repo = seeded();
+    repo.state.planVersions[0].snapshot.blocks[0].instructions = 'A teacher-specific saved opening.';
+    repo.state.assistant = { revision: 0, goals: { text: 'Keep common-unit explanations visible.', revision: 1, updatedAt: null }, turns: [], briefs: [], requests: [] };
+    const context = buildAssistantContext(repo.state, { templateId: assignments[4].templateId });
+    for (const provider of ['deepseek', 'openrouter'] as const) {
+      const model = buildAssistantModelContext(context, provider);
+      const serialized = JSON.stringify(model);
+      expect(serialized.length).toBeLessThan(140_000);
+      expect(serialized.length).toBeLessThan(JSON.stringify(context).length * .35);
+      expect(model.classroom.assignments.flatMap(assignment => assignment.responses)).toHaveLength(120);
+      for (const assignment of context.classroom.assignments) {
+        const rows = model.classroom.assignments.find(item => item.templateId === assignment.templateId)!.responses;
+        expect(rows.map(row => [row[6], row[7]])).toEqual(assignment.responses.map(row => [row.workingText, row.answerText]));
+      }
+      expect(serialized).toContain('A teacher-specific saved opening.');
+      expect(model.classroom.goals.text).toBe('Keep common-unit explanations visible.');
+      expect(model.classroom.plans).toHaveLength(5);
+      expect(model.classroom.calendar.some(row => row[1] === '2026-10-02' && row[5] === true)).toBe(true);
+      expect(model.classroom.learningDevelopment).toHaveLength(1);
+      const allRefs = model.classroom.learningDevelopment.flatMap(item => [...item.trends.flatMap(trend => trend.evidence), ...item.followUps.flatMap(followUp => followUp.evidence), ...(item.lessonDirection?.evidence ?? [])]);
+      expect(model.classroom.learningEvidence).toHaveLength(new Set(allRefs).size);
+      expect(allRefs.length).toBeGreaterThan(model.classroom.learningEvidence.length);
+      expect(model.contextDisclosure).toContain('Derived learning interpretations are supplied only for the focused assignment horizon');
+    }
+  });
+
+  it('makes current and prior method facts readable, and dates every current note version', () => {
+    const state = createInitialState('teacher');
+    for (const assignment of assignments) { const batch = seedAssignment(state, assignment.templateId, { support: assignment.sequence === 3 ? 'supported' : 'independent' }); analyzeBatch(state, { batchId: batch.id, provenance: testProvenance }); }
+    const context = buildAssistantContext(state, { templateId: assignments[4].templateId });
+    for (const provider of ['deepseek', 'openrouter'] as const) {
+      const model = buildAssistantModelContext(context, provider), c = model.classroom;
+      const casey = c.focusedEvidenceFacts.filter(fact => fact.studentId === 'stu-03');
+      expect(casey.filter(fact => fact.workDate === '2026-09-25').length).toBeGreaterThan(0);
+      expect(casey.filter(fact => fact.workDate === '2026-09-25').every(fact => fact.help.level === 'supported' && fact.commonUnitMethodShown && !fact.denominatorErrorShown)).toBe(true);
+      expect(casey.filter(fact => fact.workDate === '2026-09-30' && fact.questionNumber < 3).every(fact => fact.result === 'correct' && fact.reasoning === 'demonstrated' && fact.help.level === 'independent' && fact.commonUnitMethodShown && !fact.denominatorErrorShown)).toBe(true);
+      expect(casey.find(fact => fact.workDate === '2026-09-30' && fact.questionNumber === 3)?.methodFact).toContain('does not establish a misconception');
+      const dateIndex = c.tableColumns.notes.indexOf('workDate'), assignmentIndex = c.tableColumns.notes.indexOf('templateId');
+      expect(c.currentNotes.every(note => typeof note[dateIndex] === 'string' && typeof note[assignmentIndex] === 'string')).toBe(true);
+      expect(c.currentNotes.some(note => note[1] === 'stu-03' && note[dateIndex] === '2026-09-22')).toBe(true);
+      expect(c.currentNotesMeaning).toContain('not all diagnoses of latest work');
+      expect(model.sources.some(source => String(source[2]).includes('Casey · 2026-09-25'))).toBe(true);
+    }
+  });
+
+  function oneLearnerNeedsLessHelp() {
+    const state = createInitialState('teacher');
+    for (const assignment of assignments) {
+      const batch = seedAssignment(state, assignment.templateId);
+      if (assignment.sequence === 3) state.submissions.find(submission => submission.batchId === batch.id && submission.studentId === 'stu-03')!.support = { level: 'supported', source: 'teacher-recorded', note: 'A common-denominator prompt and fraction strips were provided.' };
+      analyzeBatch(state, { batchId: batch.id, provenance: testProvenance });
+    }
+    const context = buildAssistantContext(state, { templateId: assignments[4].templateId });
+    expect(context.classroom.learningDevelopment.at(-1)!.trends.filter(trend => trend.kind === 'less_help').flatMap(trend => trend.studentIds)).toEqual(['stu-03']);
+    const earlier = context.classroom.assignments[2].responses.find(row => row.studentId === 'stu-03')!.sourceId!;
+    const later = context.classroom.assignments[4].responses.find(row => row.studentId === 'stu-03')!.sourceId!;
+    return { repo: new MemoryRepository(state), sourceIds: [earlier, later], comparisons: [{ studentId: 'stu-03', earlierSourceId: earlier, laterSourceId: later }] };
+  }
+
+  it.each([
+    'Most students now show correct common-unit fraction addition with less help.',
+    'All students now need less support.',
+    'The whole class is increasingly independent.',
+  ])('rejects an unsupported class-wide support change: %s', async answer => {
+    const { repo, sourceIds } = oneLearnerNeedsLessHelp();
+    const fetcher = vi.fn().mockImplementation(() => Promise.resolve(briefResponse({ answer, sourceIds, comparisons: [], actions: [] })));
+    vi.stubGlobal('fetch', fetcher); vi.stubEnv('OPENROUTER_API_KEY', 'test');
+    await expect(generateClassroomBrief(repo, { requestId: 'support-quantifier', mode: 'live' })).rejects.toMatchObject({ code: 'AI_SUPPORT_GENERALIZATION' });
+    const feedback = JSON.parse(JSON.parse(fetcher.mock.calls[1][1].body).messages.at(-1).content).validationFeedback;
+    expect(feedback.supportedTrend).toMatchObject({ studentNames: ['Casey'], count: 1, classSize: 8, throughDate: '2026-09-30' });
+    expect(fetcher).toHaveBeenCalledTimes(2); expect(repo.state.assistant?.briefs).toHaveLength(0);
+  });
+
+  it.each([
+    'Most students now show correct common-unit fraction addition independently.',
+    'Most students now work independently. Casey needs less help than on Sep 25.',
+    'Most students now work independently, while Casey needs less help than on Sep 25.',
+    'Most students now work independently; Casey needs less help than on Sep 25.',
+    'Not all students need less help. Casey worked with support on Sep 25 and independently on Sep 30.',
+  ])('keeps current independence and named support-change clauses distinct: %s', async answer => {
+    const { repo, sourceIds, comparisons } = oneLearnerNeedsLessHelp();
+    const fetcher = vi.fn().mockResolvedValue(briefResponse({ answer, sourceIds, comparisons: answer.includes('Casey') ? comparisons : [], actions: [] }));
+    vi.stubGlobal('fetch', fetcher); vi.stubEnv('OPENROUTER_API_KEY', 'test');
+    const { brief } = await generateClassroomBrief(repo, { requestId: 'scoped-help-change', mode: 'live' });
+    expect(brief.content).toBe(answer); expect(fetcher).toHaveBeenCalledTimes(1);
+  });
+
+  it('repairs the actual false Casey claim and leaked aliases without rewriting provider text itself', async () => {
+    const repo = seeded(), context = buildAssistantContext(repo.state);
+    const earlierRows = context.classroom.assignments[2].responses.filter(row => row.studentId === 'stu-03');
+    const laterRows = context.classroom.assignments[4].responses.filter(row => row.studentId === 'stu-03' && row.questionId !== 'ic03');
+    const sourceIds = [...earlierRows, ...laterRows].map(row => row.sourceId!);
+    const alias = (id: string) => `s${context.sources.findIndex(source => source.id === id) + 1}`;
+    const comparisons = [{ studentId: 'stu-03', earlierSourceId: alias(sourceIds[0]), laterSourceId: alias(sourceIds[3]) }];
+    const falseClaim = `Casey's Sep 25 work (${sourceIds.slice(0, 3).map(alias).join(', ')}) and Sep 30 work (${sourceIds.slice(3).map(alias).join(', ')}) show the same denominator-addition error.`;
+    const corrected = 'Keep the planned practice moving and check any unfinished responses.\n\nCasey’s Sep 25 and Sep 30 cited answers show correct common-unit working. Do not use an earlier denominator-addition difficulty as the diagnosis of these later answers.';
+    const fetcher = vi.fn().mockResolvedValueOnce(briefResponse({ answer: falseClaim, sourceIds: sourceIds.map(alias), comparisons, actions: [] })).mockResolvedValueOnce(briefResponse({ answer: corrected, sourceIds: sourceIds.map(alias), comparisons, actions: [] }));
+    vi.stubGlobal('fetch', fetcher); vi.stubEnv('OPENROUTER_API_KEY', 'test');
+    const { brief } = await generateClassroomBrief(repo, { requestId: 'casey-actual-false-claim', mode: 'live' });
+    expect(fetcher).toHaveBeenCalledTimes(2); expect(brief.content).toBe(corrected);
+    const feedback = JSON.parse(JSON.parse(fetcher.mock.calls[1][1].body).messages.at(-1).content).validationFeedback;
+    expect(JSON.stringify(feedback)).toContain('AI_INTERNAL_LABEL'); expect(JSON.stringify(feedback)).toContain('AI_MATH_CONTRADICTION');
+    expect(repo.state.assistant?.briefs).toHaveLength(1);
+  });
+
+  it('rejects the false denominator claim even without aliases, but permits a real dated earlier error', async () => {
+    const repo = seeded(), context = buildAssistantContext(repo.state);
+    const earlier = context.classroom.assignments[2].responses.find(row => row.studentId === 'stu-03')!.sourceId!;
+    const later = context.classroom.assignments[4].responses.find(row => row.studentId === 'stu-03')!.sourceId!;
+    const draft = { answer: 'Casey’s Sep 25 work and Sep 30 work show the same denominator-addition error.', sourceIds: [earlier, later], comparisons: [{ studentId: 'stu-03', earlierSourceId: earlier, laterSourceId: later }], actions: [] };
+    const fetcher = vi.fn().mockImplementation(() => Promise.resolve(briefResponse(draft)));
+    vi.stubGlobal('fetch', fetcher); vi.stubEnv('OPENROUTER_API_KEY', 'test');
+    await expect(generateClassroomBrief(repo, { requestId: 'false-math-without-alias', mode: 'live' })).rejects.toMatchObject({ code: 'AI_MATH_CONTRADICTION' });
+    expect(repo.state.assistant?.briefs).toHaveLength(0);
+    const actualEarlier = context.classroom.assignments[0].responses.find(row => row.studentId === 'stu-03')!.sourceId!;
+    fetcher.mockReset().mockResolvedValue(briefResponse({ answer: 'Casey added denominators on Sep 22, but the cited Sep 30 work shows a correct common-unit method. Check the unfinished work next; do not label the later answers as denominator-addition errors.', sourceIds: [actualEarlier, later], comparisons: [{ studentId: 'stu-03', earlierSourceId: actualEarlier, laterSourceId: later }], actions: [] }));
+    const { brief } = await generateClassroomBrief(repo, { requestId: 'real-earlier-error', mode: 'live' });
+    expect(brief.content).toContain('on Sep 22'); expect(fetcher).toHaveBeenCalledTimes(1);
+  });
+
+  it('retains thirteen grounded brief citations for two dated comparisons, current follow-ups and the lesson', async () => {
+    const repo = seeded(), context = buildAssistantContext(repo.state);
+    const prior = context.classroom.assignments[2].responses;
+    const current = context.classroom.assignments[4].responses;
+    const priorCasey = prior.filter(row => row.studentId === 'stu-03');
+    const priorGray = prior.filter(row => row.studentId === 'stu-07').slice(0, 2);
+    const currentCasey = current.filter(row => row.studentId === 'stu-03');
+    const currentGray = current.filter(row => row.studentId === 'stu-07').slice(0, 2);
+    const devon = current.find(row => row.studentId === 'stu-04' && row.questionId === 'ic02')!;
+    const harper = current.find(row => row.studentId === 'stu-08' && row.questionId === 'ic02')!;
+    const lesson = context.classroom.plans.find(plan => plan.lessonId === assignments[4].targetLessonId)!;
+    const sourceIds = [...priorCasey, ...priorGray, ...currentCasey, ...currentGray, devon, harper].map(row => row.sourceId!).concat(lesson.sourceId);
+    expect(sourceIds).toHaveLength(13);
+    const comparisons = [
+      { studentId: 'stu-03', earlierSourceId: priorCasey[0].sourceId!, laterSourceId: currentCasey[0].sourceId! },
+      { studentId: 'stu-07', earlierSourceId: priorGray[0].sourceId!, laterSourceId: currentGray[0].sourceId! },
+    ];
+    const answer = 'Keep the saved practice moving while checking unfinished work and the numerator sum.\n\nCasey and Gray show correct common-unit working on the cited Sep 25 and Sep 30 answers. Casey’s last answer is unfinished. Ask Devon to recheck the addition after valid renaming, and ask Harper where the unfinished answer stopped. Use these checks within the saved lesson.';
+    const fetcher = vi.fn().mockResolvedValue(briefResponse({ answer, sourceIds, comparisons, actions: [] }));
+    vi.stubGlobal('fetch', fetcher); vi.stubEnv('OPENROUTER_API_KEY', 'test');
+    const { brief } = await generateClassroomBrief(repo, { requestId: 'thirteen-grounded-sources', mode: 'live' });
+    expect(brief.citations.map(source => source.id)).toEqual(sourceIds); expect(fetcher).toHaveBeenCalledTimes(1);
+    const body = JSON.parse(fetcher.mock.calls[0][1].body);
+    expect(body.response_format.json_schema.schema.properties.sourceIds.maxItems).toBe(24);
+    expect(JSON.parse(body.messages[1].content).replyLimits.maxSourceIds).toBe(24);
+    expect(repo.state.assistant?.brief?.citations).toHaveLength(13);
+  });
+
+  it.each([24, 25])('enforces the live briefing citation boundary at %s sources', async count => {
+    const repo = seeded(), context = buildAssistantContext(repo.state);
+    const sourceIds = context.classroom.assignments.flatMap(assignment => assignment.responses).map(row => row.sourceId!).slice(0, count);
+    const fetcher = vi.fn().mockImplementation(() => Promise.resolve(briefResponse({ answer: 'Inspect the submitted work and recorded help before choosing the next teaching step.', sourceIds, comparisons: [], actions: [] })));
+    vi.stubGlobal('fetch', fetcher); vi.stubEnv('OPENROUTER_API_KEY', 'test');
+    const pending = generateClassroomBrief(repo, { requestId: `brief-source-boundary-${count}`, mode: 'live' });
+    if (count === 24) { expect((await pending).brief.citations).toHaveLength(24); expect(fetcher).toHaveBeenCalledTimes(1); }
+    else { await expect(pending).rejects.toMatchObject({ code: 'AI_INVALID_OUTPUT' }); expect(fetcher).toHaveBeenCalledTimes(2); expect(repo.state.assistant?.briefs).toHaveLength(0); }
+  });
+
+  it.each([12, 13])('preserves the chat citation boundary at %s sources', async count => {
+    const repo = seeded(), sourceIds = buildAssistantContext(repo.state).classroom.assignments[0].responses.map(row => row.sourceId!).slice(0, count);
+    const fetcher = vi.fn().mockImplementation(() => Promise.resolve(response({ answer: 'Inspect the submitted work before deciding which explanation to model next.', sourceIds, actions: [] })));
+    vi.stubGlobal('fetch', fetcher); vi.stubEnv('OPENROUTER_API_KEY', 'test');
+    const pending = askClassroomAssistant(repo, { requestId: `chat-source-boundary-${count}`, message: 'What should I teach next?', mode: 'live' });
+    if (count === 12) { expect((await pending).turn.citations).toHaveLength(12); expect(fetcher).toHaveBeenCalledTimes(1); }
+    else { await expect(pending).rejects.toMatchObject({ code: 'AI_INVALID_OUTPUT' }); expect(fetcher).toHaveBeenCalledTimes(2); }
+    const body = JSON.parse(fetcher.mock.calls[0][1].body);
+    expect(body.response_format.json_schema.schema.properties.sourceIds.maxItems).toBe(12);
+    expect(JSON.parse(body.messages[1].content).replyLimits.maxSourceIds).toBe(12);
+  });
+
+  it('repairs a declared comparison whose earlier source is missing from the selected citations', async () => {
+    const repo = seeded(), context = buildAssistantContext(repo.state);
+    const earlier = context.classroom.assignments[0].responses.find(row => row.studentId === 'stu-03')!.sourceId!;
+    const latest = context.classroom.assignments[4].responses.find(row => row.studentId === 'stu-03')!.sourceId!;
+    const draft = { answer: 'Check whether Casey can explain the common unit on a fresh sum.\n\nCasey added unlike denominators on Sep 22; on Sep 30 the written method renamed to tenths without recorded help. These different tasks do not establish mastery.', sourceIds: [latest], comparisons: [{ studentId: 'stu-03', earlierSourceId: earlier, laterSourceId: latest }], actions: [] };
+    const fetcher = vi.fn().mockResolvedValueOnce(briefResponse(draft)).mockResolvedValueOnce(briefResponse({ ...draft, sourceIds: [earlier, latest] }));
+    vi.stubGlobal('fetch', fetcher); vi.stubEnv('OPENROUTER_API_KEY', 'test');
+    const { brief } = await generateClassroomBrief(repo, { requestId: 'paired-repair', scope: { templateId: assignments[4].templateId }, mode: 'live' });
+    expect(fetcher).toHaveBeenCalledTimes(2);
+    expect(brief.citations.map(source => source.id)).toEqual([earlier, latest]);
+    const repair = JSON.parse(JSON.parse(fetcher.mock.calls[1][1].body).messages.at(-1).content);
+    expect(JSON.stringify(repair.validationFeedback)).toContain('Both comparison sources must be included in sourceIds');
+    expect(brief).not.toHaveProperty('comparisons');
+    expect(repo.state.assistant?.briefs).toHaveLength(1);
+  });
+
+  it('rejects another learner’s earlier citation and leaves the failed briefing unsaved', async () => {
+    const repo = seeded(), context = buildAssistantContext(repo.state);
+    const wrongEarlier = context.classroom.assignments[0].responses.find(row => row.studentId === 'stu-01')!.sourceId!;
+    const latest = context.classroom.assignments[4].responses.find(row => row.studentId === 'stu-03')!.sourceId!;
+    const fetcher = vi.fn().mockImplementation(() => Promise.resolve(briefResponse({ answer: 'Check Casey’s method on a fresh sum.\n\nCasey used a different method earlier and now renames correctly.', sourceIds: [wrongEarlier, latest], comparisons: [{ studentId: 'stu-03', earlierSourceId: wrongEarlier, laterSourceId: latest }], actions: [] })));
+    vi.stubGlobal('fetch', fetcher); vi.stubEnv('OPENROUTER_API_KEY', 'test');
+    await expect(generateClassroomBrief(repo, { requestId: 'wrong-pair', mode: 'live' })).rejects.toMatchObject({ code: 'AI_UNPAIRED_COMPARISON' });
+    expect(fetcher).toHaveBeenCalledTimes(2); expect(repo.state.assistant?.briefs).toHaveLength(0);
+  });
+
+  it.each(['reversed-dates', 'same-date', 'missing-pair', 'unknown-student', 'non-work-source'] as const)('rejects invalid declared comparison metadata: %s', async variant => {
+    const repo = seeded(), context = buildAssistantContext(repo.state);
+    const earlier = context.classroom.assignments[0].responses.find(row => row.studentId === 'stu-03')!.sourceId!;
+    const later = context.classroom.assignments[4].responses.find(row => row.studentId === 'stu-03')!.sourceId!;
+    const pair = { studentId: variant === 'unknown-student' ? 'not-in-roster' : 'stu-03', earlierSourceId: earlier, laterSourceId: later };
+    if (variant === 'reversed-dates') { pair.earlierSourceId = later; pair.laterSourceId = earlier; }
+    if (variant === 'same-date') pair.earlierSourceId = later;
+    if (variant === 'non-work-source') pair.earlierSourceId = 'student:stu-03';
+    const draft = { answer: 'Use a fresh explanation to check Casey’s fraction method.\n\nThe dated comparison remains tentative because task conditions differ.', sourceIds: variant === 'missing-pair' ? [later] : [earlier, later, ...(variant === 'non-work-source' ? ['student:stu-03'] : [])], comparisons: [pair], actions: [] };
+    const fetcher = vi.fn().mockImplementation(() => Promise.resolve(briefResponse(draft)));
+    vi.stubGlobal('fetch', fetcher); vi.stubEnv('OPENROUTER_API_KEY', 'test');
+    await expect(generateClassroomBrief(repo, { requestId: variant, mode: 'live' })).rejects.toMatchObject({ code: 'AI_UNPAIRED_COMPARISON' });
+    expect(fetcher).toHaveBeenCalledTimes(2); expect(repo.state.assistant?.briefs).toHaveLength(0);
+  });
+
+  it('resolves comparison aliases to exact student/date evidence and never persists model-only metadata', async () => {
+    const repo = seeded(), context = buildAssistantContext(repo.state);
+    const earlier = context.classroom.assignments[0].responses.find(row => row.studentId === 'stu-03')!.sourceId!;
+    const later = context.classroom.assignments[4].responses.find(row => row.studentId === 'stu-03')!.sourceId!;
+    const alias = (id: string) => `s${context.sources.findIndex(source => source.id === id) + 1}`;
+    const fetcher = vi.fn().mockResolvedValue(briefResponse({ answer: 'Check Casey’s method on a fresh sum.\n\nCasey added unlike denominators on Sep 22, while the Sep 30 answer renamed to tenths. These different tasks do not establish mastery.', sourceIds: [alias(earlier), alias(later)], comparisons: [{ studentId: 'stu-03', earlierSourceId: alias(earlier), laterSourceId: alias(later) }], actions: [] }));
+    vi.stubGlobal('fetch', fetcher); vi.stubEnv('OPENROUTER_API_KEY', 'test');
+    const { brief } = await generateClassroomBrief(repo, { requestId: 'comparison-aliases', mode: 'live' });
+    expect(brief.citations.map(source => source.id)).toEqual([earlier, later]);
+    expect(brief.provenance.promptVersion).toBe('classroom-assistant-v9');
+    expect(brief).not.toHaveProperty('comparisons'); expect(repo.state.assistant!.brief).not.toHaveProperty('comparisons');
+    const schema = JSON.parse(fetcher.mock.calls[0][1].body).response_format.json_schema.schema;
+    expect(schema.required).toContain('comparisons'); expect(schema.properties.comparisons.maxItems).toBe(2);
+  });
+
+  it('requires explicit comparison metadata rather than assuming a missing array means no comparisons', async () => {
+    const repo = seeded(), sourceId = buildAssistantContext(repo.state).classroom.assignments[4].responses[0].sourceId!;
+    const fetcher = vi.fn().mockImplementation(() => Promise.resolve(new Response(JSON.stringify({ choices: [{ finish_reason: 'stop', message: { content: JSON.stringify({ answer: 'Inspect this current answer.', sourceIds: [sourceId], actions: [] }) } }] }), { status: 200 })));
+    vi.stubGlobal('fetch', fetcher); vi.stubEnv('OPENROUTER_API_KEY', 'test');
+    await expect(generateClassroomBrief(repo, { requestId: 'missing-comparison-metadata', mode: 'live' })).rejects.toMatchObject({ code: 'AI_INVALID_COMPARISON' });
+    expect(repo.state.assistant?.briefs).toHaveLength(0);
+  });
+
+  it('rejects a reviewed-work claim without cited teacher review and repairs it without manufacturing approval', async () => {
+    const repo = seeded(), context = buildAssistantContext(repo.state);
+    const sourceId = context.classroom.assignments[4].responses[0].sourceId!;
+    const draft = { answer: 'The reviewed work suggests a short common-unit check before deciding what to teach next.', sourceIds: [sourceId], actions: [] };
+    const fetcher = vi.fn().mockImplementation(() => Promise.resolve(briefResponse(draft)));
+    vi.stubGlobal('fetch', fetcher); vi.stubEnv('OPENROUTER_API_KEY', 'test');
+    await expect(generateClassroomBrief(repo, { requestId: 'unverified-claim', mode: 'live' })).rejects.toMatchObject({ code: 'AI_REVIEW_STATUS' });
+    expect(repo.state.assistant?.briefs).toHaveLength(0);
+    fetcher.mockReset().mockResolvedValueOnce(briefResponse(draft)).mockResolvedValueOnce(briefResponse({ ...draft, answer: 'The submitted work suggests a short common-unit check. This interpretation needs teacher review.' }));
+    const { brief } = await generateClassroomBrief(repo, { requestId: 'review-status-repair', mode: 'live' });
+    expect(brief.content).toContain('submitted work'); expect(brief.content).toContain('needs teacher review');
+    expect(fetcher).toHaveBeenCalledTimes(2);
+    expect(repo.state.findings.every(finding => finding.status === 'candidate')).toBe(true);
+    expect(repo.state.observations).toHaveLength(0);
+  });
+
+  it.each(['not reviewed', 'not yet verified', 'no teacher-reviewed'])('allows an honest negated review-status statement: %s', async phrase => {
+    const repo = seeded(), sourceId = buildAssistantContext(repo.state).classroom.assignments[4].responses[0].sourceId!;
+    const answer = `This is ${phrase} evidence. Inspect the submitted work before deciding what to teach next.`;
+    const fetcher = vi.fn().mockResolvedValue(briefResponse({ answer, sourceIds: [sourceId], actions: [] }));
+    vi.stubGlobal('fetch', fetcher); vi.stubEnv('OPENROUTER_API_KEY', 'test');
+    const { brief } = await generateClassroomBrief(repo, { requestId: `negative-${phrase}`, mode: 'live' });
+    expect(brief.content).toBe(answer); expect(fetcher).toHaveBeenCalledTimes(1);
+  });
+
+  it('accepts three grounded current follow-ups without treating the name count as a safety failure', async () => {
+    const repo = seeded(), context = buildAssistantContext(repo.state);
+    const students = ['stu-03', 'stu-04', 'stu-08'];
+    const sourceIds = students.map(studentId => context.classroom.assignments[4].responses.find(row => row.studentId === studentId && row.questionId === (studentId === 'stu-03' ? 'ic03' : 'ic02'))!.sourceId!);
+    const answer = 'Keep the class moving with planned practice while using brief individual checks.\n\nDevon needs to recheck the numerator addition. Ask Casey where the unfinished third question stopped, and ask Harper to finish the second question while recording any help. These current follow-ups do not establish learning gains.';
+    const fetcher = vi.fn().mockResolvedValue(briefResponse({ answer, sourceIds, actions: [] }));
+    vi.stubGlobal('fetch', fetcher); vi.stubEnv('OPENROUTER_API_KEY', 'test');
+    const { brief } = await generateClassroomBrief(repo, { requestId: 'three-current-followups', mode: 'live' });
+    expect(brief.content).toBe(answer); expect(brief.citations).toHaveLength(3);
+    expect(brief.citations.every(source => source.label.includes('2026-09-30'))).toBe(true);
+    expect(fetcher).toHaveBeenCalledTimes(1); expect(repo.state.assistant?.briefs).toHaveLength(1);
+  });
+
+  it('rejects a long opening while preserving the concise teaching conclusion requirement', async () => {
+    const repo = seeded(), sourceId = buildAssistantContext(repo.state).classroom.assignments[4].responses[0].sourceId!;
+    const fetcher = vi.fn().mockImplementation(() => Promise.resolve(briefResponse({ answer: Array(81).fill('Review').join(' '), sourceIds: [sourceId], actions: [] })));
+    vi.stubGlobal('fetch', fetcher); vi.stubEnv('OPENROUTER_API_KEY', 'test');
+    await expect(generateClassroomBrief(repo, { requestId: 'long-opening', mode: 'live' })).rejects.toMatchObject({ code: 'AI_BRIEF_OPENING' });
+    expect(fetcher).toHaveBeenCalledTimes(2); expect(repo.state.assistant?.briefs).toHaveLength(0);
+  });
+
+  it('explains supported-to-independent working with both dated sources and keeps original help history', async () => {
+    const state = createInitialState('teacher');
+    for (const [templateId, support] of [['baseline-template-v1', 'supported'], ['followup-template-v1', 'independent']] as const) {
+      const batch = seedAssignment(state, templateId, { studentIds: ['stu-07'], support });
+      const findings = analyzeBatch(state, { batchId: batch.id, provenance: testProvenance });
+      reviewFindings(state, { items: findings.map(finding => ({ findingId: finding.id, expectedRevision: finding.revision, decision: 'confirm' })), acknowledgeClearReadings: true });
+    }
+    const repo = new MemoryRepository(state), before = domainState(repo.state);
+    const reply = await askClassroomAssistant(repo, { requestId: 'help-development', message: 'How has Gray’s independence changed?', scope: { studentId: 'stu-07', templateId: 'followup-template-v1' }, mode: 'fixture' });
+    expect(reply.turn.content).toMatch(/with (?:recorded )?help earlier/);
+    expect(reply.turn.content).toMatch(/independently on the later task|without recorded help/);
+    expect(reply.turn.content).toContain('Sep 22 → Sep 24');
+    expect(reply.turn.content).toContain('Success check:');
+    expect(reply.turn.content).not.toContain('usable answers correct');
+    const citedObservations = reply.turn.citations.map(source => new URL(source.href, 'http://classroom').searchParams.get('observation')).filter(Boolean);
+    expect(citedObservations).toHaveLength(2);
+    expect(state.observations.filter(observation => citedObservations.includes(observation.id)).map(observation => observation.supportSnapshots[0].support.level)).toEqual(['supported', 'independent']);
+    expect(domainState(repo.state)).toEqual(before);
+  });
+
+  it('keeps a selected historical briefing within its evidence dates and leads with meaning rather than scores', async () => {
+    const repo = seeded();
+    const { brief } = await generateClassroomBrief(repo, { requestId: 'earlier-learning', scope: { templateId: 'followup-template-v1' }, mode: 'fixture' });
+    const firstParagraph = brief.content.split('\n\n')[0];
+    expect(firstParagraph).not.toMatch(/\d+ correct|\d+ incorrect|\d+\/\d+ usable|%/);
+    expect(brief.content).toContain('Success check:'); expect(brief.content).toContain('45-minute lesson');
+    const citedBatches = brief.citations.filter(source => source.kind === 'response').map(source => source.href.match(/^\/review\/([^?]+)/)?.[1]);
+    expect(citedBatches.length).toBeGreaterThan(1);
+    expect(citedBatches.every(id => repo.state.batches.find(batch => batch.id === id)!.activityDate <= '2026-09-24')).toBe(true);
+    expect(brief.content).not.toContain('Sep 30'); expect(brief.content).not.toContain('Word problems');
+    expect(brief.content.split(/\s+/).length).toBeLessThan(320);
+  });
+
+  it('excludes later student work from a live historical briefing and rejects a supplied future citation', async () => {
+    const repo = seeded(), context = buildAssistantContext(repo.state);
+    const later = context.classroom.assignments[4].responses.find(response => response.studentId === 'stu-03')!;
+    repo.state.responses.find(response => response.id === later.responseId)!.workingText = 'FUTURE_WORK_MUST_NOT_REACH_THE_MODEL';
+    const fetcher = vi.fn().mockImplementation(() => Promise.resolve(briefResponse(rawReply(later.sourceId!))));
+    vi.stubGlobal('fetch', fetcher); vi.stubEnv('OPENROUTER_API_KEY', 'test');
+    await expect(generateClassroomBrief(repo, { requestId: 'future-source-rejected', scope: { templateId: 'followup-template-v1' }, mode: 'live' })).rejects.toMatchObject({ code: 'AI_UNGROUNDED_CITATION' });
+    expect(fetcher).toHaveBeenCalledTimes(2);
+    const body = JSON.parse(fetcher.mock.calls[0][1].body), sent = JSON.parse(body.messages[1].content);
+    expect(sent.context.classroom.assignments.map((assignment: { templateId: string }) => assignment.templateId)).toEqual(['baseline-template-v1', 'followup-template-v1']);
+    expect(sent.context.classroom.learningDevelopment.every((learning: { throughDate: string }) => learning.throughDate <= '2026-09-24')).toBe(true);
+    expect(sent.context.conversation).toEqual([]);
+    expect(JSON.stringify(sent)).not.toContain('FUTURE_WORK_MUST_NOT_REACH_THE_MODEL');
+    expect(sent.context.classroom.calendar.some((entry: unknown[]) => entry[1] === '2026-10-02')).toBe(true);
+    expect(repo.state.assistant?.briefs).toHaveLength(0);
+    // The broad chat context still has the saved later work when explicitly requested.
+    expect(buildAssistantContext(repo.state).classroom.assignments[4].responses.find(response => response.responseId === later.responseId)!.workingText).toBe('FUTURE_WORK_MUST_NOT_REACH_THE_MODEL');
+  });
+
+  it('keeps old briefing content but marks a previous prompt version for refresh', async () => {
+    const repo = seeded();
+    await generateClassroomBrief(repo, { requestId: 'old-format', mode: 'fixture' });
+    const brief = repo.state.assistant!.brief!;
+    expect(getAssistantState(repo.state).brief?.stale).toBe(false);
+    brief.provenance.promptVersion = 'classroom-assistant-v3';
+    const stored = structuredClone(repo.state.assistant);
+    const refreshed = getAssistantState(repo.state);
+    expect(refreshed.brief?.stale).toBe(true);
+    expect(refreshed.brief?.content).toBe(brief.content);
+    expect(repo.state.assistant).toEqual(stored);
+  });
+
+  it('does not invent development before work has been submitted', async () => {
+    const repo = new MemoryRepository();
+    const { brief } = await generateClassroomBrief(repo, { requestId: 'no-development-yet', mode: 'fixture' });
+    expect(brief.content).toContain('There is no submitted work');
+    expect(brief.content).toContain('One task does not establish progress');
+    expect(brief.content).not.toContain('showed correct');
+    expect(brief.actions.length).toBeGreaterThan(0);
   });
 });

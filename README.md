@@ -4,7 +4,7 @@
 
 Upload work → review the evidence → adjust instruction → teach → check progress.
 
-ClassCompass is a working Grade 5 fraction-addition prototype. Its overview connects the current work to concrete teaching actions: who needs what, the supporting answers, an activity, time, and a check for success. Teachers can generate a cited teaching brief, ask the classroom assistant questions, correct evidence, and save selected changes to a complete lesson plan. The interface retains its original purple and aqua design.
+ClassCompass is a working Grade 5 fraction-addition prototype. Its overview leads with the next teaching decision, learning trends across dated work, and specific student follow-ups. Each insight opens the supporting work and help records; detailed scores and tables live under **Explore the evidence**. Teachers can generate a cited teaching brief, ask the classroom assistant questions, correct evidence, and save selected changes to a complete lesson plan. The interface retains its original purple and aqua design.
 
 [Demo and recording guide](docs/demo-guide.md) · [Implementation reference](docs/implementation.md) · [Supabase setup](docs/supabase-setup.md) · [Public repository](https://github.com/RyanSXing/classcompass)
 
@@ -36,7 +36,8 @@ Use the reset command only for a dedicated fictional demo workspace.
 
 - Eight fictional students, five dated assignments, 120 answers and five 45-minute lesson plans.
 - A teaching brief generated from saved classroom evidence and teacher goals, with cited actions. Data-based starting points remain available before generation and after a provider error.
-- Three analytics views: **Class results**, **Students over time**, and **Question patterns**. The class matrix follows all eight students across five dates; question patterns distinguish wrong values, common-unit working, missing units and incomplete explanations.
+- Learning trends describe changes in independence, consistency, repeated working patterns and application in word problems. There is no overall progress or mastery score.
+- Three analytics views under **Explore the evidence**: **Class results**, **Students over time**, and **Question patterns**. The class matrix follows all eight students across five dates; question patterns distinguish wrong values, common-unit working, missing units and incomplete explanations.
 - A **Compare with** chooser for earlier assignments. Comparisons use the same students' usable independent core results and show changes in tasks or help; they do not claim measured learning gains.
 - A classroom **Assistant** with saved teaching goals, persistent conversation, assignment/student/lesson context, and links to its sources. Suggestions do not approve notes or change lessons.
 - Separate correct, incorrect, flagged, unanswered, unprocessed and missing results. Help, units and reasoning stay visible as separate details.

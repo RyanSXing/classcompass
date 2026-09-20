@@ -8,7 +8,7 @@ Start the local app, then choose **Assignments → Load sample class**. This loa
 
 For a live upload scene, use **Upload work → First check → Load sample worksheets → Analyze this upload** in a clean workspace. The sample-class shortcut is faster for showing analytics across all five dates. Neither option represents live OCR. Ordinary uploads still accept the supplied PNGs, JPEGs and one-page PDFs.
 
-Rehearse with **First check** selected. Review its clear teaching notes before recording, leaving Finley's flagged reading for the on-camera correction. Do not describe these previously reviewed notes as newly approved during the video. Keep the September 23 lesson open in a second tab. Use the same saved classroom throughout so the correction, updated notes and accepted lesson are connected.
+Rehearse with **Independent check** selected. Keep the October 1 lesson open in a second tab. Leave Finley’s historical First check reading available for the correction scene; explain that it is earlier work. Review the latest assignment’s clear teaching notes before recording if needed, leaving at least one for the on-camera decision. Do not describe previously reviewed notes as newly approved. New planning uses the latest reviewed work, so do not try to generate a September 23 lesson after reviewing later assignments.
 
 Prepare a short teaching goal such as “Help students explain why the parts need the same size, while keeping the lesson to 45 minutes.” Use **Sample** in the teaching brief and Assistant unless a separate live-text check has succeeded. The existing sample worksheet readings retain their labels even when live text assistance is selected.
 
@@ -16,18 +16,18 @@ Prepare a short teaching goal such as “Help students explain why the parts nee
 
 | Time | Screen and action | Point to explain |
 | --- | --- | --- |
-| 0:00–0:25 | Overview → First check → Generate teaching insights in Sample mode | Start with “What should I teach next?” Point to a named group, a concrete activity, its time and a cited answer. Distinguish generated suggestions from approved teaching notes. |
-| 0:25–0:55 | Students over time | Show the eight-student, five-assignment matrix. Open one student's work. Correct/usable counts sit beside missing answers, flags and recorded help; the cells are dated observations, not permanent ability labels. |
-| 0:55–1:20 | Question patterns, then Class results → Compare with on a later assignment | Show repeated denominator addition separately from unclear reading. The comparison names the paired independent work and discloses differences in questions or help. |
-| 1:20–1:55 | Assistant → save the teaching goal → ask “How should I explain equal-sized parts to Avery, and what should I check next?” with First check selected | Show the practical explanation and open a citation. The assistant uses saved goals and classroom context; it cannot approve notes or save a lesson. |
-| 1:55–2:40 | First check → Finley Q3 → Edit reading; replace `1/5` with the visible `1/2`; update and approve the revised teaching note | Correct the disclosed prepared misread against its source. Approval is a separate decision. Earlier reading history remains available. |
-| 2:40–4:15 | September 23 lesson → Review suggestions → suggest changes; inspect practice evidence; edit a proposed instruction; save only the practice change | The teacher chooses a concrete change and keeps the original exit task. Show the resulting complete 45-minute plan, including the worked example, simultaneous groups and success check. Open Print teacher plan or the separate student activities. |
-| 4:15–4:40 | Return to First check's brief, show the update notice and refresh it; then select Independent check | A saved correction changes the context for the next recommendation. New work can suggest a different next step without rewriting earlier evidence. |
+| 0:00–0:25 | Overview → Independent check → Generate teaching insights in Sample mode | Start with the next teaching decision. Show a specific follow-up and explain that the teacher chooses what changes. |
+| 0:25–0:55 | How learning is developing → Show me why | Open Casey’s dated evidence: earlier help and later independent calculation work. The unfinished question remains a separate follow-up, not a permanent label. |
+| 0:55–1:20 | Students to check → Explore the evidence | Show the arithmetic and completion checks first. Briefly open the matrix or a question pattern to demonstrate that the underlying results remain accessible. |
+| 1:20–1:55 | Assistant → save the teaching goal → ask “How is Casey’s independence changing, and what should I check next?” | Show the dated sources, recorded help and a fresh check. The assistant uses the saved classroom and goals; it cannot approve notes or save a lesson. |
+| 1:55–2:40 | Assignments → First check → Finley Q3 → Edit reading; replace `1/5` with visible `1/2`; then return to the latest work and review teaching notes | Correct a disclosed prepared misread against its source. Keep historical evidence separate from the latest teaching decision; approval remains explicit. |
+| 2:40–4:15 | October 1 lesson → Suggest lesson changes; inspect evidence, edit an instruction and save selected changes | Show the teacher’s before-and-after choice and the resulting complete 45-minute plan, with worked examples, concurrent groups and a success check. Open the teacher plan or student activities for printing. |
+| 4:15–4:40 | Overview → Open saved lesson; refresh the briefing if it needs updating | A saved lesson stays saved. Changed evidence updates the next recommendation while preserving earlier readings, help and lesson versions. |
 | 4:40–4:50 | End on the saved lesson or teaching brief | Name the stack briefly and state that these are fictional data; broader curriculum coverage and real handwriting quality still need evaluation. |
 
 Keep transitions and credits inside these 290 seconds. Caption any skipped wait as **“Processing time shortened.”** If a Grade 5 teacher participates, describe their actual feedback; participation is not yet confirmed.
 
-If time is tight, skip the comparison interaction and printable preview; retain the matrix, question pattern, cited assistant answer, teacher correction and saved lesson change. Gray's help correction below is a useful alternate scene, but is not required in this shorter recording.
+If time is tight, skip the detailed matrix and printable preview; retain the learning insight, its evidence, cited assistant answer, teacher correction and saved lesson change. Gray's help correction below is a useful alternate scene, but is not required in this shorter recording.
 
 ## The two corrections, precisely
 
