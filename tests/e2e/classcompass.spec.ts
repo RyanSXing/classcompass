@@ -372,6 +372,7 @@ test("390px screens and modal navigation support keyboard use without page overf
     "/plans",
     "/plans/lesson-2026-10-01",
     "/calendar",
+    "/assistant",
   ]) {
     await page.goto(route);
     await expect(page.locator("h1").first()).toBeVisible();
@@ -407,6 +408,158 @@ test("390px screens and modal navigation support keyboard use without page overf
   ).toBeVisible();
   await expect(dialog).toHaveCount(0);
 });
+
+test("classroom assistant uses saved goals, answers follow-ups and preserves evidence links", async ({
+  page,
+}) => {
+  const errors: string[] = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await page.goto("/assistant?student=stu-03&lesson=lesson-2026-10-01");
+  await expect(
+    page.getByRole("heading", { name: "Classroom assistant", exact: true }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Add goals", exact: true }).click();
+  await page
+    .getByLabel("Teaching goals", { exact: true })
+    .fill(
+      "Help Casey show equivalent fractions independently. Keep the October 2 assessment fixed.",
+    );
+  await page.getByRole("button", { name: "Save goals", exact: true }).click();
+  await expect(
+    page.getByText("Teaching goals saved.", { exact: true }),
+  ).toBeVisible();
+  await page
+    .getByLabel("Assistant mode", { exact: true })
+    .selectOption("fixture");
+  await page
+    .getByLabel("Ask about your classroom", { exact: true })
+    .fill("What should I do with Casey next? Show me the evidence.");
+  await page.getByRole("button", { name: "Send", exact: true }).click();
+  const replies = page.getByRole("article", {
+    name: "Assistant reply",
+    exact: true,
+  });
+  await expect(replies).toHaveCount(1, { timeout: 30_000 });
+  await expect(replies.first()).toContainText("Casey");
+  await expect(
+    replies.first().getByText("Sample reply", { exact: true }),
+  ).toBeVisible();
+  expect(
+    await replies.first().locator(".chat-citation-links a").count(),
+  ).toBeGreaterThan(0);
+  await page
+    .getByLabel("Ask about your classroom", { exact: true })
+    .fill("How does that fit my goal and the next lesson?");
+  await page.getByRole("button", { name: "Send", exact: true }).click();
+  await expect(replies).toHaveCount(2, { timeout: 30_000 });
+  await expect(replies.last()).toContainText(/goal|October|lesson/i);
+  await page.reload();
+  await expect(replies).toHaveCount(2);
+  await expect(page.locator(".teacher-goal-text")).toContainText("Help Casey");
+  const saved = await stateFrom(page);
+  expect(saved.assistant?.turns).toHaveLength(4);
+  expect(saved.assistant?.goals.text).toContain("October 2");
+  const citation = replies
+    .first()
+    .locator('.chat-citation-links a[href^="/review/"]')
+    .first();
+  if (await citation.count()) {
+    await citation.click();
+    await expect(page.locator(".scan-paper img")).toBeVisible();
+    await expect(page.locator(".transcript")).toBeVisible();
+  }
+  expect(errors).toEqual([]);
+});
+test("AI briefing connects richer analytics to exact evidence and complete lesson versions", async ({
+  page,
+}) => {
+  await page.goto("/classroom?assignment=independent-check-template-v1");
+  await page
+    .getByRole("tab", { name: "Students over time", exact: true })
+    .click();
+  const matrix = page.getByRole("region", {
+    name: "Student results across assignments",
+    exact: true,
+  });
+  await expect(matrix.locator("tbody tr")).toHaveCount(8);
+  await expect(matrix.locator("thead th")).toHaveCount(6);
+  await matrix
+    .getByRole("link", {
+      name: "Casey, Independent check: 2 correct of 2 usable answers",
+      exact: true,
+    })
+    .click();
+  await expect(page.getByLabel("Filter student")).toHaveValue("stu-03");
+  await expect(
+    page.getByRole("button", { name: /Casey, question 3: No answer/ }),
+  ).toBeVisible();
+  await page.goto("/classroom?assignment=independent-check-template-v1");
+  await page
+    .getByRole("tab", { name: "Question patterns", exact: true })
+    .click();
+  await expect(page.locator(".question-pattern-grid > article")).toHaveCount(3);
+  await page.getByRole("tab", { name: "Class results", exact: true }).click();
+  await page
+    .getByLabel("Teaching insights mode", { exact: true })
+    .selectOption("fixture");
+  await page
+    .getByRole("button", { name: "Generate teaching insights", exact: true })
+    .click();
+  await expect(
+    page.getByText("Sample-mode brief", { exact: true }),
+  ).toBeVisible();
+  await expect(page.locator(".brief-action").first()).toBeVisible();
+  const saved = await stateFrom(page);
+  expect(saved.assistant?.briefs).toHaveLength(1);
+  expect(saved.assistant?.briefs[0].contextDisclosure.responseCount).toBe(120);
+  const plan = saved.plans.find((p) => p.id === "lesson-2026-10-01")!;
+  const version = saved.planVersions.find(
+    (v) => v.id === plan.currentVersionId,
+  )!;
+  await page.goto(`/plans/${plan.id}?version=${version.id}`);
+  await expect(page.locator(".lesson-guide")).toContainText("Success criteria");
+  await expect(page.locator(".lesson-guide")).toContainText("Worked example");
+  await expect(page.locator(".lesson-guide")).toContainText(
+    "After the exit check",
+  );
+  const old = saved.planVersions.find(
+    (v) => v.lessonId === plan.id && v.id !== version.id,
+  )!;
+  await page.goto(`/plans/${plan.id}?version=${old.id}`);
+  await expect(page.locator(".lg-meta")).toContainText(
+    `Saved version ${old.versionNumber}`,
+  );
+  await page
+    .getByLabel("Saved lesson version", { exact: true })
+    .selectOption(version.id);
+  await expect(page).toHaveURL(new RegExp(`/plans/${plan.id}$`));
+  await page.reload();
+  await expect(page.locator(".lg-meta")).toContainText(
+    `Saved version ${version.versionNumber}`,
+  );
+  await page.goto(`/plans/${plan.id}?version=missing-version`);
+  await expect(
+    page.getByRole("heading", {
+      name: "Saved lesson version unavailable",
+      exact: true,
+    }),
+  ).toBeVisible();
+  await page.goto("/classroom?assignment=independent-check-template-v1");
+  const goals = saved.assistant!.goals;
+  const update = await page.request.patch("/api/assistant/goals", {
+    data: {
+      text: goals.text + " Collect a short exit check.",
+      expectedRevision: goals.revision,
+    },
+    headers: { origin: "http://127.0.0.1:3001" },
+  });
+  expect(update.ok()).toBeTruthy();
+  await page.reload();
+  await expect(
+    page.getByText(/Work or teaching goals changed after this brief/),
+  ).toBeVisible();
+});
+
 test("real PNG upload and source PDF lesson import still use the complete pipeline", async ({
   page,
 }) => {
@@ -591,4 +744,73 @@ test("partial uploads process the selected source and uncertain readings keep th
   await expect(
     page.getByRole("heading", { name: "Finley · Question 3", exact: true }),
   ).toBeVisible();
+});
+
+test("goal drafts detect concurrent edits and interrupted questions can be asked again", async ({
+  page,
+}) => {
+  await page.goto("/assistant");
+  await page.getByRole("button", { name: "Edit goals", exact: true }).click();
+  await page
+    .getByLabel("Teaching goals", { exact: true })
+    .fill("An older unsaved draft");
+  const before = await stateFrom(page);
+  const update = await page.request.patch("/api/assistant/goals", {
+    data: {
+      text: "A newer goal saved elsewhere",
+      expectedRevision: before.assistant!.goals.revision,
+    },
+    headers: { origin: "http://127.0.0.1:3001" },
+  });
+  expect(update.ok()).toBeTruthy();
+  await page
+    .getByLabel("Assistant mode", { exact: true })
+    .selectOption("fixture");
+  await page
+    .getByLabel("Ask about your classroom", { exact: true })
+    .fill("What should I check next?");
+  await page.getByRole("button", { name: "Send", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "Save goals", exact: true }),
+  ).toBeEnabled();
+  await page.getByRole("button", { name: "Save goals", exact: true }).click();
+  await expect(page.locator(".teacher-goal-form [role=alert]")).toBeVisible();
+  expect((await stateFrom(page)).assistant?.goals.text).toBe(
+    "A newer goal saved elsewhere",
+  );
+  await page.route("**/api/classroom", async (route) => {
+    const response = await route.fetch(),
+      payload = await response.json();
+    const assistant = payload.data.state.assistant;
+    assistant.turns.push({
+      id: "interrupted-ui-check",
+      requestId: "interrupted-ui-check",
+      role: "user",
+      content: "An interrupted classroom question",
+      createdAt: "2020-01-01T00:00:00Z",
+      scope: {},
+      citations: [],
+      actions: [],
+      provenance: null,
+      contextDisclosure: null,
+    });
+    assistant.requests.push({
+      requestId: "interrupted-ui-check",
+      kind: "chat",
+      status: "pending",
+      startedAt: "2020-01-01T00:00:00Z",
+    });
+    await route.fulfill({ response, json: payload });
+  });
+  await page.reload();
+  const interrupted = page
+    .getByRole("article", { name: "Your question", exact: true })
+    .filter({ hasText: "An interrupted classroom question" });
+  await interrupted
+    .getByRole("button", { name: "Ask again", exact: true })
+    .click();
+  await expect(
+    page.getByLabel("Ask about your classroom", { exact: true }),
+  ).toHaveValue("An interrupted classroom question");
+  await page.unrouteAll({ behavior: "wait" });
 });

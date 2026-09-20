@@ -1,3 +1,4 @@
+import type { AssistantState } from './assistant-contracts';
 import { z } from 'zod';
 
 export const idSchema = z.string().min(1).max(160);
@@ -61,7 +62,7 @@ export type Job = MutableEntity & { type: 'analysis' | 'proposal'; batchId?: str
 export type AuditEvent = BaseEntity & { actorId: string; action: string; entityId: string; details: Record<string, unknown> };
 export type MutationKey = BaseEntity & { operation: string; key: string; requestHash: string; result: unknown };
 export type LessonImport = MutableEntity & { assetId: string; status: 'draft' | 'confirmed'; draft: LessonSnapshot | null; errors: string[]; planVersionId?: string; extractedText?: string };
-export type AppState = { schemaVersion: 1; ownerId: string; revision: number; classroom: Classroom; students: Student[]; batches: Batch[]; submissions: Submission[]; assets: Asset[]; extractions: Extraction[]; responses: Response[]; readingReviews: ReadingReview[]; responseRevisions: ResponseRevision[]; findings: Finding[]; observations: Observation[]; plans: LessonPlan[]; planVersions: PlanVersion[]; proposals: Proposal[]; materialSets: MaterialSet[]; calendarEntries: CalendarEntry[]; jobs: Job[]; auditEvents: AuditEvent[]; mutationKeys: MutationKey[]; lessonImports: LessonImport[]; lastDispatchAt?: string };
+export type AppState = { schemaVersion: 1; ownerId: string; revision: number; classroom: Classroom; students: Student[]; batches: Batch[]; submissions: Submission[]; assets: Asset[]; extractions: Extraction[]; responses: Response[]; readingReviews: ReadingReview[]; responseRevisions: ResponseRevision[]; findings: Finding[]; observations: Observation[]; plans: LessonPlan[]; planVersions: PlanVersion[]; proposals: Proposal[]; materialSets: MaterialSet[]; calendarEntries: CalendarEntry[]; jobs: Job[]; auditEvents: AuditEvent[]; mutationKeys: MutationKey[]; lessonImports: LessonImport[]; lastDispatchAt?: string; assistant?: AssistantState };
 
 export const createBatchSchema = z.object({ templateId: idSchema, activityDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), kind: z.enum(['baseline', 'followup']), title: z.string().min(1).max(200).optional(), submissions: z.array(z.object({ studentId: idSchema, assetId: idSchema, support: supportSchema }).strict()).min(1).max(8), sourcePlanVersionId: idSchema.optional(), previousBatchId: idSchema.optional() }).strict();
 export const correctResponseSchema = z.object({ expectedRevision: revisionSchema, workingText: z.string().max(2000), answerText: z.string().max(200).nullable(), legibility: z.enum(['clear', 'uncertain', 'blank']), readingStatus: z.enum(['unreviewed', 'resolved']), reason: z.string().min(1).max(1000) }).strict();

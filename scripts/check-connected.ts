@@ -4,6 +4,7 @@ import path from 'node:path';
 import type { AppState, Asset, Batch, Job, LessonImport, MaterialSet, PlanVersion, Proposal } from '../lib/contracts';
 import { assignments, CATALOG_VERSION } from '../lib/assignments';
 import { curriculum } from '../lib/curriculum';
+import type { AssistantReplyResult, AssistantState, ClassroomBriefResult, TeacherGoals } from '../lib/assistant-contracts';
 import { getAssignmentAnalytics } from '../lib/analytics';
 
 // Explicit connected integration check. Preserves the fictional teacher workspace;
@@ -190,6 +191,36 @@ async function verifyExpandedAssignments() {
   report.counts.assignments=results.length;report.counts.effectiveWorksheets=40;report.counts.effectiveResponses=120;report.counts.savedLessons=after.plans.length;
   pass('All 120 effective results reconcile; flags, wrong answers and assistance remain distinct; approved history is unchanged');
 }
+async function verifyAssistant(email: string) {
+  const before = await state(), previous = before.assistant!, originalGoals = previous.goals.text;
+  const savedClassroom = JSON.stringify({ findings: before.findings, plans: before.plans, versions: before.planVersions, responses: before.responses, observations: before.observations, materials: before.materialSets, calendar: before.calendarEntries });
+  const testGoals = originalGoals || (email === 'teacher@classcompass.example' ? 'Temporary connected check: ask for independent explanations.' : '');
+  let savedGoals: TeacherGoals | undefined;
+  try {
+    savedGoals = await api<TeacherGoals>('/api/assistant/goals', { method: 'PATCH', body: { text: testGoals, expectedRevision: previous.goals.revision } });
+    check((await api<AssistantState>('/api/assistant/context')).goals.text === testGoals, 'ASSISTANT_GOALS_NOT_PERSISTED');
+    const input = { requestId: `connected-assistant-${randomUUID()}`, message: 'What should I teach Casey next?', scope: { studentId: 'stu-03', templateId: 'independent-check-template-v1' }, mode: 'fixture' };
+    const answer = await api<AssistantReplyResult>('/api/assistant/chat', { body: input, timeoutMs: 60_000 });
+    const repeated = await api<AssistantReplyResult>('/api/assistant/chat', { body: input, timeoutMs: 60_000 });
+    check(answer.turn.provenance?.mode === 'fixture' && repeated.reused && repeated.turn.id === answer.turn.id, 'ASSISTANT_IDEMPOTENCY_OR_MODE');
+    check(answer.turn.content.includes('Casey') && answer.turn.contextDisclosure?.responseCount === 120, 'ASSISTANT_CONTEXT_OR_FOCUS');
+    const responseCitations = answer.turn.citations.filter(c => c.kind === 'response'); check(responseCitations.length > 0, 'ASSISTANT_EVIDENCE_CITATIONS');
+    for (const citation of responseCitations) {
+      const url = new URL(citation.href, baseURL), id = url.searchParams.get('response'), revision = Number(url.searchParams.get('revision'));
+      check(url.origin === baseURL.origin && url.pathname.startsWith('/review/'), 'ASSISTANT_UNTRUSTED_LINK');
+      check(before.responses.some(r => r.id === id && r.revision === revision), 'ASSISTANT_CITATION_REVISION');
+      check((await request(citation.href)).ok, 'ASSISTANT_CITATION_PAGE');
+    }
+    const brief = await api<ClassroomBriefResult>('/api/assistant/brief', { body: { requestId: `connected-brief-${randomUUID()}`, scope: { templateId: 'independent-check-template-v1' }, mode: 'fixture' }, timeoutMs: 60_000 });
+    check(brief.brief.provenance.mode === 'fixture' && brief.brief.actions.length > 0, 'ASSISTANT_BRIEF');
+    const reloaded = await state(), assistant = reloaded.assistant!;
+    check(assistant.turns.filter(turn => turn.requestId === input.requestId).length === 2 && assistant.briefs.some(b => b.id === brief.brief.id), 'ASSISTANT_HISTORY_NOT_PERSISTED');
+    check(JSON.stringify({ findings: reloaded.findings, plans: reloaded.plans, versions: reloaded.planVersions, responses: reloaded.responses, observations: reloaded.observations, materials: reloaded.materialSets, calendar: reloaded.calendarEntries }) === savedClassroom, 'ASSISTANT_CHANGED_CLASSROOM');
+    pass('Authenticated assistant goals, sample chat, exact citations and brief persist; duplicate request reuses the reply and lessons remain unchanged');
+  } finally {
+    if (savedGoals && originalGoals !== testGoals) await api('/api/assistant/goals', { method: 'PATCH', body: { text: originalGoals, expectedRevision: savedGoals.revision } });
+  }
+}
 async function main() {
   check(['127.0.0.1', 'localhost', '[::1]'].includes(baseURL.hostname), 'LOOPBACK_SERVER_REQUIRED');
   const login = JSON.parse(await fs.readFile(credentialsFile, 'utf8')) as { email: string; password: string; projectURL: string };
@@ -247,10 +278,13 @@ async function main() {
   report.counts = { baselineResponses: 32, followupResponses: 16, baselineStudents: 8, followupStudents: 8, acceptedLessons: 2, checks: report.checks.length + 2 };
   pass('September 25 accepted; taught September 23 and dated progress history preserved');
   stage = 'expanded-catalog'; await verifyExpandedAssignments();
+  stage = 'assistant'; await verifyAssistant(login.email);
   stage = 'logout'; await api('/api/auth/logout', { body: {} }); signedIn = false;
   check((await request('/api/classroom')).status === 401, 'LOGOUT_SESSION_REMAINS');
   check((await request(`/api/assets/${previewAssetId}`)).status === 401, 'LOGOUT_PRIVATE_ASSET_ACCESS');
-  pass('Logout denies classroom and private evidence access');
+  check((await request('/api/assistant/context')).status === 401, 'LOGOUT_ASSISTANT_ACCESS');
+  check((await request('/api/assistant/chat', { body: { requestId: randomUUID(), message: 'Show the classroom', mode: 'fixture' } })).status === 401, 'LOGOUT_ASSISTANT_CHAT');
+  pass('Logout denies classroom, private evidence and assistant context access');
   report.status = 'passed';
 }
 main().catch(error => {

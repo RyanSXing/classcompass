@@ -5,7 +5,7 @@ import manifest from '@/public/demo/manifest.json';
 // Reference student writing stays in this server module, never the public catalog.
 import source from '@/docs/fixtures/classroom.json';
 import { assignments, getAssignment } from '@/lib/assignments';
-import { analyzeBatch, createBatch, ingestExtraction, inputFingerprint } from '@/lib/domain';
+import { analyzeBatch, createBatch, createInitialState, ingestExtraction, inputFingerprint } from '@/lib/domain';
 import { DomainError } from '@/lib/domain/errors';
 import { getTemplate } from '@/lib/curriculum';
 import type { AppState, Batch, CandidateFindingDraft, SupportContext } from '@/lib/contracts';
@@ -127,4 +127,11 @@ export async function analyzeDemo(actor: Actor, repo: Repository, raw: unknown) 
     const findings = analyzeBatch(state, { batchId, provenance, drafts });
     return { batchId, findingsCreated: findings.length, alreadyAnalyzed: false, mode: 'fixture' as const };
   });
+}
+
+/** Explicit local reset also clears additive optional features such as assistant history. */
+export function resetDemoState(state: AppState, ownerId: string) {
+  const fresh = createInitialState(ownerId);
+  for (const key of Object.keys(state)) if (!(key in fresh)) delete (state as unknown as Record<string, unknown>)[key];
+  Object.assign(state, fresh);
 }

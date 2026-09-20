@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Check,
   Edit3,
@@ -29,6 +30,8 @@ import { dateLabel } from "@/lib/utils";
 import { selectResponseRevision } from "@/lib/analytics";
 import { getPlanningFindings } from "@/lib/domain";
 import { getAssignment } from "@/lib/assignments";
+import { buildLessonGuide } from "@/lib/lesson-guide";
+import { LessonGuide } from "@/components/lesson-guide";
 
 function Lanes({ block }: { block: LessonBlock }) {
   const { data } = useWorkspace();
@@ -360,7 +363,14 @@ const changeTitles: Record<ProposalChange["operation"], string> = {
   replace_exit: "Change the exit question",
   schedule_checkpoint: "Add a follow-up check",
 };
-function PlanContent({ lessonId }: { lessonId: string }) {
+function PlanContent({
+  lessonId,
+  initialVersionId,
+}: {
+  lessonId: string;
+  initialVersionId?: string;
+}) {
+  const router = useRouter();
   const { data, mutate, notify } = useWorkspace();
   const [selected, setSelected] = useState<string[] | null>(null);
   const [selectionFor, setSelectionFor] = useState("");
@@ -368,7 +378,7 @@ function PlanContent({ lessonId }: { lessonId: string }) {
   const [busy, setBusy] = useState(false);
   const [autoRun, setAutoRun] = useState(false);
   const [editing, setEditing] = useState<ProposalChange | null>(null);
-  const [versionId, setVersionId] = useState("");
+  const [versionId, setVersionId] = useState(initialVersionId ?? "");
   const [evidenceId, setEvidenceId] = useState("");
   const [error, setError] = useState("");
   const [refreshConfirm, setRefreshConfirm] = useState(false);
@@ -391,7 +401,23 @@ function PlanContent({ lessonId }: { lessonId: string }) {
     );
   const versions = state.planVersions.filter((v) => v.lessonId === lessonId);
   const currentVersion = versions.find((v) => v.id === plan.currentVersionId)!;
-  const version = versions.find((v) => v.id === versionId) ?? currentVersion;
+  const version = versionId
+    ? versions.find((v) => v.id === versionId)
+    : currentVersion;
+  if (!version)
+    return (
+      <div className="page">
+        <EmptyState
+          title="Saved lesson version unavailable"
+          text="This link refers to a version that is not available in this classroom. Open the current lesson to continue."
+          action={
+            <Button asChild>
+              <Link href={`/plans/${lessonId}`}>Open current lesson</Link>
+            </Button>
+          }
+        />
+      </div>
+    );
   const historical = version.id !== currentVersion.id;
   const proposal = [...state.proposals]
     .reverse()
@@ -562,6 +588,7 @@ function PlanContent({ lessonId }: { lessonId: string }) {
         selectedChangeIds: selectedIds,
       });
       setVersionId(result.planVersionId ?? result.versionId ?? "");
+      router.replace(`/plans/${lessonId}`, { scroll: false });
       setSelected(null);
       notify(
         selectedIds.length
@@ -579,8 +606,8 @@ function PlanContent({ lessonId }: { lessonId: string }) {
   return (
     <div className="page lesson-detail-page">
       <PageHeading
-        title={plan.title}
-        description={`${dateLabel(plan.date, { weekday: "long", month: "long", day: "numeric" })} · ${total} minutes`}
+        title={version.snapshot.title}
+        description={`${dateLabel(version.snapshot.date, { weekday: "long", month: "long", day: "numeric" })} · ${total} minutes`}
         breadcrumb="Lesson"
       >
         <Select
@@ -589,6 +616,10 @@ function PlanContent({ lessonId }: { lessonId: string }) {
           onChange={(e) => {
             setVersionId(e.target.value);
             setEvidenceId("");
+            router.replace(
+              `/plans/${lessonId}${e.target.value === plan.currentVersionId ? "" : `?version=${encodeURIComponent(e.target.value)}`}`,
+              { scroll: false },
+            );
           }}
           style={{ width: "auto" }}
         >
@@ -605,6 +636,15 @@ function PlanContent({ lessonId }: { lessonId: string }) {
             Calendar
           </Link>
         </Button>
+        {!historical && (
+          <Button variant="outline" asChild>
+            <Link
+              href={`/assistant?lesson=${encodeURIComponent(lessonId)}&prompt=${encodeURIComponent("Help me prepare to teach this saved lesson. Explain the worked example and the checks I should listen for.")}`}
+            >
+              Ask assistant
+            </Link>
+          </Button>
+        )}
         {hasMaterials && (
           <Button variant="outline" asChild>
             <Link href={`/materials/${version.id}`}>
@@ -623,497 +663,432 @@ function PlanContent({ lessonId }: { lessonId: string }) {
         <div className="mb-16">
           <Banner>
             You’re viewing saved version {version.versionNumber}.{" "}
-            <button className="text-link" onClick={() => setVersionId("")}>
+            <button
+              className="text-link"
+              onClick={() => {
+                setVersionId("");
+                router.replace(`/plans/${lessonId}`, { scroll: false });
+              }}
+            >
               Open the current lesson
             </button>{" "}
             to make changes.
           </Banner>
         </div>
       )}
-      <div className="lesson-time-strip" aria-label={`${total}-minute lesson`}>
-        {version.snapshot.blocks.map((block) => (
-          <div key={block.id} style={{ flex: block.minutes }}>
-            <strong>{block.title}</strong>
-            <span>{block.minutes} min</span>
+      <LessonGuide guide={buildLessonGuide(state, version)} />
+      <section
+        id="lesson-suggestions"
+        className="lesson-suggestions"
+        aria-label="Lesson suggestions"
+      >
+        {job && job.status !== "completed" && !historical && (
+          <JobProgress key={job.id} job={job} autoStart={autoRun} />
+        )}
+        {!historical && wrongTarget && targetAssignment && (
+          <div className="mb-16">
+            <Banner>
+              {hasLaterReviewedWork
+                ? "Newer work has been reviewed. "
+                : "These teaching notes belong to another lesson. "}
+              Plan the next lesson after {targetAssignment.title}.{" "}
+              <Link
+                className="text-link"
+                href={`/plans/${targetAssignment.targetLessonId}`}
+              >
+                Open {targetLesson ? dateLabel(targetLesson.date) : "the next"}{" "}
+                lesson
+              </Link>
+            </Banner>
           </div>
-        ))}
-      </div>
-      {job && job.status !== "completed" && !historical && (
-        <JobProgress key={job.id} job={job} autoStart={autoRun} />
-      )}
-      {!historical && wrongTarget && targetAssignment && (
-        <div className="mb-16">
-          <Banner>
-            {hasLaterReviewedWork
-              ? "Newer work has been reviewed. "
-              : "These teaching notes belong to another lesson. "}
-            Plan the next lesson after {targetAssignment.title}.{" "}
-            <Link
-              className="text-link"
-              href={`/plans/${targetAssignment.targetLessonId}`}
-            >
-              Open {targetLesson ? dateLabel(targetLesson.date) : "the next"}{" "}
-              lesson
-            </Link>
-          </Banner>
-        </div>
-      )}
-      {!historical && proposal && !fresh && (
-        <div className="mb-16">
-          <Banner tone="warning">
-            <strong>These suggestions need updating.</strong> The evidence,
-            lesson or calendar needs another check. Review affected teaching
-            notes, then update the suggestions. Your saved lesson is unchanged.
-          </Banner>
-        </div>
-      )}
-      {!historical && proposal && activeChange ? (
-        <>
-          <div className="results-section-heading">
-            <div>
-              <h2>Suggested changes</h2>
-              <p>
-                Select a change to inspect its evidence. Check the changes you
-                want to save.
-              </p>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={busy || !canGenerate}
-              onClick={() =>
-                proposal.teacherEdited
-                  ? setRefreshConfirm(true)
-                  : void generate()
-              }
-            >
-              <RefreshCw />
-              Update suggestions
-            </Button>
+        )}
+        {!historical && proposal && !fresh && (
+          <div className="mb-16">
+            <Banner tone="warning">
+              <strong>These suggestions need updating.</strong> The evidence,
+              lesson or calendar needs another check. Review affected teaching
+              notes, then update the suggestions. Your saved lesson is
+              unchanged.
+            </Banner>
           </div>
-          <Card className="change-list-card">
-            <div
-              className="change-list"
-              role="group"
-              aria-label="Suggested lesson changes"
-            >
-              {proposal.changes.map((change) => (
-                <div
-                  className={`change-list-row${activeChange.id === change.id ? " active" : ""}`}
-                  key={change.id}
-                >
-                  <input
-                    className="checkbox"
-                    type="checkbox"
-                    checked={selectedIds.includes(change.id)}
-                    aria-label={`Save change: ${changeTitles[change.operation]}`}
-                    onChange={(e) => chooseForSave(change.id, e.target.checked)}
-                  />
-                  <button
-                    aria-pressed={activeChange.id === change.id}
-                    className="change-select"
-                    onClick={() => {
-                      setActiveChangeId(change.id);
-                      setEvidenceId("");
-                    }}
-                  >
-                    <strong>{changeTitles[change.operation]}</strong>
-                    <span>{studentNames(change) || "Whole class"}</span>
-                    <small>{change.rationale}</small>
-                  </button>
-                  <Badge>
-                    {change.operation === "schedule_checkpoint"
-                      ? change.payload.minutes
-                      : change.payload.block.minutes}{" "}
-                    min
-                  </Badge>
-                  <span className="change-decision">
-                    {selectedIds.includes(change.id)
-                      ? "Save change"
-                      : "Keep original"}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </Card>
-          <section
-            className="selected-change-section"
-            aria-labelledby="selected-change-title"
-          >
+        )}
+        {!historical && proposal && activeChange ? (
+          <>
             <div className="results-section-heading">
-              <h2 id="selected-change-title">
-                {changeTitles[activeChange.operation]}
-              </h2>
-              <div className="inline-actions">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setEditing(activeChange)}
-                >
-                  <Edit3 />
-                  Edit change
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() =>
-                    chooseForSave(
-                      activeChange.id,
-                      !selectedIds.includes(activeChange.id),
-                    )
-                  }
-                >
-                  {selectedIds.includes(activeChange.id)
-                    ? "Keep original"
-                    : "Include change"}
-                </Button>
+              <div>
+                <h2>Suggested changes</h2>
+                <p>
+                  Select a change to inspect its evidence. Check the changes you
+                  want to save.
+                </p>
               </div>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={busy || !canGenerate}
+                onClick={() =>
+                  proposal.teacherEdited
+                    ? setRefreshConfirm(true)
+                    : void generate()
+                }
+              >
+                <RefreshCw />
+                Update suggestions
+              </Button>
             </div>
-            <div className="selected-change-grid">
-              <div className="selected-change-content">
-                <Card>
-                  <div className="change-body">
-                    <p className="selected-change-reason">
-                      <strong>Why:</strong> {activeChange.rationale}
-                    </p>
-                    {activeChange.operation === "schedule_checkpoint" ? (
-                      <div className="before-after">
-                        <div className="comparison-pane">
-                          <h3>Current plan</h3>
-                          <p>
-                            {
-                              state.calendarEntries.find(
-                                (e) =>
-                                  e.id === activeChange.payload.calendarEntryId,
-                              )?.title
-                            }{" "}
-                            ·{" "}
-                            {dateLabel(
-                              state.calendarEntries.find(
-                                (e) =>
-                                  e.id === activeChange.payload.calendarEntryId,
-                              )?.date ?? plan.date,
-                            )}
-                          </p>
-                          <p>45 minutes of planned teaching.</p>
-                        </div>
-                        <div className="comparison-pane after">
-                          <h3>With this change</h3>
-                          <p>
-                            {activeChange.payload.title}:{" "}
-                            {activeChange.payload.minutes} minutes within this
-                            session.
-                          </p>
-                          <p>
-                            {45 - activeChange.payload.minutes} minutes remain
-                            for the planned teaching.
-                          </p>
-                        </div>
-                      </div>
-                    ) : (
-                      <>
+            <Card className="change-list-card">
+              <div
+                className="change-list"
+                role="group"
+                aria-label="Suggested lesson changes"
+              >
+                {proposal.changes.map((change) => (
+                  <div
+                    className={`change-list-row${activeChange.id === change.id ? " active" : ""}`}
+                    key={change.id}
+                  >
+                    <input
+                      className="checkbox"
+                      type="checkbox"
+                      checked={selectedIds.includes(change.id)}
+                      aria-label={`Save change: ${changeTitles[change.operation]}`}
+                      onChange={(e) =>
+                        chooseForSave(change.id, e.target.checked)
+                      }
+                    />
+                    <button
+                      aria-pressed={activeChange.id === change.id}
+                      className="change-select"
+                      onClick={() => {
+                        setActiveChangeId(change.id);
+                        setEvidenceId("");
+                      }}
+                    >
+                      <strong>{changeTitles[change.operation]}</strong>
+                      <span>{studentNames(change) || "Whole class"}</span>
+                      <small>{change.rationale}</small>
+                    </button>
+                    <Badge>
+                      {change.operation === "schedule_checkpoint"
+                        ? change.payload.minutes
+                        : change.payload.block.minutes}{" "}
+                      min
+                    </Badge>
+                    <span className="change-decision">
+                      {selectedIds.includes(change.id)
+                        ? "Save change"
+                        : "Keep original"}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </Card>
+            <section
+              className="selected-change-section"
+              aria-labelledby="selected-change-title"
+            >
+              <div className="results-section-heading">
+                <h2 id="selected-change-title">
+                  {changeTitles[activeChange.operation]}
+                </h2>
+                <div className="inline-actions">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setEditing(activeChange)}
+                  >
+                    <Edit3 />
+                    Edit change
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() =>
+                      chooseForSave(
+                        activeChange.id,
+                        !selectedIds.includes(activeChange.id),
+                      )
+                    }
+                  >
+                    {selectedIds.includes(activeChange.id)
+                      ? "Keep original"
+                      : "Include change"}
+                  </Button>
+                </div>
+              </div>
+              <div className="selected-change-grid">
+                <div className="selected-change-content">
+                  <Card>
+                    <div className="change-body">
+                      <p className="selected-change-reason">
+                        <strong>Why:</strong> {activeChange.rationale}
+                      </p>
+                      {activeChange.operation === "schedule_checkpoint" ? (
                         <div className="before-after">
                           <div className="comparison-pane">
                             <h3>Current plan</h3>
-                            <p>{oldBlock?.instructions}</p>
+                            <p>
+                              {
+                                state.calendarEntries.find(
+                                  (e) =>
+                                    e.id ===
+                                    activeChange.payload.calendarEntryId,
+                                )?.title
+                              }{" "}
+                              ·{" "}
+                              {dateLabel(
+                                state.calendarEntries.find(
+                                  (e) =>
+                                    e.id ===
+                                    activeChange.payload.calendarEntryId,
+                                )?.date ?? plan.date,
+                              )}
+                            </p>
+                            <p>45 minutes of planned teaching.</p>
                           </div>
                           <div className="comparison-pane after">
                             <h3>With this change</h3>
-                            <p>{activeChange.payload.block.instructions}</p>
+                            <p>
+                              {activeChange.payload.title}:{" "}
+                              {activeChange.payload.minutes} minutes within this
+                              session.
+                            </p>
+                            <p>
+                              {45 - activeChange.payload.minutes} minutes remain
+                              for the planned teaching.
+                            </p>
                           </div>
                         </div>
-                        {activeChange.payload.block.lanes && (
-                          <>
-                            <p className="practice-summary">
-                              <UsersRound size={18} />
-                              {activeChange.payload.block.minutes} minutes ·{" "}
-                              {activeChange.payload.block.lanes.length} groups
-                              working at the same time
-                            </p>
-                            <Lanes block={activeChange.payload.block} />
-                          </>
-                        )}
-                      </>
-                    )}
-                    {activeChange.dependsOnChangeIds.length > 0 && (
-                      <p className="answer-facet">
-                        Save together with:{" "}
-                        {activeChange.dependsOnChangeIds
-                          .map((id) => {
-                            const dependency = proposal.changes.find(
-                              (c) => c.id === id,
-                            );
-                            return dependency
-                              ? changeTitles[dependency.operation]
-                              : "another selected change";
-                          })
-                          .join(", ")}
-                        .
-                      </p>
-                    )}
-                  </div>
-                </Card>
-              </div>
-              <aside
-                className="selected-change-evidence"
-                aria-label="Evidence for selected change"
-              >
-                <div className="change-evidence-heading">
-                  <h3>Evidence for this change</h3>
-                  <p>{sourceFindings.length} linked teaching notes</p>
-                </div>
-                {refs.length ? (
-                  <>
-                    <label className="field">
-                      <span>Student answer</span>
-                      <Select
-                        aria-label="Evidence for this change"
-                        value={
-                          selectedRef
-                            ? `${selectedRef.responseId}:${selectedRef.responseRevision}`
-                            : ""
-                        }
-                        onChange={(e) => setEvidenceId(e.target.value)}
-                      >
-                        {refs.map((ref) => {
-                          const r = selectResponseRevision(
-                            state,
-                            ref.responseId,
-                            ref.responseRevision,
-                          );
-                          const sub = state.submissions.find(
-                            (s) => s.id === r?.submissionId,
-                          );
-                          const sourceBatch = state.batches.find(
-                            (b) => b.id === sub?.batchId,
-                          );
-                          const template = data.curriculum.templates.find(
-                            (t) => t.id === sourceBatch?.templateId,
-                          );
-                          return (
-                            <option
-                              key={`${ref.responseId}:${ref.responseRevision}`}
-                              value={`${ref.responseId}:${ref.responseRevision}`}
-                            >
-                              {state.students.find(
-                                (s) => s.id === sub?.studentId,
-                              )?.displayName ?? "Student"}{" "}
-                              · Question{" "}
-                              {(template?.questionIds.indexOf(
-                                r?.questionId ?? "",
-                              ) ?? -1) + 1}{" "}
-                              · reading {ref.responseRevision}
-                            </option>
-                          );
-                        })}
-                      </Select>
-                    </label>
-                    {chosenEvidence && evidenceSubmission ? (
-                      <>
-                        <EvidenceView
-                          compact
-                          submissionId={chosenEvidence.submissionId}
-                          questionId={chosenEvidence.questionId}
-                        />
-                        <Card>
-                          <div className="change-evidence-reading">
-                            <strong>
-                              {evidenceStudent?.displayName}’s saved reading
-                            </strong>
-                            <p>
-                              {chosenEvidence.workingText || "No working shown"}
-                            </p>
-                            <p>
-                              <b>
-                                {chosenEvidence.answerText || "No final answer"}
-                              </b>
-                            </p>
-                            <p className="text-small">
-                              Help given:{" "}
-                              {recordedHelp?.level === "independent"
-                                ? "Without help"
-                                : recordedHelp?.level === "supported"
-                                  ? "With help"
-                                  : "Not recorded"}
-                            </p>
-                            {recordedHelp?.note && (
-                              <p className="text-small muted">
-                                {recordedHelp.note}
-                              </p>
-                            )}
-                            <details>
-                              <summary>Approved teaching note</summary>
-                              <p>
-                                {sourceObservation?.interpretation ??
-                                  (fresh
-                                    ? sourceFinding?.explanation
-                                    : "This teaching note has changed. Update the suggestions before using it.")}
-                              </p>
-                            </details>
-                            <Link
-                              className="text-link"
-                              href={`/review/${evidenceSubmission.batchId}?response=${chosenEvidence.id}&revision=${chosenEvidence.revision}${sourceObservation ? `&observation=${sourceObservation.id}` : ""}#answer-inspector`}
-                            >
-                              Open this answer
-                            </Link>
+                      ) : (
+                        <>
+                          <div className="before-after">
+                            <div className="comparison-pane">
+                              <h3>Current plan</h3>
+                              <p>{oldBlock?.instructions}</p>
+                            </div>
+                            <div className="comparison-pane after">
+                              <h3>With this change</h3>
+                              <p>{activeChange.payload.block.instructions}</p>
+                            </div>
                           </div>
-                        </Card>
-                      </>
-                    ) : (
-                      <Banner tone="warning">
-                        The exact saved reading is unavailable. Review this
-                        evidence before saving changes.
-                      </Banner>
-                    )}
-                  </>
-                ) : (
-                  <Banner>
-                    No linked evidence is available for this change.
-                  </Banner>
-                )}
-              </aside>
-            </div>
-          </section>
-          <div className="plan-save-bar">
-            <div>
-              <strong>
-                {selectedIds.length} of {proposal.changes.length} changes
-                selected · {total} minutes
-              </strong>
-              <p>Unchecked changes keep the original lesson.</p>
-            </div>
-            <div className="inline-actions">
-              <Button variant="outline" asChild>
-                <Link href={`/calendar?proposal=${proposal.id}`}>
-                  Preview calendar
-                </Link>
-              </Button>
-              <Button
-                disabled={busy || (selectedIds.length > 0 && !fresh)}
-                onClick={() => void apply()}
-              >
-                <Check />
-                {selectedIds.length
-                  ? "Save selected changes"
-                  : "Keep original lesson"}
-              </Button>
-            </div>
-          </div>
-        </>
-      ) : (
-        <>
-          {!historical && (
-            <Card>
-              <div className="lesson-suggest-prompt">
-                <div>
-                  <h2>Saved lesson</h2>
-                  <p>
-                    {wrongTarget
-                      ? "Keep this saved lesson for reference. Use the linked lesson above for new suggestions."
-                      : confirmed.length
-                        ? `${confirmed.length} current teaching notes can inform a suggestion. Review every change before saving.`
-                        : "Approve teaching notes from earlier work to prepare lesson suggestions."}
-                  </p>
+                          {activeChange.payload.block.lanes && (
+                            <>
+                              <p className="practice-summary">
+                                <UsersRound size={18} />
+                                {activeChange.payload.block.minutes} minutes ·{" "}
+                                {activeChange.payload.block.lanes.length} groups
+                                working at the same time
+                              </p>
+                              <Lanes block={activeChange.payload.block} />
+                            </>
+                          )}
+                        </>
+                      )}
+                      {activeChange.dependsOnChangeIds.length > 0 && (
+                        <p className="answer-facet">
+                          Save together with:{" "}
+                          {activeChange.dependsOnChangeIds
+                            .map((id) => {
+                              const dependency = proposal.changes.find(
+                                (c) => c.id === id,
+                              );
+                              return dependency
+                                ? changeTitles[dependency.operation]
+                                : "another selected change";
+                            })
+                            .join(", ")}
+                          .
+                        </p>
+                      )}
+                    </div>
+                  </Card>
                 </div>
-                <Button
-                  disabled={
-                    busy ||
-                    !canGenerate ||
-                    (!!job &&
-                      !["completed", "failed", "cancelled", "blocked"].includes(
-                        job.status,
-                      ))
-                  }
-                  onClick={() => void generate()}
+                <aside
+                  className="selected-change-evidence"
+                  aria-label="Evidence for selected change"
                 >
-                  <Sparkles />
-                  Suggest lesson changes
+                  <div className="change-evidence-heading">
+                    <h3>Evidence for this change</h3>
+                    <p>{sourceFindings.length} linked teaching notes</p>
+                  </div>
+                  {refs.length ? (
+                    <>
+                      <label className="field">
+                        <span>Student answer</span>
+                        <Select
+                          aria-label="Evidence for this change"
+                          value={
+                            selectedRef
+                              ? `${selectedRef.responseId}:${selectedRef.responseRevision}`
+                              : ""
+                          }
+                          onChange={(e) => setEvidenceId(e.target.value)}
+                        >
+                          {refs.map((ref) => {
+                            const r = selectResponseRevision(
+                              state,
+                              ref.responseId,
+                              ref.responseRevision,
+                            );
+                            const sub = state.submissions.find(
+                              (s) => s.id === r?.submissionId,
+                            );
+                            const sourceBatch = state.batches.find(
+                              (b) => b.id === sub?.batchId,
+                            );
+                            const template = data.curriculum.templates.find(
+                              (t) => t.id === sourceBatch?.templateId,
+                            );
+                            return (
+                              <option
+                                key={`${ref.responseId}:${ref.responseRevision}`}
+                                value={`${ref.responseId}:${ref.responseRevision}`}
+                              >
+                                {state.students.find(
+                                  (s) => s.id === sub?.studentId,
+                                )?.displayName ?? "Student"}{" "}
+                                · Question{" "}
+                                {(template?.questionIds.indexOf(
+                                  r?.questionId ?? "",
+                                ) ?? -1) + 1}{" "}
+                                · reading {ref.responseRevision}
+                              </option>
+                            );
+                          })}
+                        </Select>
+                      </label>
+                      {chosenEvidence && evidenceSubmission ? (
+                        <>
+                          <EvidenceView
+                            compact
+                            submissionId={chosenEvidence.submissionId}
+                            questionId={chosenEvidence.questionId}
+                          />
+                          <Card>
+                            <div className="change-evidence-reading">
+                              <strong>
+                                {evidenceStudent?.displayName}’s saved reading
+                              </strong>
+                              <p>
+                                {chosenEvidence.workingText ||
+                                  "No working shown"}
+                              </p>
+                              <p>
+                                <b>
+                                  {chosenEvidence.answerText ||
+                                    "No final answer"}
+                                </b>
+                              </p>
+                              <p className="text-small">
+                                Help given:{" "}
+                                {recordedHelp?.level === "independent"
+                                  ? "Without help"
+                                  : recordedHelp?.level === "supported"
+                                    ? "With help"
+                                    : "Not recorded"}
+                              </p>
+                              {recordedHelp?.note && (
+                                <p className="text-small muted">
+                                  {recordedHelp.note}
+                                </p>
+                              )}
+                              <details>
+                                <summary>Approved teaching note</summary>
+                                <p>
+                                  {sourceObservation?.interpretation ??
+                                    (fresh
+                                      ? sourceFinding?.explanation
+                                      : "This teaching note has changed. Update the suggestions before using it.")}
+                                </p>
+                              </details>
+                              <Link
+                                className="text-link"
+                                href={`/review/${evidenceSubmission.batchId}?response=${chosenEvidence.id}&revision=${chosenEvidence.revision}${sourceObservation ? `&observation=${sourceObservation.id}` : ""}#answer-inspector`}
+                              >
+                                Open this answer
+                              </Link>
+                            </div>
+                          </Card>
+                        </>
+                      ) : (
+                        <Banner tone="warning">
+                          The exact saved reading is unavailable. Review this
+                          evidence before saving changes.
+                        </Banner>
+                      )}
+                    </>
+                  ) : (
+                    <Banner>
+                      No linked evidence is available for this change.
+                    </Banner>
+                  )}
+                </aside>
+              </div>
+            </section>
+            <div className="plan-save-bar">
+              <div>
+                <strong>
+                  {selectedIds.length} of {proposal.changes.length} changes
+                  selected · {total} minutes
+                </strong>
+                <p>Unchecked changes keep the original lesson.</p>
+              </div>
+              <div className="inline-actions">
+                <Button variant="outline" asChild>
+                  <Link href={`/calendar?proposal=${proposal.id}`}>
+                    Preview calendar
+                  </Link>
+                </Button>
+                <Button
+                  disabled={busy || (selectedIds.length > 0 && !fresh)}
+                  onClick={() => void apply()}
+                >
+                  <Check />
+                  {selectedIds.length
+                    ? "Save selected changes"
+                    : "Keep original lesson"}
                 </Button>
               </div>
-            </Card>
-          )}
-          <section className="saved-lesson-section">
-            <div className="results-section-heading">
-              <h2>
-                {historical
-                  ? `Lesson version ${version.versionNumber}`
-                  : "Lesson activities"}
-              </h2>
-              <Badge tone="green">Saved</Badge>
             </div>
-            <Card>
-              {version.snapshot.blocks.map((block) => (
-                <div className="saved-block" key={block.id}>
-                  <div className="saved-block-header">
-                    <h3>{block.title}</h3>
-                    <Badge>{block.minutes} min</Badge>
+          </>
+        ) : (
+          <>
+            {!historical && (
+              <Card>
+                <div className="lesson-suggest-prompt">
+                  <div>
+                    <h2>Saved lesson</h2>
+                    <p>
+                      {wrongTarget
+                        ? "Keep this saved lesson for reference. Use the linked lesson above for new suggestions."
+                        : confirmed.length
+                          ? `${confirmed.length} current teaching notes can inform a suggestion. Review every change before saving.`
+                          : "Approve teaching notes from earlier work to prepare lesson suggestions."}
+                    </p>
                   </div>
-                  <p>{block.instructions}</p>
-                  {block.lanes && <Lanes block={block} />}
+                  <Button
+                    disabled={
+                      busy ||
+                      !canGenerate ||
+                      (!!job &&
+                        ![
+                          "completed",
+                          "failed",
+                          "cancelled",
+                          "blocked",
+                        ].includes(job.status))
+                    }
+                    onClick={() => void generate()}
+                  >
+                    <Sparkles />
+                    Suggest lesson changes
+                  </Button>
                 </div>
-              ))}
-            </Card>
-          </section>
-          {version.evidence.length > 0 && (
-            <details className="saved-lesson-history">
-              <summary>Evidence used for this saved version</summary>
-              <p>These links open the exact reading saved with this lesson.</p>
-              <div className="note-evidence-links">
-                {version.evidence.map((ref) => {
-                  const reading = selectResponseRevision(
-                    state,
-                    ref.responseId,
-                    ref.responseRevision,
-                  );
-                  const submission = state.submissions.find(
-                    (s) => s.id === reading?.submissionId,
-                  );
-                  if (!reading || !submission)
-                    return (
-                      <span key={`${ref.responseId}:${ref.responseRevision}`}>
-                        Saved reading unavailable
-                      </span>
-                    );
-                  const sourceBatch = state.batches.find(
-                    (b) => b.id === submission.batchId,
-                  );
-                  const template = data.curriculum.templates.find(
-                    (t) => t.id === sourceBatch?.templateId,
-                  );
-                  const observation = state.observations
-                    .filter(
-                      (o) =>
-                        o.createdAt <= version.createdAt &&
-                        o.evidence.some(
-                          (e) =>
-                            e.responseId === ref.responseId &&
-                            e.responseRevision === ref.responseRevision,
-                        ),
-                    )
-                    .at(-1);
-                  return (
-                    <Link
-                      key={`${ref.responseId}:${ref.responseRevision}`}
-                      className="text-link"
-                      href={`/review/${submission.batchId}?response=${ref.responseId}&revision=${ref.responseRevision}${observation ? `&observation=${observation.id}` : ""}#answer-inspector`}
-                    >
-                      {
-                        state.students.find(
-                          (s) => s.id === submission.studentId,
-                        )?.displayName
-                      }{" "}
-                      · Q
-                      {(template?.questionIds.indexOf(reading.questionId) ??
-                        -1) + 1}{" "}
-                      · reading {ref.responseRevision}
-                    </Link>
-                  );
-                })}
-              </div>
-            </details>
-          )}
-        </>
-      )}
+              </Card>
+            )}
+          </>
+        )}
+      </section>
       {editing && proposal && (
         <ChangeEditor
           proposal={proposal}
@@ -1148,10 +1123,20 @@ function PlanContent({ lessonId }: { lessonId: string }) {
     </div>
   );
 }
-export default function PlanPage({ lessonId }: { lessonId: string }) {
+export default function PlanPage({
+  lessonId,
+  initialVersionId,
+}: {
+  lessonId: string;
+  initialVersionId?: string;
+}) {
   return (
     <PageGate>
-      <PlanContent lessonId={lessonId} />
+      <PlanContent
+        key={`${lessonId}:${initialVersionId ?? "current"}`}
+        lessonId={lessonId}
+        initialVersionId={initialVersionId}
+      />
     </PageGate>
   );
 }

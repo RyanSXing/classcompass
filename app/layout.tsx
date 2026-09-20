@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 import "./revamp.css";
 import "./review-plan.css";
+import "./assistant.css";
+import "./intelligence.css";
 import { WorkspaceProvider } from "@/components/workspace-provider";
 import { AppShell } from "@/components/app-shell";
 

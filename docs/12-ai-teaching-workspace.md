@@ -26,7 +26,7 @@ The server assembles context from the authenticated classroom: current effective
 
 All returned citations resolve to server-known records. A model supplies source IDs, never arbitrary links. Suggestions remain drafts. Teacher goals are unset until the teacher saves them. Goal/evidence changes make prior brief context visibly stale without erasing history.
 
-The existing OpenRouter free text model powers live answers and briefs. A teacher may select live assistance while retaining sample worksheet readings; both sources remain labeled separately. Sample answers are explicitly identified and generated from current saved data. Provider failures produce visible errors with no silent sample or paid-model fallback.
+The explicitly selected provider powers live answers and briefs: direct DeepSeek with a private key, or the existing free-only OpenRouter route. Direct DeepSeek is billed to the configured account. A teacher may select live assistance while retaining sample worksheet readings; both sources remain labeled separately. Sample answers are explicitly identified and generated from current saved data. Provider failures produce visible errors with no silent sample or paid-model fallback.
 
 Conversation and goals persist in local storage or the existing Supabase owner-scoped state. The additive migration preserves existing data and access controls. Requests are bounded and idempotent; model calls occur outside storage transactions; results generated against changed context are rejected or explicitly marked stale.
 
@@ -39,4 +39,4 @@ Conversation and goals persist in local storage or the existing Supabase owner-s
 - Live and sample responses are labeled; unknown sources, cross-owner references, invalid output and provider failures cannot mutate classroom decisions.
 - Existing upload, correction, review, planning, history and print flows continue to pass, including mobile and keyboard checks.
 
-Implementation uses the existing Next.js, Supabase and direct OpenRouter boundaries. No new charting library or external assistant data store is required.
+Implementation uses the existing Next.js, Supabase and direct model-provider boundaries. No new charting library or external assistant data store is required. The original purple and aqua design is retained.

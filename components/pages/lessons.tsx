@@ -19,7 +19,7 @@ function Content() {
     <div className="page">
       <PageHeading
         title="Lessons"
-        description="Fraction addition · 45 minutes per lesson"
+        description="Ready-to-teach fraction lessons with worked examples, practice, and exit checks."
       >
         <Button variant="outline" asChild>
           <Link href="/calendar">
@@ -79,7 +79,7 @@ function Content() {
                   )}
                 </div>
                 <Button variant="outline" asChild>
-                  <Link href={`/plans/${plan.id}`}>Open lesson</Link>
+                  <Link href={`/plans/${plan.id}`}>Open lesson plan</Link>
                 </Button>
               </Card>
             );

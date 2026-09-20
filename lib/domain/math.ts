@@ -7,7 +7,9 @@ export function equalFractions(a: Rational, b: Rational): boolean { return a.num
 export function addFractions(a: Rational, b: Rational): Rational { return reduce({ numerator: a.numerator * b.denominator + b.numerator * a.denominator, denominator: a.denominator * b.denominator }); }
 export function parseFraction(text: string | null): Rational | null {
   if (!text) return null;
-  const match = text.trim().match(/^(-?\d+)\s*\/\s*(-?\d+)(?:\s*(?:meters?|metres?|m))?\s*[.!]?$/i);
+  // Worksheet labels can be part of a faithful transcription. Accept only this
+  // literal label; the anchored fraction grammar still rejects extra expressions.
+  const match = text.trim().match(/^(?:answer(?:\s*:\s*|\s+))?(-?\d+)\s*\/\s*(-?\d+)(?:\s*(?:meters?|metres?|m))?\s*[.!]?$/i);
   if (!match) return null;
   let numerator = Number(match[1]), denominator = Number(match[2]);
   if (!Number.isSafeInteger(numerator) || !Number.isSafeInteger(denominator) || Math.abs(numerator) > 10000 || Math.abs(denominator) > 10000 || denominator === 0) return null;
@@ -58,5 +60,5 @@ export function checkMath(question: Question, workingText: string, answerText: s
   const blank = legibility === 'blank' && !workingText.trim() && !answerText;
   const status = blank ? 'blank' : !parsed || legibility === 'uncertain' ? 'unresolved' : equalFractions(parsed, expected) ? 'correct' : 'incorrect';
   const unitStatus = !question.answerUnit ? 'not_required' : !answerText ? 'unresolved' : /\b(?:meters?|metres?|m)\b/i.test(answerText) ? 'correct' : parsed ? 'missing' : 'unresolved';
-  return { status, parsed, expected, unitStatus, contradictions, denominatorAddition, equivalentReasoning, checkerVersion: 2 };
+  return { status, parsed, expected, unitStatus, contradictions, denominatorAddition, equivalentReasoning, checkerVersion: 3 };
 }

@@ -39,7 +39,9 @@
     ".next-build/types/**/*.ts",
     ".next-build/dev/types/**/*.ts",
     ".next-revamp/types/**/*.ts",
-    ".next-revamp/dev/types/**/*.ts"
+    ".next-revamp/dev/types/**/*.ts",
+    ".next-intelligence/types/**/*.ts",
+    ".next-intelligence/dev/types/**/*.ts"
   ],
   "exclude": [
     "node_modules"

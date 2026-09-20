@@ -18,6 +18,8 @@ export type WorkspaceData = {
     aiMode: "fixture" | "live";
     dataBackend: "local" | "supabase";
     teacher: string;
+    aiProvider?: "openrouter" | "deepseek";
+    assistantLiveAvailable?: boolean;
   };
   curriculum: typeof curriculum;
 };

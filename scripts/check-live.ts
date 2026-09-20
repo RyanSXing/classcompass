@@ -15,7 +15,7 @@ const reasoningPhase=process.argv.includes('--followup')?'followup':'baseline';
 const reasoningEffort=process.argv.includes('--low')?'low':'disabled';
 const smoke=process.argv.includes('--smoke')||reasoningSmoke;
 const output=path.join('.local',reasoningEvaluation?`live-${reasoningPhase==='followup'?'followup-':''}reasoning-${reasoningEffort==='low'?'low-':''}evaluation.json`:reasoningSmoke?'live-reasoning-smoke.json':smoke?'live-smoke.json':'live-evaluation.json');
-const record:{startedAt:string;mode:string;models:unknown;calls:number;catalog?:unknown;pages:unknown[];stages:unknown[];providerResponses?:unknown[];summary?:unknown;error?:unknown;completedAt?:string}={startedAt:new Date().toISOString(),mode:reasoningEvaluation?'live-text-evaluation':smoke?'live-smoke':'live-evaluation',models:{vision:configuration().visionModel,reasoning:configuration().reasoningModel},calls:0,pages:[],stages:[]};
+const record:{startedAt:string;mode:string;models:unknown;calls:number;catalog?:unknown;pages:unknown[];stages:unknown[];providerResponses?:unknown[];summary?:unknown;error?:unknown;completedAt?:string}={startedAt:new Date().toISOString(),mode:reasoningEvaluation?'live-text-evaluation':smoke?'live-smoke':'live-evaluation',models:{provider:configuration().aiProvider,vision:configuration().visionModel,reasoning:configuration().reasoningModel},calls:0,pages:[],stages:[]};
 let lastDispatch=0;
 async function persist(){await mkdir('.local',{recursive:true});await writeFile(output,JSON.stringify(record,null,2)+'\n',{mode:0o600});}
 async function call<T>(fn:()=>Promise<T>){
@@ -25,11 +25,13 @@ async function call<T>(fn:()=>Promise<T>){
  // credentials, prompts, cookies, URLs with tokens, or raw provider errors.
  if(reasoningEvaluation)globalThis.fetch=async(input,init)=>{
   const response=await originalFetch(input,init);
-  if(String(input)==='https://openrouter.ai/api/v1/chat/completions'&&response.ok){
+  const endpoint=String(input);
+  const provider=endpoint==='https://openrouter.ai/api/v1/chat/completions'?'openrouter':['https://api.deepseek.com/chat/completions','https://api.deepseek.com/v1/chat/completions'].includes(endpoint)?'deepseek':null;
+  if(provider&&response.ok){
    const body=await response.clone().json() as {model?:string;usage?:unknown;choices?:{finish_reason?:string;message?:{content?:string}}[]};
    const choice=body.choices?.[0];let content:unknown=choice?.message?.content;
    if(typeof content==='string'){try{content=JSON.parse(content);}catch{/* Retain malformed synthetic content for diagnosis. */}}
-   (record.providerResponses??=[]).push({model:body.model,status:response.status,finishReason:choice?.finish_reason,usage:body.usage,content});
+   (record.providerResponses??=[]).push({provider,model:body.model,status:response.status,finishReason:choice?.finish_reason,usage:body.usage,content});
   }
   return response;
  };
@@ -40,9 +42,29 @@ function answerAgreement(actual:string|null,reference:string|null){if(actual===n
 function safeError(error:unknown){return error instanceof AIError?{code:error.code,message:error.message,retryable:error.retryable,retryAfterMs:error.retryAfterMs,...(error.cause instanceof DomainError?{validation:{code:error.cause.code,message:error.cause.message}}:{})}:{code:'EVALUATION_FAILED',message:'Evaluation stopped at a validation or local data step. Inspect the test setup; no production classroom state was changed.'};}
 function reviewEligible(state:AppState,findings:Finding[]){const reviewed:string[]=[],unreviewed:string[]=[];for(const f of findings){try{reviewFindings(state,{items:[{findingId:f.id,expectedRevision:f.revision,decision:'confirm'}],acknowledgeClearReadings:true,reason:'Automated synthetic evaluation only; not a real teacher review.'});reviewed.push(f.id);}catch{unreviewed.push(f.id);}}return{reviewed,unreviewed};}
 async function catalogCheck(){
- const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),15000);
- try{const response=await fetch('https://openrouter.ai/api/v1/models',{signal:controller.signal});if(!response.ok)throw new AIError('CATALOG_UNAVAILABLE','Could not verify the configured free model catalog.',false);const catalog=await response.json() as {data:{id:string;architecture:{input_modalities:string[]};pricing:{prompt:string;completion:string};supported_parameters:string[]}[]};const cfg=configuration();const selected=[cfg.visionModel,cfg.reasoningModel].map(id=>catalog.data.find(m=>m.id===id));if(selected.some(m=>!m))throw new AIError('MODEL_CATALOG_MISSING','A configured free model is missing from the current catalog. No substitution was attempted.',false);const[vision,reasoning]=selected;if(!vision!.architecture.input_modalities.includes('image')||!vision!.supported_parameters.includes('response_format')||!reasoning!.supported_parameters.includes('structured_outputs'))throw new AIError('MODEL_CAPABILITY','A configured endpoint does not advertise the required image or structured-output capability.',false);if(selected.some(m=>Number(m!.pricing.prompt)!==0||Number(m!.pricing.completion)!==0))throw new AIError('MODEL_COST','A configured endpoint is no longer free; no completion request was made.',false);record.catalog=selected.map(m=>({id:m!.id,inputModalities:m!.architecture.input_modalities,pricing:m!.pricing,supportedParameters:m!.supported_parameters}));}finally{clearTimeout(timer);}
+ const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),15000),cfg=configuration();
+ try{
+  if(cfg.aiProvider==='deepseek'){
+   const key=process.env.DEEPSEEK_API_KEY?.trim();if(!key)throw new AIError('AI_KEY_MISSING','Set the selected DeepSeek provider key before live evaluation.',false);
+   const response=await fetch('https://api.deepseek.com/models',{headers:{Authorization:`Bearer ${key}`},signal:controller.signal,redirect:'error'});
+   if(!response.ok)throw new AIError('CATALOG_UNAVAILABLE','Could not verify the configured direct DeepSeek models. No completion request was made.',false);
+   const catalog=await response.json() as {data:{id:string}[]};
+   const selected=[cfg.visionModel,cfg.reasoningModel].map(id=>catalog.data.find(m=>m.id===id));
+   if(selected.some(m=>!m))throw new AIError('MODEL_CATALOG_MISSING','A configured direct DeepSeek model is missing from the current catalog. No substitution was attempted.',false);
+   record.catalog={provider:'deepseek',models:selected.map(m=>({id:m!.id})),billing:'Direct API uses the configured account; this is not the free OpenRouter endpoint.'};return;
+  }
+  const response=await fetch('https://openrouter.ai/api/v1/models',{signal:controller.signal});
+  if(!response.ok)throw new AIError('CATALOG_UNAVAILABLE','Could not verify the configured free model catalog.',false);
+  const catalog=await response.json() as {data:{id:string;architecture:{input_modalities:string[]};pricing:{prompt:string;completion:string};supported_parameters:string[]}[]};
+  const selected=[cfg.visionModel,cfg.reasoningModel].map(id=>catalog.data.find(m=>m.id===id));
+  if(selected.some(m=>!m))throw new AIError('MODEL_CATALOG_MISSING','A configured free model is missing from the current catalog. No substitution was attempted.',false);
+  const[vision,reasoning]=selected;
+  if(!vision!.architecture.input_modalities.includes('image')||!vision!.supported_parameters.includes('response_format')||!reasoning!.supported_parameters.includes('structured_outputs'))throw new AIError('MODEL_CAPABILITY','A configured endpoint does not advertise the required image or structured-output capability.',false);
+  if(selected.some(m=>Number(m!.pricing.prompt)!==0||Number(m!.pricing.completion)!==0))throw new AIError('MODEL_COST','A configured endpoint is no longer free; no completion request was made.',false);
+  record.catalog=selected.map(m=>({id:m!.id,inputModalities:m!.architecture.input_modalities,pricing:m!.pricing,supportedParameters:m!.supported_parameters}));
+ }finally{clearTimeout(timer);}
 }
+
 async function main(){
  if(!reasoningEvaluation&&(process.argv.includes('--low')||process.argv.includes('--followup')))throw new AIError('EVALUATION_MODE','Use --reasoning-evaluation with --low or --followup for the explicit text-only evaluation.',false);
  await persist();await catalogCheck();
@@ -51,7 +73,7 @@ async function main(){
   // No OCR, production mutation, hidden reference answers or ground-truth groups.
   const sourcePath=process.env.LIVE_REASONING_STATE_FILE||(reasoningPhase==='followup'?'.local/e2e/state.json':'.local/classcompass/state.json');
   const saved=JSON.parse(await readFile(sourcePath,'utf8')) as AppState;
-  const batch=saved.batches.filter(b=>b.kind===reasoningPhase).at(-1),lessonId=reasoningPhase==='followup'?'lesson-2026-09-25':'lesson-2026-09-23';
+  const batch=saved.batches.filter(b=>b.templateId===`${reasoningPhase}-template-v1`).at(-1),lessonId=reasoningPhase==='followup'?'lesson-2026-09-25':'lesson-2026-09-23';
   if(!batch||batch.submissionIds.length!==8)throw new AIError('EVALUATION_STATE',`Load and review the eight fictional ${reasoningPhase} worksheets before this text-only evaluation.`,false);
   const corrected=structuredClone(saved),comparison=saved.findings.filter(f=>f.batchId===batch.id&&f.status==='confirmed');
   const ids=new Set(corrected.findings.filter(f=>f.batchId===batch.id).map(f=>f.id));

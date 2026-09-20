@@ -75,7 +75,7 @@ describe('trustworthy response analytics', () => {
     response.workingText='1/7=2/14; 5/6';response.mathCheck.equivalentReasoning=true;delete response.mathCheck.checkerVersion;
     const before=structuredClone(response);expect(classifyResponse(state,response).facets.reasoning).toBe('not_established');expect(response).toEqual(before);
     correctResponse(state,response.id,{expectedRevision:1,workingText:'1/2=3/6;1/3=2/6;3/6+2/6=5/6',answerText:'5/6',legibility:'clear',readingStatus:'resolved',reason:'Correct the recorded work.'});
-    expect(selectResponseRevision(state,response.id,1)).toEqual(before);expect(selectResponseRevision(state,response.id,2)?.mathCheck.checkerVersion).toBe(2);
+    expect(selectResponseRevision(state,response.id,1)).toEqual(before);expect(selectResponseRevision(state,response.id,2)?.mathCheck.checkerVersion).toBe(3);
     expect(selectResponseRevision(state,response.id,999)).toBeUndefined();
   });
 });

@@ -9,8 +9,10 @@ import { configuration } from '@/lib/server/config';
 import { repository } from '@/lib/server/repository';
 import { boundedBytes, finalizeUpload, getObject, MAX_FILE, prepareUploads, putObject } from '@/lib/server/storage';
 import { cancelJob, queueJob, retryJob, runNext } from '@/lib/server/jobs';
-import { loadDemo, analyzeDemo } from '@/lib/server/demo';
+import { loadDemo, analyzeDemo, resetDemoState } from '@/lib/server/demo';
 import { importLesson } from '@/lib/server/imports';
+import { AIError } from '@/lib/server/ai';
+import { askClassroomAssistant, generateClassroomBrief, getAssistantState, saveTeacherGoals } from '@/lib/server/assistant';
 
 export const runtime = 'nodejs';
 export const maxDuration = 120;
@@ -43,7 +45,16 @@ async function route(request: Request, context: Context) {
     const actor = await authenticate(request), repo = repository(actor), key = request.headers.get('idempotency-key') || undefined;
     if (key && (key.length > 160 || !/^[\w.-]+$/.test(key))) throw new DomainError('INVALID_REQUEST_KEY', 400, 'Use a short request key containing letters, digits, dots or hyphens.');
     const ctx = { actorId: actor.id, idempotencyKey: key };
-    if (area === 'classroom' && method === 'GET' && paths.length === 1) return ok({ state: await repo.read(), config: { aiMode: config.aiMode, dataBackend: config.dataBackend, teacher: actor.name }, curriculum });
+    if (area === 'classroom' && method === 'GET' && paths.length === 1) {
+      const state = await repo.read();
+      return ok({ state: { ...state, assistant: getAssistantState(state) }, config: { aiMode: config.aiMode, dataBackend: config.dataBackend, teacher: actor.name, aiProvider: config.aiProvider, assistantLiveAvailable: !!(config.aiProvider === 'deepseek' ? process.env.DEEPSEEK_API_KEY : process.env.OPENROUTER_API_KEY)?.trim() }, curriculum });
+    }
+    if (area === 'assistant' && paths.length === 2) {
+      if (id === 'chat' && method === 'POST') return ok(await askClassroomAssistant(repo, await body(request)));
+      if (id === 'brief' && method === 'POST') return ok(await generateClassroomBrief(repo, await body(request)));
+      if (id === 'goals' && method === 'PATCH') return ok(await saveTeacherGoals(repo, await body(request)));
+      if (id === 'context' && method === 'GET') return ok(getAssistantState(await repo.read()));
+    }
     if (area === 'uploads') {
       if (id === 'prepare' && method === 'POST') return ok(await prepareUploads(actor, repo, await body(request), key), 201);
       if (action === 'complete' && method === 'POST') return ok(await finalizeUpload(actor, repo, id));
@@ -71,7 +82,7 @@ async function route(request: Request, context: Context) {
       if (id === 'reset') {
         if (config.dataBackend !== 'local' || config.aiMode !== 'fixture') throw new DomainError('RESET_DISABLED', 403, 'Demo reset is available only in local fixture mode.');
         z.object({ confirm: z.literal(true) }).strict().parse(await body(request));
-        await repo.transact(state => Object.assign(state, domain.createInitialState(actor.id)));
+        await repo.transact(state => resetDemoState(state, actor.id));
         return ok({ reset: true });
       }
     }
@@ -123,6 +134,7 @@ async function route(request: Request, context: Context) {
     if (area === 'materials' && id && method === 'GET') { const state = await repo.read(); return ok({ version: record(state.planVersions, id), materialSet: state.materialSets.find(m => m.planVersionId === id) || null }); }
     throw new DomainError('NOT_FOUND', 404, 'This endpoint is unavailable.');
   } catch (error) {
+    if (error instanceof AIError) return Response.json({ error: { code: error.code, message: error.message, retryable: error.retryable, ...(error.retryAfterMs ? { retryAfterSeconds: Math.ceil(error.retryAfterMs / 1000) } : {}) } }, { status: error.code === 'AI_RATE_LIMIT' ? 429 : 502, headers: { 'Cache-Control': 'private, no-store' } });
     if (error instanceof ZodError) return Response.json({ error: { code: 'VALIDATION', message: 'Check the form fields and try again.', fieldErrors: z.flattenError(error).fieldErrors } }, { status: 422 });
     if (error instanceof DomainError) return Response.json({ error: { code: error.code, message: error.message, fieldErrors: error.fieldErrors } }, { status: error.status });
     console.error('ClassCompass request failed:', error instanceof Error ? error.name : 'UnknownError');

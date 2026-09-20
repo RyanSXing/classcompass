@@ -2,7 +2,33 @@
 
 Checks performed on September 19, 2026. All work, student identities and handwriting images used in these checks are fictional. Prepared AI results and live provider checks are reported separately.
 
-## Completed checks
+## AI teaching workspace revision
+
+The original purple/aqua palette is retained. The new Overview has an AI brief with cited next actions, three analytics views and a comparison chooser. Lessons are complete teacher documents, and the assistant saves goals and conversation history.
+
+| Check | Result and scope |
+| --- | --- |
+| Static and deterministic checks | 663 authored-specification assertions, ESLint, TypeScript and 163 tests across 19 files passed. Coverage includes direct-provider request formats, assistant persistence and citations, concurrency, historical evidence, narrow answer-label parsing, insight cohorts and complete saved lesson guides. |
+| Teacher browser workflow | Eight Chromium scenarios passed without retries. New coverage includes saved goals and follow-up chat, exact source links, eight-student/five-assignment matrix, question patterns, generated briefs and staleness, complete lesson guides, exact historical versions, concurrent goal edits and interrupted-question recovery. Nine routes fit 390px; keyboard navigation remains usable. |
+| Connected application | Fourteen real Supabase HTTP checks passed, including assistant goals, conversation, exact source revisions, briefing persistence, duplicate-request reuse and logout denial. Existing lessons and student evidence remained unchanged. These checks use explicit sample AI. |
+| Supabase isolation | The additive assistant migration was applied. Two authenticated owners verified assistant-state round trips and isolation alongside the existing history, concurrency and private-storage checks. Temporary test identities were cleaned up. |
+| Printed teacher plans | Letter and A4 teacher plans each rendered as four clean pages. All eight pages were visually inspected for clipping, working examples, prompts, answer keys, exit checks and separation from application controls. |
+| Production artifacts | Production build passed; 32 browser assets contain no private reference transcript payload and 16 server traces exclude local credentials/runtime data. |
+
+### Direct DeepSeek verification
+
+The user explicitly configured direct DeepSeek with a private key. `AI_PROVIDER=deepseek` uses `deepseek-flash` for images and text and is billed to that account. OpenRouter remains a separate free-only configuration; neither provider silently falls back to the other or to prepared results.
+
+- **Classroom chat:** a real HTTP request passed in 6.6 seconds against all 120 current answers, saved lessons and bounded history. It correctly separated Casey's two correct answers from one missing response and returned nine valid citations and two navigation actions. Earlier oversized free-provider requests and an invalid material citation were rejected; no unvalidated answer was saved.
+- **Teaching brief:** a real HTTP request passed in 7.8 seconds and returned three class actions with twelve validated sources: extension for five students, a worked-error check for Devon, and completion checks for Casey and Harper. The saved 45-minute lesson and October 2 assessment stayed unchanged.
+- **Analysis:** a direct live analysis of already teacher-corrected fictional baseline readings passed domain validation with eight findings and 8/8 next-step agreements against the saved teaching decisions. This is a text-model check, not an OCR result.
+- **Lesson proposal:** one response had malformed JSON and was rejected. A bounded retry on cloned, previously confirmed fictional findings passed with three changes and a 45-minute lesson in 7.0 seconds. The diagnostic did not alter a saved teacher plan.
+- **Handwriting:** a bounded run processed all 16 baseline/follow-up scans (48 responses). Exact normalized final-answer strings agreed on 43/48. Four differences were faithful labels such as `answer 2/5`, which exposed a parser limitation. Checker v3 now accepts only that narrow label syntax while preserving the original text; local re-evaluation of the captured results gives **47/48 numerical-and-unit agreement**, without another model call. One actual misreading remains: Harper's `7/12` was read as `?/12` with no final answer and was not marked uncertain. Teacher review is still required.
+- **Full live chain:** that 19-call vision/analysis/planning run did **not** complete successfully. Before the parser fix, Blake's labeled answers were treated as unresolved, and an unsupported targeted placement was rejected. Follow-up analysis also failed the required prior-evidence rule for continuing extension. These failures were retained; they are not reported as a successful all-live demonstration. The subsequent analysis prompt now spells out the required current/prior extension references, and direct non-thinking calls use temperature zero; those changes do not retroactively turn the recorded run into a pass.
+
+Private reports are in `.local/assistant-live-verification.json`, `.local/deepseek-brief-verification.json`, `.local/live-smoke.json`, `.local/live-reasoning-evaluation.json`, `.local/deepseek-proposal-verification.json`, `.local/live-evaluation.json` and `.local/live-evaluation-checker-v3.json`. No real student data was used, and no external teacher validated these outputs.
+
+## Earlier analytics revision checks
 
 | Check | Result and scope |
 | --- | --- |
@@ -19,9 +45,9 @@ Checks performed on September 19, 2026. All work, student identities and handwri
 
 The connected run summary is saved privately at `.local/connected-verification.json`; print inspections are in `.local/print-qa/`. Neither directory is committed. The public CI workflow repeats credential-free validation and the browser suite. The production app was restarted and manually checked to preserve saved evidence and proposals with no new browser warnings or errors.
 
-## Live provider availability
+## Historical OpenRouter evaluation
 
-The application is configured for the exact free endpoints `google/gemma-4-26b-a4b-it:free` and `deepseek/deepseek-v4-flash-0731:free`. It does not silently substitute prepared outputs or a paid model.
+The earlier free-provider evaluation used the exact endpoints `google/gemma-4-26b-a4b-it:free` and `deepseek/deepseek-v4-flash-0731:free`. It does not silently substitute prepared outputs or a paid model.
 
 Gemma returned provider rate limits, including after a roughly 20-minute cooldown. A tiny strict-JSON DeepSeek diagnostic succeeded in 1.16 seconds with reasoning disabled, but this did not predict full-task quality. Full-class text findings failed evidence/coverage checks, including incorrect claim scopes, cross-student references and unsupported interpretations. Grouping actual evidence by student and narrowing the output schema removed some structural errors; substantive analysis failures remained. A separate low-reasoning analysis reached the 75-second limit and did not trigger a planning call.
 
@@ -29,7 +55,7 @@ After constraining authored lesson/material IDs, **one live proposal passed doma
 
 The production default explicitly disables optional text reasoning; the low setting is evaluation-only. Neither tested setting established a complete live loop. Private reports include `.local/live-reasoning-initial.json`, `.local/live-reasoning-evaluation.json`, `.local/live-reasoning-low-evaluation.json` and `.local/live-gemma-diagnostic.json`. Rejected outputs remain outside the saved classroom; the application never silently switches to prepared outputs.
 
-The original live handwriting evaluation has not completed: **0 of 16 scans and 0 of 48 responses were evaluated successfully. No accuracy percentage is claimed.** The expanded five-assignment catalog has not been evaluated with live models; the revamp checks made no live calls. Prepared demonstration behavior remains available independently of provider capacity. See [implementation details](implementation.md) and run `npm run test:live` to measure current providers.
+The original live handwriting evaluation has not completed: **0 of 16 scans and 0 of 48 responses were evaluated successfully. No accuracy percentage is claimed.** Those earlier free-provider checks did not evaluate the expanded five-assignment catalog. The later direct-provider checks are reported above. Prepared demonstration behavior remains available independently of provider capacity. See [implementation details](implementation.md) and run `npm run test:live` to measure current providers.
 
 ## Reproduce
 
@@ -40,7 +66,7 @@ npm run verify
 npm run test:e2e
 ```
 
-Connected verification needs private Supabase configuration and the demo teacher login. Start a Supabase-backed instance on port 3002, then run `npm run test:supabase` and `npm run test:connected` as described in [Supabase setup](supabase-setup.md) and [implementation details](implementation.md). `npm run test:live` deliberately contacts the configured free providers.
+Connected verification needs private Supabase configuration and the demo teacher login. Start a Supabase-backed instance on port 3002, then run `npm run test:supabase` and `npm run test:connected` as described in [Supabase setup](supabase-setup.md) and [implementation details](implementation.md). `npm run test:live` deliberately contacts the configured provider; direct DeepSeek requests are billed to the configured account.
 
 Changing `AI_MODE` affects new processing. Refreshing findings reuses the saved, teacher-effective readings and does not erase corrections or re-transcribe existing submissions. Their original extraction provenance remains attached. Use a new upload/batch to evaluate fresh vision extraction after switching modes; mixed prepared/live stages must not be presented as an all-live OCR demonstration.
 

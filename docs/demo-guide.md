@@ -1,6 +1,6 @@
 # ClassCompass demonstration guide
 
-The recording is **4 minutes 50 seconds**, leaving ten seconds under the submission limit. Show the answer data, a teacher correction and the resulting lesson decision. Keep the **Sample mode** label visible; these are fictional worksheets with prepared results.
+The recording is **4 minutes 50 seconds**, leaving ten seconds under the submission limit. Lead with a concrete teaching decision, show its evidence, ask a follow-up question, and save a lesson change after a teacher correction. Keep **Sample** labels visible; these are fictional worksheets with prepared readings and disclosed sample assistance.
 
 ## Prepare
 
@@ -8,20 +8,26 @@ Start the local app, then choose **Assignments → Load sample class**. This loa
 
 For a live upload scene, use **Upload work → First check → Load sample worksheets → Analyze this upload** in a clean workspace. The sample-class shortcut is faster for showing analytics across all five dates. Neither option represents live OCR. Ordinary uploads still accept the supplied PNGs, JPEGs and one-page PDFs.
 
+Rehearse with **First check** selected. Review its clear teaching notes before recording, leaving Finley's flagged reading for the on-camera correction. Do not describe these previously reviewed notes as newly approved during the video. Keep the September 23 lesson open in a second tab. Use the same saved classroom throughout so the correction, updated notes and accepted lesson are connected.
+
+Prepare a short teaching goal such as “Help students explain why the parts need the same size, while keeping the lesson to 45 minutes.” Use **Sample** in the teaching brief and Assistant unless a separate live-text check has succeeded. The existing sample worksheet readings retain their labels even when live text assistance is selected.
+
 ## 4:50 recording
 
 | Time | Screen and action | Point to explain |
 | --- | --- | --- |
-| 0:00–0:25 | Overview with all five assignment bars | One class, five assignments. Every count opens its answers. Tasks and help may differ; this is fictional evidence, not a measured impact study. |
-| 0:25–1:00 | Select First check, open Incorrect, choose Avery Q1 and Q2 | Inspect repeated denominator addition in the written steps. Incorrect answers and unclear readings are separate. |
-| 1:00–1:40 | Open First check’s flagged Finley Q3, edit `1/5` to the visible `1/2` | Correct the prepared misread. Show the original work and retained reading history. |
-| 1:40–2:15 | Edit Gray’s help to supported, update notes and approve reviewed notes | The answer stays correct. Help changes the next teaching step. Approval is separate from reading correction. |
-| 2:15–3:05 | Plan the next lesson; suggest changes; select practice; inspect its source evidence; keep the original exit task; save selected changes | Each change names students, reason and minutes. The teacher edits and chooses. The lesson remains 45 minutes. |
-| 3:05–3:35 | Open materials and calendar | Show the printable task, fixed October 2 assessment and the wider calendar. |
-| 3:35–4:25 | Casey’s student page: compare supported Fraction practice with later independent work; open Independent check, approve notes and preview October 1 | Follow the same students over time. Later independent evidence can support a new next step, while earlier help and missing work remain visible. |
-| 4:25–4:50 | Return to overview or the selected lesson change | Briefly name the stack and team roles. State that wider curriculum support and real handwriting quality still need evaluation. |
+| 0:00–0:25 | Overview → First check → Generate teaching insights in Sample mode | Start with “What should I teach next?” Point to a named group, a concrete activity, its time and a cited answer. Distinguish generated suggestions from approved teaching notes. |
+| 0:25–0:55 | Students over time | Show the eight-student, five-assignment matrix. Open one student's work. Correct/usable counts sit beside missing answers, flags and recorded help; the cells are dated observations, not permanent ability labels. |
+| 0:55–1:20 | Question patterns, then Class results → Compare with on a later assignment | Show repeated denominator addition separately from unclear reading. The comparison names the paired independent work and discloses differences in questions or help. |
+| 1:20–1:55 | Assistant → save the teaching goal → ask “How should I explain equal-sized parts to Avery, and what should I check next?” with First check selected | Show the practical explanation and open a citation. The assistant uses saved goals and classroom context; it cannot approve notes or save a lesson. |
+| 1:55–2:40 | First check → Finley Q3 → Edit reading; replace `1/5` with the visible `1/2`; update and approve the revised teaching note | Correct the disclosed prepared misread against its source. Approval is a separate decision. Earlier reading history remains available. |
+| 2:40–4:15 | September 23 lesson → Review suggestions → suggest changes; inspect practice evidence; edit a proposed instruction; save only the practice change | The teacher chooses a concrete change and keeps the original exit task. Show the resulting complete 45-minute plan, including the worked example, simultaneous groups and success check. Open Print teacher plan or the separate student activities. |
+| 4:15–4:40 | Return to First check's brief, show the update notice and refresh it; then select Independent check | A saved correction changes the context for the next recommendation. New work can suggest a different next step without rewriting earlier evidence. |
+| 4:40–4:50 | End on the saved lesson or teaching brief | Name the stack briefly and state that these are fictional data; broader curriculum coverage and real handwriting quality still need evaluation. |
 
 Keep transitions and credits inside these 290 seconds. Caption any skipped wait as **“Processing time shortened.”** If a Grade 5 teacher participates, describe their actual feedback; participation is not yet confirmed.
+
+If time is tight, skip the comparison interaction and printable preview; retain the matrix, question pattern, cited assistant answer, teacher correction and saved lesson change. Gray's help correction below is a useful alternate scene, but is not required in this shorter recording.
 
 ## The two corrections, precisely
 
@@ -34,9 +40,17 @@ With those reviewed fictional inputs, expected baseline placement is targeted su
 
 Fixture mode recognizes exact prepared scan hashes and recomputes findings/proposals from effective responses, support context and teacher confirmations. Arbitrary uploads cannot borrow prepared answers based on their filenames. Original scans, initial extraction and teacher revisions remain inspectable. Available static sample PDFs are examples; print the **accepted plan's Materials page** when demonstrating the saved lesson.
 
-Live mode uses OpenRouter with `google/gemma-4-26b-a4b-it:free` for image transcription and `deepseek/deepseek-v4-flash-0731:free` for text analysis/planning. It sends known questions and actual work, without hidden student reference answers or intended groups. It never silently substitutes fixture results or a paid model.
+Teaching briefs and Assistant conversations use the current saved evidence, teacher goals and lesson context. Sample replies are explicitly labeled; they are not represented as live model calls. Live text assistance can be selected independently of prepared worksheet readings. Briefs and conversations persist after reload, and changed evidence or goals mark prior brief context as needing an update. Their citations resolve to saved classroom records; a suggestion does not change a student's approved note or a saved plan.
 
-The September 19, 2026 checks confirmed catalog capabilities, but Gemma remained rate-limited. DeepSeek returned structured text; full-class findings failed validation, while one proposal from previously confirmed fictional evidence passed. A low-reasoning analysis timed out at 75 seconds. **Zero of the sixteen scans were evaluated successfully, and no complete live analysis loop passed.** Do not present this recording as a successful live-model benchmark. A later successful evaluation should report its exact models, timestamp, 48-response comparison and correction needs separately.
+The complete **Lesson plan** is a teacher copy: authored teaching guidance, exact saved instructions, worked answers and any saved group names. **Print teacher plan** prints that guide. Student activities and their separate answer keys remain on the Materials page. Do not distribute the teacher plan as a student worksheet.
+
+Live mode uses the explicitly configured provider. `AI_PROVIDER=deepseek` with `DEEPSEEK_API_KEY` selects direct DeepSeek calls billed to that account; `DEEPSEEK_VISION_MODEL` and `DEEPSEEK_REASONING_MODEL` both default to `deepseek-flash`. A two-call direct smoke check read all four answers on one fictional worksheet correctly and produced a student analysis that passed domain validation. This limited result does not establish whole-class or general handwriting accuracy.
+
+`AI_PROVIDER=openrouter` with `OPENROUTER_API_KEY` retains the free-only route: `google/gemma-4-26b-a4b-it:free` for image transcription and `deepseek/deepseek-v4-flash-0731:free` for text analysis/planning. Both provider paths send known questions and actual work, without hidden student reference answers or intended groups. There is no implicit fallback between providers, to prepared results, or to a paid model. Direct DeepSeek must be selected explicitly.
+
+The September 19, 2026 **OpenRouter** handwriting/analysis checks confirmed catalog capabilities, but Gemma remained rate-limited. DeepSeek returned structured text; full-class findings failed validation, while one proposal from previously confirmed fictional evidence passed. A low-reasoning analysis timed out at 75 seconds. **Zero of the sixteen scans in that OpenRouter evaluation were evaluated successfully, and no complete live analysis loop passed.** That historical evaluation covered the baseline and follow-up's 48 answers, not the later five-assignment catalog or the separate direct DeepSeek check. Report each evaluation's exact provider, models, timestamp, scope and correction needs.
+
+Report live chat and teaching-brief results separately from OCR: a successful cited text answer over prepared readings does not validate handwriting extraction. See [verification results](verification-results.md) for the current provider checks and their limits.
 
 ## Source files and downloads
 
@@ -65,9 +79,9 @@ All files below are also served under `/demo/` while the app runs. The [manifest
 | Slide | Message and visual |
 | --- | --- |
 | **1. What should I teach next?** | Teacher problem; the loop **Upload → Review → Adjust → Teach → Check**; one Grade 5 unit and explicit fictional-data label. |
-| **2. Evidence that a teacher can correct** | Original question beside the finding; Finley's disclosed simulated misread; Gray's support correction; no permanent student labels. |
-| **3. An accepted instructional change** | Before/after of the 12-minute practice block; targeted/application/extension activities; accepted printable; unchanged 45-minute total and fixed assessment. |
-| **4. Architecture and verification** | Browser → authenticated API → domain/repository; image and text model boundaries; deterministic arithmetic/revision checks. Show actual test results only after they are recorded; disclose the blocked live evaluation. |
-| **5. Progress and next scope** | Fresh follow-up changes September 25 while preserving earlier evidence; intended teacher value; future real-classroom evaluation and wider curriculum planning. No measured time-saving or learning-impact claim. |
+| **2. A clear decision, backed by data** | Generated teaching brief, student matrix and question patterns; the named students, activity, evidence and next check. Separate uncertain reading from wrong answers. |
+| **3. The teacher stays in control** | Cited Assistant response using a saved goal; Finley's disclosed correction; before/after of a selected practice change; complete 45-minute teacher plan. |
+| **4. Architecture and verification** | Browser → authenticated API → domain/repository; saved goals/chat; bounded model context and known-source citations; deterministic arithmetic/revision checks. Report actual test and live-provider results separately. |
+| **5. Progress and next scope** | Fresh work changes the next recommendation while preserving earlier evidence and help. Show printable teaching support and the fixed assessment. Future real-classroom evaluation and wider curriculum planning; no measured time-saving or learning-impact claim. |
 
 Prepare video and slide links after recording. Recheck the [official SASEhack guide](https://sase-hack.notion.site/SASEhack-2026-Hacker-Guide-38b9bed74f8e8093aba7fd8132b70a16) before final submission; this guide does not assert that a video, slide deck, hosted app or submission has been published.

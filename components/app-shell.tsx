@@ -14,6 +14,7 @@ import {
   X,
   Files,
   Users,
+  Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -76,6 +77,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         path.startsWith("/plans") ||
         path.startsWith("/materials") ||
         path === "/calendar",
+    },
+    {
+      href: "/assistant",
+      label: "Assistant",
+      icon: Sparkles,
+      active: path === "/assistant",
     },
   ];
   const navigation = (
@@ -169,6 +176,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             Grade 5 <span className="muted">/</span> Fractions
           </div>
           <div className="utility-tags">
+            <Link className="assistant-quick-link" href="/assistant">
+              <Sparkles size={15} />
+              Ask assistant
+            </Link>
             <details className="info-disclosure">
               <summary>
                 <Badge
@@ -186,7 +197,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 </strong>
                 <p>
                   {data?.config.aiMode === "live"
-                    ? "Uploads use OpenRouter. Sample work uses prepared readings."
+                    ? "Uploads use live AI. Sample work uses prepared readings."
                     : "Sample results are prepared, not live model output."}
                 </p>
                 <p>
