@@ -1,4 +1,5 @@
 "use client";
+import { StudentAvatar } from "@/components/student-avatar";
 import Link from "next/link";
 import { ArrowRight, BarChart3, Grid2X2, ListChecks } from "lucide-react";
 import type { AppState } from "@/lib/contracts";
@@ -374,9 +375,7 @@ function StudentMatrix({
               <tr key={student.id}>
                 <th scope="row">
                   <Link href={`/students/${student.id}`}>
-                    <span className="matrix-avatar" aria-hidden="true">
-                      {student.displayName.slice(0, 1)}
-                    </span>
+                    <StudentAvatar studentId={student.id} size={28} />
                     {student.displayName}
                   </Link>
                 </th>

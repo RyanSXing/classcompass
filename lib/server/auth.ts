@@ -5,13 +5,16 @@ import { configuration, LOCAL_OWNER } from './config';
 import { DomainError } from '@/lib/domain/errors';
 
 export type Actor = { id: string; name: string; client?: SupabaseClient };
+export function shouldUseSecureCookies() {
+  return process.env.APP_DEPLOYMENT === 'hosted' || !!process.env.VERCEL || process.env.APP_BASE_URL?.startsWith('https://') === true;
+}
 export async function supabaseClient() {
   const config = configuration();
   if (!config.supabaseUrl || !config.supabaseKey) throw new DomainError('SUPABASE_CONFIGURATION', 503, 'Supabase project configuration is missing.');
   const jar = await cookies();
   return createServerClient(config.supabaseUrl, config.supabaseKey, {
     db: { timeout: 20000, retry: false },
-    cookies: { getAll: () => jar.getAll(), setAll: values => values.forEach(({ name, value, options }) => jar.set(name, value, { ...options, httpOnly: true, sameSite: 'lax' })) },
+    cookies: { getAll: () => jar.getAll(), setAll: values => values.forEach(({ name, value, options }) => jar.set(name, value, { ...options, httpOnly: true, sameSite: 'lax', secure: shouldUseSecureCookies() })) },
   });
 }
 export async function authenticate(request?: Request): Promise<Actor> {

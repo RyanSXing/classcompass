@@ -88,7 +88,7 @@ function ClassroomContent() {
         <Card>
           <EmptyState
             title="Start with your students’ work"
-            text="Upload a worksheet, then turn the answers into a practical teaching brief. Or explore five assignments from a fictional class."
+            text={data.config.sampleToolsEnabled === false ? "Upload a worksheet to see what your students understand and what to teach next." : "Upload a worksheet, then turn the answers into a practical teaching brief. Or explore five assignments from a fictional class."}
             action={
               <div className="inline-actions">
                 <Button onClick={() => setUpload(true)}>

@@ -1,4 +1,5 @@
 "use client";
+import { StudentAvatar } from "@/components/student-avatar";
 import Link from "next/link";
 import { ArrowRight, CheckCircle2, ChartNoAxesCombined } from "lucide-react";
 import { useSearchParams } from "next/navigation";
@@ -230,9 +231,7 @@ function FollowUp({
   return (
     <article className="learning-followup" aria-label={`${name} follow-up`}>
       <div className="followup-person">
-        <span className="matrix-avatar" aria-hidden="true">
-          {name.charAt(0)}
-        </span>
+        <StudentAvatar studentId={followUp.studentId} size={36} />
         <Link href={`/students/${followUp.studentId}`}>{name}</Link>
       </div>
       <div className="followup-content">

@@ -1,13 +1,12 @@
 "use client";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import {
   LayoutGrid,
   BookOpen,
   Upload,
-  ChevronDown,
   Menu,
   LogOut,
   School,
@@ -15,11 +14,10 @@ import {
   Files,
   Users,
   Sparkles,
+  CalendarDays,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { useWorkspace } from "@/components/workspace-provider";
-import { api } from "@/lib/client/api";
 
 export function CompassMark() {
   return (
@@ -29,10 +27,10 @@ export function CompassMark() {
       fill="none"
       aria-hidden="true"
     >
-      <circle cx="20" cy="20" r="17" stroke="currentColor" strokeWidth="2.5" />
-      <path d="M26 11 23 24 11 29 16 16Z" fill="currentColor" />
-      <path d="m26 11-10 5 7 8Z" fill="#58d3d8" />
-      <circle cx="20" cy="20" r="2" fill="#6b3db8" />
+      <circle cx="20" cy="20" r="16.5" stroke="currentColor" strokeWidth="2.5" />
+      <path d="M26.5 10.5 22.8 24 10.5 29.5 15.6 16Z" fill="currentColor" />
+      <path d="m26.5 10.5-10.9 5.5 7.2 8Z" fill="var(--brand-sun)" />
+      <circle cx="20" cy="20" r="2.1" fill="var(--brand-paper)" />
     </svg>
   );
 }
@@ -40,15 +38,21 @@ export function Brand() {
   return (
     <Link href="/classroom" className="brand">
       <CompassMark />
-      <span className="brand-name">ClassCompass</span>
+      <span className="brand-copy">
+        <span className="brand-name">ClassCompass</span>
+        <span className="brand-caption">Teaching workspace</span>
+      </span>
     </Link>
   );
 }
 export function AppShell({ children }: { children: React.ReactNode }) {
   const path = usePathname();
-  const router = useRouter();
   const [open, setOpen] = useState(false);
-  const { data } = useWorkspace();
+  const [signingOut, setSigningOut] = useState(false);
+  const { data, signOut } = useWorkspace();
+  const sampleToolsEnabled =
+    data?.config.sampleToolsEnabled ??
+    (data?.config.dataBackend !== "supabase");
   if (path === "/login") return <>{children}</>;
   const links = [
     {
@@ -75,8 +79,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       icon: BookOpen,
       active:
         path.startsWith("/plans") ||
-        path.startsWith("/materials") ||
-        path === "/calendar",
+        path.startsWith("/materials"),
+    },
+    {
+      href: "/calendar",
+      label: "Calendar",
+      icon: CalendarDays,
+      active: path === "/calendar",
     },
     {
       href: "/assistant",
@@ -94,6 +103,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           Upload work
         </Link>
       </Button>
+      <p className="nav-label">Your classroom</p>
       <nav aria-label="Main navigation">
         {links.map((link) => (
           <Link
@@ -110,18 +120,23 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </nav>
       <div className="sidebar-bottom">
         <div className="teacher">
-          <div className="teacher-avatar">T</div>
+          <div className="teacher-avatar" aria-hidden="true">T</div>
           <div>
             <strong>{data?.config.teacher || "Teacher"}</strong>
-            <small>Grade 5 · Mathematics</small>
+            <small>Grade 5 mathematics</small>
           </div>
           {data?.config.dataBackend === "supabase" && (
             <button
               aria-label="Sign out"
               className="button button-ghost button-icon sign-out"
+              disabled={signingOut}
               onClick={async () => {
-                await api("/api/auth/logout", {});
-                router.push("/login");
+                setSigningOut(true);
+                try {
+                  await signOut();
+                } finally {
+                  setSigningOut(false);
+                }
               }}
             >
               <LogOut size={16} />
@@ -173,7 +188,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </Dialog.Root>
           <div className="utility-class">
             <School size={18} />
-            Grade 5 <span className="muted">/</span> Fractions
+            <span>Grade 5</span>
+            <span className="utility-divider" aria-hidden="true" />
+            <span>Fractions</span>
           </div>
           <div className="utility-tags">
             <Link className="assistant-quick-link" href="/assistant">
@@ -181,31 +198,17 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               Ask assistant
             </Link>
             <details className="info-disclosure">
-              <summary>
-                <Badge
-                  tone={data?.config.aiMode === "live" ? "aqua" : "violet"}
-                >
-                  {data?.config.aiMode === "live" ? "Live AI" : "Sample mode"}
-                  <ChevronDown size={12} />
-                </Badge>
-              </summary>
+              <summary>About this classroom</summary>
               <div className="info-panel">
-                <strong>
-                  {data?.config.aiMode === "live"
-                    ? "Live AI"
-                    : "Prepared sample results"}
-                </strong>
+                <strong>Classroom workspace</strong>
                 <p>
-                  {data?.config.aiMode === "live"
-                    ? "Uploads use live AI. Sample work uses prepared readings."
-                    : "Sample results are prepared, not live model output."}
+                  Grade 5 fraction addition. Teaching decisions stay under your
+                  control.
                 </p>
                 <p>
-                  Eight fictional students. Files are saved{" "}
-                  {data?.config.dataBackend === "supabase"
-                    ? "privately in Supabase"
-                    : "in this local workspace"}
-                  .
+                  {sampleToolsEnabled
+                    ? "This preview uses fictional student work."
+                    : "Student work is stored in your private classroom."}
                 </p>
               </div>
             </details>

@@ -24,7 +24,10 @@ export async function api<T>(
     cache: "no-store",
   });
   const result = await response.json().catch(() => ({}));
-  if (!response.ok)
+  if (!response.ok) {
+    if (response.status === 401 && typeof window !== "undefined") {
+      window.dispatchEvent(new Event("classcompass:unauthenticated"));
+    }
     throw new ApiError(
       result.error?.message ??
         "Something went wrong. Your work is still saved; please try again.",
@@ -32,5 +35,6 @@ export async function api<T>(
       response.status,
       result.error?.retryAfterSeconds,
     );
+  }
   return result.data as T;
 }

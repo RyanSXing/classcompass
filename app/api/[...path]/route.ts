@@ -40,14 +40,18 @@ async function route(request: Request, context: Context) {
         if (error) throw new DomainError('LOGIN_FAILED', 401, 'The email or password was not accepted.');
         return ok({ signedIn: true });
       }
-      if (id === 'logout') { await client.auth.signOut(); return ok({ signedOut: true }); }
+      if (id === 'logout') {
+        const { error } = await client.auth.signOut({ scope: 'local' });
+        if (error) throw new DomainError('LOGOUT_FAILED', 503, 'Could not end this browser session. Try again.');
+        return ok({ signedOut: true });
+      }
     }
     const actor = await authenticate(request), repo = repository(actor), key = request.headers.get('idempotency-key') || undefined;
     if (key && (key.length > 160 || !/^[\w.-]+$/.test(key))) throw new DomainError('INVALID_REQUEST_KEY', 400, 'Use a short request key containing letters, digits, dots or hyphens.');
     const ctx = { actorId: actor.id, idempotencyKey: key };
     if (area === 'classroom' && method === 'GET' && paths.length === 1) {
       const state = await repo.read();
-      return ok({ state: { ...state, assistant: getAssistantState(state) }, config: { aiMode: config.aiMode, dataBackend: config.dataBackend, teacher: actor.name, aiProvider: config.aiProvider, assistantLiveAvailable: !!(config.aiProvider === 'deepseek' ? process.env.DEEPSEEK_API_KEY : process.env.OPENROUTER_API_KEY)?.trim() }, curriculum });
+      return ok({ state: { ...state, assistant: getAssistantState(state) }, config: { aiMode: config.aiMode, dataBackend: config.dataBackend, teacher: actor.name, aiProvider: config.aiProvider, assistantLiveAvailable: !!(config.aiProvider === 'deepseek' ? process.env.DEEPSEEK_API_KEY : process.env.OPENROUTER_API_KEY)?.trim(), sampleToolsEnabled: config.sampleToolsEnabled }, curriculum });
     }
     if (area === 'assistant' && paths.length === 2) {
       if (id === 'chat' && method === 'POST') return ok(await askClassroomAssistant(repo, await body(request)));
@@ -77,6 +81,7 @@ async function route(request: Request, context: Context) {
       return new Response(new Uint8Array(bytes), { headers: { 'Content-Type': normalized ? asset.normalizedMimeType! : asset.mimeType, 'Content-Length': String(bytes.length), 'Cache-Control': 'private, no-store', 'X-Content-Type-Options': 'nosniff', 'Content-Disposition': `inline; filename="${asset.name.replace(/[^a-zA-Z0-9._-]/g, '_')}"` } });
     }
     if (area === 'demo' && method === 'POST') {
+      if (!config.sampleToolsEnabled) throw new DomainError('SAMPLE_TOOLS_DISABLED', 403, 'Sample classroom tools are unavailable in this teacher workspace.');
       if (id === 'analyze') return ok(await analyzeDemo(actor, repo, await body(request)));
       if (id === 'load') return ok(await loadDemo(actor, repo, await body(request)), 201);
       if (id === 'reset') {

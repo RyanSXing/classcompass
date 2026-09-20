@@ -6,6 +6,7 @@ import "./assistant.css";
 import "./intelligence.css";
 import "./understanding.css";
 import "./teaching-visuals.css";
+import "./notebook.css";
 import { WorkspaceProvider } from "@/components/workspace-provider";
 import { AppShell } from "@/components/app-shell";
 

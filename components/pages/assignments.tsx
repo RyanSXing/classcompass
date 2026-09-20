@@ -17,7 +17,7 @@ function Content() {
     <div className="page">
       <PageHeading
         title="Assignments"
-        description="Five checks across the fraction unit."
+        description="Student work across the fraction unit."
       >
         <SampleLoader />
       </PageHeading>
@@ -68,10 +68,10 @@ function Content() {
           );
         })}
       </div>
-      <p className="help-note mt-16">
+      {data.config.sampleToolsEnabled !== false && <p className="help-note mt-16">
         Sample results are prepared from fictional work. Loading again keeps
         saved corrections and reviews.
-      </p>
+      </p>}
     </div>
   );
 }

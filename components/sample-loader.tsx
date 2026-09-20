@@ -7,7 +7,7 @@ import { useWorkspace } from "@/components/workspace-provider";
 import { assignments } from "@/lib/assignments";
 import { api } from "@/lib/client/api";
 export function SampleLoader() {
-  const { refresh, notify } = useWorkspace();
+  const { data, refresh, notify } = useWorkspace();
   const [progress, setProgress] = useState("");
   const [error, setError] = useState("");
   async function load() {
@@ -40,6 +40,7 @@ export function SampleLoader() {
       setProgress("");
     }
   }
+  if (data?.config.sampleToolsEnabled === false) return null;
   return (
     <div>
       {progress ? (

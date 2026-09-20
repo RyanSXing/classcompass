@@ -1,4 +1,5 @@
 "use client";
+import { StudentAvatar } from "@/components/student-avatar";
 import Link from "next/link";
 import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
@@ -37,7 +38,7 @@ function Content() {
     <div className="page">
       <PageHeading
         title="Students"
-        description="Eight fictional students · Grade 5"
+        description={`${data.state.students.filter(student => student.active).length} students · Grade 5`}
       />
       <div className="analytics-toolbar">
         <label className="field">
@@ -92,7 +93,7 @@ function Content() {
             return (
               <Card className="student-summary" key={student.id}>
                 <div className="student-summary-head">
-                  <div className="student-avatar">{student.displayName[0]}</div>
+                  <StudentAvatar studentId={student.id} size={56} />
                   <div>
                     <h2>
                       <Link href={`/students/${student.id}?assignment=${selected.templateId}`}>

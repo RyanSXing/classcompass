@@ -1,4 +1,5 @@
 "use client";
+import { StudentAvatar } from "@/components/student-avatar";
 import Link from "next/link";
 import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
@@ -193,7 +194,7 @@ function StudentContent({ studentId }: { studentId: string }) {
       </div>
       <div className="page-heading">
         <div className="student-title">
-          <div className="student-avatar">{student.displayName[0]}</div>
+          <StudentAvatar studentId={student.id} size={56} />
           <div>
             <h1>{student.displayName}</h1>
             <p>Grade 5 · Fraction addition</p>

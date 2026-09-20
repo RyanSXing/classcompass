@@ -130,6 +130,7 @@ function Conversation({
   // Follow refreshed configuration until the teacher explicitly chooses a mode.
   const [selectedMode, setMode] = useState<"fixture" | "live" | null>(null);
   const mode = selectedMode ?? data?.config.aiMode ?? "fixture";
+  const aiUnavailable = mode === "live" && data?.config.assistantLiveAvailable === false;
   const [busy, setBusy] = useState(false);
   const [observedAt, setObservedAt] = useState(() => Date.now());
   const [pendingMessage, setPendingMessage] = useState("");
@@ -176,7 +177,7 @@ function Conversation({
         turn.role === "user" && turn.requestId === failedRequest?.requestId,
     );
   async function send(retry = false) {
-    if (busy || (!retry && !message.trim())) return;
+    if (busy || aiUnavailable || (!retry && !message.trim())) return;
     const input =
       retry && failedRequest
         ? failedRequest
@@ -234,7 +235,7 @@ function Conversation({
           >
             <div className="assistant-conversation-head">
               <strong>Ask ClassCompass</strong>
-              <label className="field">
+              {data.config.sampleToolsEnabled !== false && <label className="field">
                 <span>Replies</span>
                 <Select
                   aria-label="Assistant mode"
@@ -253,7 +254,7 @@ function Conversation({
                     Live AI
                   </option>
                 </Select>
-              </label>
+              </label>}
             </div>
             <div
               className="assistant-messages"
@@ -425,13 +426,15 @@ function Conversation({
               />
               <div className="assistant-composer-footer">
                 <p>
-                  {mode === "fixture"
-                    ? "Sample replies use saved data. Choose Live AI to ask the model."
-                    : "Live AI uses your classroom data. Review suggestions before using them."}
+                  {aiUnavailable
+                    ? "AI is not connected. Your saved conversation is still available."
+                    : mode === "fixture"
+                    ? "Sample replies use saved classroom data."
+                    : "Uses your saved classroom. You choose what changes."}
                 </p>
-                <Button disabled={busy || !message.trim()} type="submit">
+                <Button disabled={busy || aiUnavailable || !message.trim()} type="submit">
                   <ArrowUp size={16} />
-                  {busy ? "Thinking…" : mode === "live" ? "Ask Live AI" : "Get sample reply"}
+                  {busy ? "Thinking…" : data.config.sampleToolsEnabled === false ? "Send" : mode === "live" ? "Ask Live AI" : "Get sample reply"}
                 </Button>
               </div>
             </form>

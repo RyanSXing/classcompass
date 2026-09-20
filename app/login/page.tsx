@@ -1,6 +1,6 @@
 "use client";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowRight, LoaderCircle, LockKeyhole } from "lucide-react";
 import { Brand } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
@@ -9,13 +9,16 @@ import { Card } from "@/components/ui/card";
 import { Banner } from "@/components/shared";
 import { useWorkspace } from "@/components/workspace-provider";
 import { api } from "@/lib/client/api";
-export default function Login() {
+import { safeReturnPath } from "@/lib/client/auth";
+function LoginContent() {
   const { data, refresh } = useWorkspace();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const returnPath = safeReturnPath(searchParams.get("next"));
   return (
     <div className="login-page">
       <Card className="login-card">
@@ -28,7 +31,7 @@ export default function Login() {
           </div>
         )}
         {data?.config.dataBackend === "local" ? (
-          <Button onClick={() => router.push("/classroom")}>
+          <Button onClick={() => router.push(returnPath)}>
             Open fictional classroom
             <ArrowRight />
           </Button>
@@ -42,7 +45,7 @@ export default function Login() {
               try {
                 await api("/api/auth/login", { email, password });
                 await refresh();
-                router.push("/classroom");
+                router.replace(returnPath);
               } catch (e) {
                 setError(e instanceof Error ? e.message : "Unable to sign in.");
               } finally {
@@ -85,5 +88,19 @@ export default function Login() {
         </p>
       </Card>
     </div>
+  );
+}
+
+export default function Login() {
+  return (
+    <Suspense
+      fallback={
+        <div className="login-page" aria-busy="true">
+          <Card className="login-card">Opening sign in…</Card>
+        </div>
+      }
+    >
+      <LoginContent />
+    </Suspense>
   );
 }

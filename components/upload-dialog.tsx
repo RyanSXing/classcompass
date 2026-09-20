@@ -483,7 +483,7 @@ export function UploadDialog({
               ))}
             </>
           )}
-          <div className="banner">
+          {data.config.sampleToolsEnabled !== false && <div className="banner">
             <FileText />
             <div>
               <strong>Sample worksheets</strong>
@@ -499,7 +499,7 @@ export function UploadDialog({
                 <ArrowRight />
               </Button>
             </div>
-          </div>
+          </div>}
         </div>
       ) : (
         <div className="spaced">
@@ -507,7 +507,7 @@ export function UploadDialog({
             Import your 45-minute lesson. You’ll review and edit every block
             before saving.
           </p>
-          <div className="inline-actions">
+          {data.config.sampleToolsEnabled !== false && <div className="inline-actions">
             <a
               className="text-link text-small"
               href="/demo/lesson-2026-09-23-original.pdf"
@@ -522,7 +522,7 @@ export function UploadDialog({
             >
               Download sample JSON
             </a>
-          </div>
+          </div>}
           <label className="drop-zone">
             <BookOpen size={29} />
             <strong>{source ? source.name : "Choose a lesson plan"}</strong>

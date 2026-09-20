@@ -114,11 +114,8 @@ export function DecisionBrief({
     requestId: string;
   } | null>(null);
   if (!data) return null;
-  const mode =
-    chosenMode ??
-    (data.config.assistantLiveAvailable === false
-      ? "fixture"
-      : data.config.aiMode);
+  const mode = chosenMode ?? data.config.aiMode;
+  const aiUnavailable = mode === "live" && data.config.assistantLiveAvailable === false;
   const { state } = data;
   const brief = [
     ...(state.assistant?.briefs ??
@@ -233,7 +230,7 @@ export function DecisionBrief({
           )}
         </div>
         <div className="brief-generate-controls">
-          <label className="field">
+          {data.config.sampleToolsEnabled !== false && <label className="field">
             <span>Insights</span>
             <Select
               aria-label="Teaching insights mode"
@@ -254,10 +251,10 @@ export function DecisionBrief({
                   : ""}
               </option>
             </Select>
-          </label>
+          </label>}
           <Button
             variant="outline"
-            disabled={busy}
+            disabled={busy || aiUnavailable}
             onClick={() => void generate()}
           >
             {busy ? <LoaderCircle className="spin" /> : <Sparkles />}
@@ -269,6 +266,7 @@ export function DecisionBrief({
           </Button>
         </div>
       </div>
+      {aiUnavailable && <Banner>AI is not connected. Your saved work and lesson plans are still available.</Banner>}
       {newerTemplateId && (
         <Banner>
           These insights use work through {dateLabel(learning.throughDate)}.

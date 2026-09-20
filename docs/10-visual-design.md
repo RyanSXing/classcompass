@@ -2,6 +2,16 @@
 
 The user selected Blooket as the strong visual reference after the initial specification was completed. This document replaces the earlier muted neutral/teal direction and owns visual styling. Document 01 still owns behavior, routes and teacher decision flows.
 
+## Current notebook direction
+
+The September 20 notebook redesign supersedes the colour, shell, and screen-layout direction below. The older Blooket discussion remains historical context for the original compact teacher-tool emphasis; it is not the current implementation target. [Notebook redesign](notebook-redesign.md) is the implementation record.
+
+ClassCompass now uses a warm cream paper canvas with restrained horizontal rules, dark brown ink, tan borders, a dusty-blue primary action, and a warm yellow upload action. The left rail is a compact cream notebook edge with original ring-hole decoration, a custom SVG compass mark, named line-icon navigation, and the signed-in teacher account at the bottom. Cards are white paper with a small tan lower shadow. The visual language is original to ClassCompass; it does not import design layers, icons, illustrations, or source code from the reference.
+
+The main product views prioritize a teacher's next decision. The understanding view separates class distribution, the student-by-date map, and a selected student detail into distinct paper cards. The Assistant becomes a two-pane desk: contextual notes on the left and the conversation on the right. Lessons use a dated selector beside a concise saved-plan preview with objectives, timed blocks, linked work, and an explicit route to the full plan. At smaller widths, the navigation becomes a labeled drawer, two-pane views stack, and lesson dates become a compact grid.
+
+Original, low-detail student portraits appear next to student names where they make evidence easier to scan. They identify fictional learners only; name text remains present and is the accessible identifier. See [avatar artwork](avatar-art.md) for generation and asset details.
+
 ## Reference and intended character
 
 Use the familiar classroom-tool character of Blooket's publicly documented teacher dashboard: a saturated vertical navigation rail, a prominent raised action button, clear selected navigation, rounded heavy headings, straightforward content panels, and spacious clickable surfaces. The reference is its teacher workspace, rather than its marketing page or an individual game screen. Official references inspected: [navigation/history](https://help.blooket.com/hc/en-us/articles/16179884291991-How-to-Access-Your-Blooket-Reports) and [My Sets/folder layout](https://help.blooket.com/hc/en-us/articles/16177978219799-How-to-Organize-Blooket-Question-Sets-with-Folders). These are published screenshots, not a claim to have inspected a signed-in current account.

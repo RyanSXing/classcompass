@@ -30,9 +30,14 @@ DATA_BACKEND=supabase
 NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=YOUR_PUBLISHABLE_KEY
 SUPABASE_SECRET_KEY=YOUR_LOCAL_ADMIN_SECRET
+# Used only while running npm run teacher:provision. Keep both private.
+CLASSCOMPASS_TEACHER_EMAIL=
+CLASSCOMPASS_TEACHER_PASSWORD=
 ```
 
-Provision or verify the fictional teacher with `node --import tsx scripts/provision-teacher.ts`. It creates only `teacher@classcompass.example`, sends no email, generates a strong password and writes the login to Git-ignored `.local/teacher-login.json` with mode `0600`. Repeated runs reuse the existing working login. Do not add its password to Git or documentation. Keep `AI_MODE=fixture` for connected database testing without model calls, or select `live` with the already-configured OpenRouter key. The teacher's first normal mutation seeds the authored roster, calendar and two original lesson versions into that account. No model result or teacher-confirmed finding is seeded implicitly.
+Provision or verify the designated teacher with `npm run teacher:provision`. It uses the private `CLASSCOMPASS_TEACHER_EMAIL` and optional `CLASSCOMPASS_TEACHER_PASSWORD`; without a supplied password, it generates one. It sends no email and writes the login only to Git-ignored `.local/teacher-login.json` with mode `0600`. Repeated runs reuse the saved working login unless a replacement password is explicitly supplied. Do not add the teacher's email or password to Git or documentation. Keep `AI_MODE=fixture` for connected database testing without model calls, or select `live` with the already-configured provider. The teacher's first normal mutation seeds the authored roster, calendar and two original lesson versions into that account. No model result or teacher-confirmed finding is seeded implicitly.
+
+Sample worksheet tools are disabled for Supabase teacher workspaces. The local fixture backend enables them for browser tests and local demonstrations. For the isolated connected verification server only, set `SHOW_SAMPLE_TOOLS=true`; do not set it for the teacher workspace.
 
 ## Connected verification
 
