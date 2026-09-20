@@ -244,8 +244,16 @@ describe("evidence-backed teaching suggestions", () => {
         expect(mix.core + mix.transfer + mix.other).toBe(mix.total);
     }
     expect(
-      compareAssignments(state, "independent-check-template-v1")?.previousMix,
+      compareAssignments(
+        state,
+        "independent-check-template-v1",
+        "word-problems-template-v1",
+      )?.previousMix,
     ).toEqual({ core: 0, transfer: 3, other: 0, total: 3 });
+    expect(
+      compareAssignments(state, "independent-check-template-v1")?.previous
+        .templateId,
+    ).toBe("fraction-practice-template-v1");
   });
   it("compares only paired independent core work and discloses changed task mix and help", () => {
     const state = createInitialState("teacher");

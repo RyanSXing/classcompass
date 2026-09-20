@@ -19,6 +19,7 @@ import { getAssignmentInsights } from "@/lib/insights";
 import { assignments } from "@/lib/assignments";
 import { assignmentHref } from "@/lib/client/links";
 import { dateLabel } from "@/lib/utils";
+import { teacherNextStep } from "@/lib/teacher-workflow";
 
 function ClassroomContent() {
   const { data } = useWorkspace();
@@ -39,6 +40,7 @@ function ClassroomContent() {
       (assignment) => assignment.templateId === search.get("assignment"),
     ) ?? latest;
   const insights = getAssignmentInsights(state, selected.templateId);
+  const nextStep = teacherNextStep(state, selected.templateId);
   const view: AnalyticsView =
     search.get("view") === "students"
       ? "students"
@@ -128,6 +130,26 @@ function ClassroomContent() {
               Open answers <ArrowRight size={15} />
             </Link>
           </div>
+          <section className="teacher-next-step" aria-label="Next step">
+            <div>
+              <span className="intelligence-eyebrow">Next step</span>
+              <h2>{nextStep.title}</h2>
+              <p>{nextStep.detail}</p>
+            </div>
+            <div className="inline-actions">
+              <Button asChild>
+                <Link href={nextStep.href}>
+                  {nextStep.label}
+                  <ArrowRight size={16} />
+                </Link>
+              </Button>
+              {nextStep.kind !== "plan" && (
+                <Link className="text-link" href={nextStep.lessonHref}>
+                  Open lesson plan
+                </Link>
+              )}
+            </div>
+          </section>
           <DecisionBrief
             key={selected.templateId}
             templateId={selected.templateId}
@@ -150,7 +172,11 @@ function ClassroomContent() {
       )}
       {(upload || search.get("upload") === "work") && (
         <UploadDialog
-          initialTemplateId={search.get("assignment") ?? undefined}
+          initialTemplateId={
+            upload
+              ? selected.templateId
+              : (search.get("assignment") ?? undefined)
+          }
           onClose={(navigated) => {
             setUpload(false);
             if (!navigated && search.get("upload"))

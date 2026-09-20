@@ -81,14 +81,22 @@ export function JobProgress({
                 />
                 {step ? labels[step.kind] : "Finishing up"}
               </>
+            ) : job.status === "cancelled" ? (
+              "Processing cancelled"
+            ) : ["failed", "blocked"].includes(job.status) || localError ? (
+              "Processing needs another try"
             ) : (
-              "Your analysis is saved"
+              "Processing paused"
             )}
           </h3>
           <p className="text-small muted" style={{ marginTop: 6 }}>
             {running
               ? "Keep this page open while the remaining steps run."
-              : "Resume here whenever you’re ready. Completed work stays saved."}
+              : job.status === "cancelled"
+                ? "Completed readings are saved. Start a new analysis from this page when ready."
+                : ["failed", "blocked"].includes(job.status) || localError
+                  ? "Completed work is saved. Review the message below, then retry the remaining step."
+                  : "Resume here whenever you’re ready. Completed work stays saved."}
           </p>
         </div>
         <StatusBadge status={job.status} />
@@ -158,8 +166,16 @@ export function JobProgress({
             onClick={async () => {
               active.current = false;
               setRunning(false);
-              await api(`/api/jobs/${job.id}/cancel`, {});
-              await refresh();
+              try {
+                await api(`/api/jobs/${job.id}/cancel`, {});
+                await refresh();
+              } catch (error) {
+                setLocalError(
+                  error instanceof Error
+                    ? error.message
+                    : "Could not cancel processing. Try again.",
+                );
+              }
             }}
           >
             <X />

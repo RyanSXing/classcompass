@@ -30,6 +30,8 @@ import { dateLabel } from "@/lib/utils";
 import { selectResponseRevision } from "@/lib/analytics";
 import { getPlanningFindings } from "@/lib/domain";
 import { getAssignment } from "@/lib/assignments";
+import { assignments } from "@/lib/assignments";
+import { assignmentHref } from "@/lib/client/links";
 import { buildLessonGuide } from "@/lib/lesson-guide";
 import { LessonGuide } from "@/components/lesson-guide";
 
@@ -451,6 +453,9 @@ function PlanContent({
     (item) => item.id === targetAssignment?.targetLessonId,
   );
   const canGenerate = confirmed.length > 0 && !wrongTarget;
+  const sourceAssignment = assignments.find(
+    (assignment) => assignment.targetLessonId === lessonId,
+  );
   const fresh =
     proposal?.status === "draft" &&
     proposal.evidenceRevision === state.classroom.evidenceRevision &&
@@ -676,7 +681,6 @@ function PlanContent({
           </Banner>
         </div>
       )}
-      <LessonGuide guide={buildLessonGuide(state, version)} />
       <section
         id="lesson-suggestions"
         className="lesson-suggestions"
@@ -708,7 +712,15 @@ function PlanContent({
               <strong>These suggestions need updating.</strong> The evidence,
               lesson or calendar needs another check. Review affected teaching
               notes, then update the suggestions. Your saved lesson is
-              unchanged.
+              unchanged.{" "}
+              {sourceAssignment && !wrongTarget && (
+                <Link
+                  className="text-link"
+                  href={`${assignmentHref(state, sourceAssignment.templateId)}#teaching-notes`}
+                >
+                  Review teaching notes
+                </Link>
+              )}
             </Banner>
           </div>
         )}
@@ -1057,38 +1069,53 @@ function PlanContent({
               <Card>
                 <div className="lesson-suggest-prompt">
                   <div>
-                    <h2>Saved lesson</h2>
+                    <h2>
+                      {version.versionNumber > 1
+                        ? "Saved lesson"
+                        : "Adjust this lesson"}
+                    </h2>
                     <p>
                       {wrongTarget
                         ? "Keep this saved lesson for reference. Use the linked lesson above for new suggestions."
                         : confirmed.length
                           ? `${confirmed.length} current teaching notes can inform a suggestion. Review every change before saving.`
-                          : "Approve teaching notes from earlier work to prepare lesson suggestions."}
+                          : "Review the student work and approve the teaching notes you want to use."}
                     </p>
                   </div>
-                  <Button
-                    disabled={
-                      busy ||
-                      !canGenerate ||
-                      (!!job &&
-                        ![
-                          "completed",
-                          "failed",
-                          "cancelled",
-                          "blocked",
-                        ].includes(job.status))
-                    }
-                    onClick={() => void generate()}
-                  >
-                    <Sparkles />
-                    Suggest lesson changes
-                  </Button>
+                  {!canGenerate && !wrongTarget && sourceAssignment ? (
+                    <Button asChild>
+                      <Link
+                        href={`${assignmentHref(state, sourceAssignment.templateId)}#teaching-notes`}
+                      >
+                        Review teaching notes
+                      </Link>
+                    </Button>
+                  ) : (
+                    <Button
+                      disabled={
+                        busy ||
+                        !canGenerate ||
+                        (!!job &&
+                          ![
+                            "completed",
+                            "failed",
+                            "cancelled",
+                            "blocked",
+                          ].includes(job.status))
+                      }
+                      onClick={() => void generate()}
+                    >
+                      <Sparkles />
+                      Suggest lesson changes
+                    </Button>
+                  )}
                 </div>
               </Card>
             )}
           </>
         )}
       </section>
+      <LessonGuide guide={buildLessonGuide(state, version)} />
       {editing && proposal && (
         <ChangeEditor
           proposal={proposal}

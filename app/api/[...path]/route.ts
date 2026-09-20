@@ -134,7 +134,10 @@ async function route(request: Request, context: Context) {
     if (area === 'materials' && id && method === 'GET') { const state = await repo.read(); return ok({ version: record(state.planVersions, id), materialSet: state.materialSets.find(m => m.planVersionId === id) || null }); }
     throw new DomainError('NOT_FOUND', 404, 'This endpoint is unavailable.');
   } catch (error) {
-    if (error instanceof AIError) return Response.json({ error: { code: error.code, message: error.message, retryable: error.retryable, ...(error.retryAfterMs ? { retryAfterSeconds: Math.ceil(error.retryAfterMs / 1000) } : {}) } }, { status: error.code === 'AI_RATE_LIMIT' ? 429 : 502, headers: { 'Cache-Control': 'private, no-store' } });
+    if (error instanceof AIError) {
+      console.warn('ClassCompass AI request failed', { code: error.code, retryable: error.retryable });
+      return Response.json({ error: { code: error.code, message: error.message, retryable: error.retryable, ...(error.retryAfterMs ? { retryAfterSeconds: Math.ceil(error.retryAfterMs / 1000) } : {}) } }, { status: error.code === 'AI_RATE_LIMIT' ? 429 : 502, headers: { 'Cache-Control': 'private, no-store' } });
+    }
     if (error instanceof ZodError) return Response.json({ error: { code: 'VALIDATION', message: 'Check the form fields and try again.', fieldErrors: z.flattenError(error).fieldErrors } }, { status: 422 });
     if (error instanceof DomainError) return Response.json({ error: { code: error.code, message: error.message, fieldErrors: error.fieldErrors } }, { status: error.status });
     console.error('ClassCompass request failed:', error instanceof Error ? error.name : 'UnknownError');

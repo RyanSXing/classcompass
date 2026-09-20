@@ -138,9 +138,11 @@ function StudentContent({ studentId }: { studentId: string }) {
           ·{" "}
           {o.difficulty === "core"
             ? "Core task"
-            : o.difficulty === "extension"
-              ? "Extension task"
-              : o.difficulty}
+            : o.difficulty === "core-transfer"
+              ? "Apply in context"
+              : o.difficulty === "extension"
+                ? "Extension task"
+                : o.difficulty}
         </div>
         <div className="help-note">
           {o.supportSnapshots
@@ -367,6 +369,31 @@ function StudentContent({ studentId }: { studentId: string }) {
               </tbody>
             </table>
           </div>
+          {!assignments.some(
+            (a) =>
+              (chosen === "all" || a.templateId === chosen) &&
+              getAssignmentAnalytics(state, a.templateId, {
+                studentId,
+                result,
+                support,
+              }).slots.length > 0,
+          ) && (
+            <div className="compact-empty">
+              <p>No answers match these filters.</p>
+              <button
+                className="text-link"
+                onClick={() => {
+                  window.history.replaceState(
+                    null,
+                    "",
+                    `/students/${studentId}`,
+                  );
+                }}
+              >
+                Clear result filters
+              </button>
+            </div>
+          )}
         </Card>
       </section>
       <section className="analytics-section">

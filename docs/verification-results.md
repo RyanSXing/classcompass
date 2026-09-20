@@ -2,6 +2,14 @@
 
 Checks performed on September 19, 2026. All work, student identities and handwriting images used in these checks are fictional. Prepared AI results and live provider checks are reported separately.
 
+## Teacher workflow audit revision
+
+Final checks: 181 tests across 21 files; 16 Chromium workflow scenarios without retries; 665 authored-specification assertions and 84 local links; ESLint, TypeScript and production build passed. The artifact guard checked 33 browser assets and 16 server traces.
+
+The [teacher workflow audit](teacher-workflow-audit.md) records the concrete failures reproduced after the earlier revision, their fixes, and the expanded browser coverage. A fresh eight-image direct DeepSeek run now completed vision → analysis → simulated review → proposal in ten calls: 32/32 final-answer readings and parser classifications matched the authored work, eight findings passed validation, and three changes preserved the 45-minute lesson and recorded support. The older unsuccessful all-live run below remains a historical failure; it has not been overwritten.
+
+Live roster and practical-teaching questions also passed on fresh fictional state. Invalid drafts receive at most one targeted correction, followed by the same validation; provider failures do not become prepared results. These checks establish the tested workflows, not a guarantee that every future model interpretation is right.
+
 ## AI teaching workspace revision
 
 The original purple/aqua palette is retained. The new Overview has an AI brief with cited next actions, three analytics views and a comparison chooser. Lessons are complete teacher documents, and the assistant saves goals and conversation history.

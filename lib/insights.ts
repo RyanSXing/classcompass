@@ -405,6 +405,7 @@ export function getAssignmentInsights(state: AppState, templateId: string) {
   );
   return {
     assignment,
+    targetLessonId: nextAssignment.targetLessonId,
     analytics,
     actions: candidates.sort((a, b) => b.priority - a.priority).slice(0, 3),
     questions,
@@ -453,17 +454,24 @@ export function compareAssignments(
   previousTemplateId?: string,
 ) {
   const current = getAssignmentAnalytics(state, currentTemplateId);
+  const earlier = [...assignments]
+    .reverse()
+    .filter(
+      (assignment) =>
+        assignment.sequence < current.assignment.sequence &&
+        state.batches.some(
+          (batch) => batch.templateId === assignment.templateId,
+        ),
+    );
+  const hasCore = (templateId: string) =>
+    getTemplate(templateId).questionIds.some(
+      (id) => getQuestion(id).taskDifficulty === "core",
+    );
   const previousAssignment = previousTemplateId
     ? getAssignment(previousTemplateId)
-    : [...assignments]
-        .reverse()
-        .find(
-          (assignment) =>
-            assignment.sequence < current.assignment.sequence &&
-            state.batches.some(
-              (batch) => batch.templateId === assignment.templateId,
-            ),
-        );
+    : ((hasCore(currentTemplateId)
+        ? earlier.find((assignment) => hasCore(assignment.templateId))
+        : undefined) ?? earlier[0]);
   if (
     !previousAssignment ||
     previousAssignment.sequence >= current.assignment.sequence

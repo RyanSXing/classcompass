@@ -44,6 +44,7 @@ import {
   type AnalyticsFilters,
 } from "@/lib/analytics";
 import { getAssignment } from "@/lib/assignments";
+import { getAssignmentInsights } from "@/lib/insights";
 import { dateLabel, humanize } from "@/lib/utils";
 
 const findingLabels: Record<FindingCode, string> = {
@@ -59,10 +60,12 @@ function TranscriptionEditor({
   response,
   onClose,
   onSaved,
+  advance = false,
 }: {
   response: Response;
   onClose: () => void;
   onSaved?: () => void;
+  advance?: boolean;
 }) {
   const { mutate, notify } = useWorkspace();
   const [working, setWorking] = useState(response.workingText);
@@ -114,7 +117,7 @@ function TranscriptionEditor({
             }}
           >
             <Check />
-            {busy ? "Saving…" : onSaved ? "Save and next" : "Save reading"}
+            {busy ? "Saving…" : advance ? "Save and next" : "Save reading"}
           </Button>
         </>
       }
@@ -178,27 +181,33 @@ function TranscriptionEditor({
 function SupportEditor({
   submission,
   onClose,
+  onSaved,
 }: {
   submission: Submission;
   onClose: () => void;
+  onSaved?: () => void;
 }) {
   const { mutate, notify } = useWorkspace();
   const [level, setLevel] = useState(submission.support.level);
   const [note, setNote] = useState(submission.support.note);
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
   return (
     <Modal
       title="Edit help given"
-      onClose={onClose}
+      onClose={() => {
+        if (!busy) onClose();
+      }}
       footer={
         <>
-          <Button variant="ghost" onClick={onClose}>
+          <Button variant="ghost" onClick={onClose} disabled={busy}>
             Cancel
           </Button>
           <Button
             disabled={busy || !note.trim()}
             onClick={async () => {
               setBusy(true);
+              setError("");
               try {
                 await mutate(
                   `/api/submissions/${submission.id}/support`,
@@ -211,6 +220,13 @@ function SupportEditor({
                 );
                 notify("Help given updated. Numerical results stay separate.");
                 onClose();
+                onSaved?.();
+              } catch (e) {
+                setError(
+                  e instanceof Error
+                    ? e.message
+                    : "Could not save the help given. Try again.",
+                );
               } finally {
                 setBusy(false);
               }
@@ -221,7 +237,12 @@ function SupportEditor({
         </>
       }
     >
-      <div className="form-stack">
+      <fieldset
+        className="form-stack"
+        disabled={busy}
+        style={{ border: 0, padding: 0, margin: 0 }}
+      >
+        {error && <Banner tone="error">{error}</Banner>}
         <Banner>
           This applies to all answers on this worksheet. The teacher records
           assistance; correct answers alone don’t establish independence.
@@ -249,7 +270,7 @@ function SupportEditor({
             placeholder="e.g. I prompted the student to find a common denominator on each question."
           />
         </label>
-      </div>
+      </fieldset>
     </Modal>
   );
 }
@@ -620,10 +641,6 @@ function ReviewContent({ batchId, startAnalysis = false }: ReviewPageProps) {
   const currentSlotForAnswer = analytics.allSlots.find(
     (slot) => slot.studentId === student?.id && slot.questionId === questionId,
   );
-  const historical =
-    requestedRevision !== undefined ||
-    !!search.get("observation") ||
-    (!!response && response.revision !== currentResponse?.revision);
   const oldAttempt =
     !!submission &&
     !analytics.allSlots.some((slot) => slot.submissionId === submission.id);
@@ -639,6 +656,12 @@ function ReviewContent({ batchId, startAnalysis = false }: ReviewPageProps) {
   const supportSnapshot = observation?.supportSnapshots.find(
     (snapshot) => snapshot.submissionId === submission?.id,
   );
+  const historical =
+    oldAttempt ||
+    (requestedRevision !== undefined && !response) ||
+    (!!response && response.revision !== currentResponse?.revision) ||
+    (!!supportSnapshot &&
+      supportSnapshot.submissionRevision !== submission?.revision);
   const support =
     supportSnapshot?.support ??
     (!historical && !oldAttempt ? submission?.support : undefined);
@@ -715,7 +738,10 @@ function ReviewContent({ batchId, startAnalysis = false }: ReviewPageProps) {
   const questionIds = template.questionIds.filter(
     (id) => !filters.questionId || filters.questionId === id,
   );
-  const targetLesson = assignment?.targetLessonId ?? "lesson-2026-09-23";
+  const targetLesson = getAssignmentInsights(
+    state,
+    batch.templateId,
+  ).targetLessonId;
   const outsideFilters =
     !!response &&
     !analytics.slots.some((slot) => slot.responseId === response.id);
@@ -819,6 +845,14 @@ function ReviewContent({ batchId, startAnalysis = false }: ReviewPageProps) {
         description={`${dateLabel(batch.activityDate)} · ${analytics.submittedStudents} of ${analytics.expectedStudents} students submitted`}
         breadcrumb="Assignment results"
       >
+        <Button variant="outline" asChild>
+          <Link
+            href={`/classroom?upload=work&assignment=${encodeURIComponent(batch.templateId)}`}
+          >
+            <Plus />
+            Add worksheets
+          </Link>
+        </Button>
         <Button
           variant="outline"
           disabled={
@@ -1320,7 +1354,7 @@ function ReviewContent({ batchId, startAnalysis = false }: ReviewPageProps) {
                         <>
                           <p>
                             Question type:{" "}
-                            {question.taskDifficulty === "transfer"
+                            {question.taskDifficulty === "core-transfer"
                               ? "Apply the skill in a new context"
                               : "Core fraction calculation"}
                             .
@@ -1432,9 +1466,22 @@ function ReviewContent({ batchId, startAnalysis = false }: ReviewPageProps) {
         ) : (
           <Card>
             <div className="compact-empty">
-              {selectedSlot?.bucket === "not_received"
-                ? `No worksheet has been received for ${student?.displayName ?? "this student"}.`
-                : "Select a received answer in the table to see the original work."}
+              {selectedSlot?.bucket === "not_received" ? (
+                <>
+                  <p>
+                    No worksheet has been received for{" "}
+                    {student?.displayName ?? "this student"}.
+                  </p>
+                  <Link
+                    className="text-link"
+                    href={`/classroom?upload=work&assignment=${encodeURIComponent(batch.templateId)}`}
+                  >
+                    Upload this assignment’s worksheet
+                  </Link>
+                </>
+              ) : (
+                "Select a received answer in the table to see the original work."
+              )}
             </div>
           </Card>
         )}
@@ -1471,7 +1518,12 @@ function ReviewContent({ batchId, startAnalysis = false }: ReviewPageProps) {
           <>
             <div className="notes-toolbar">
               <span>
-                {approved.length} approved ·{" "}
+                {
+                  visibleFindings.filter(
+                    (f) => f.status === "confirmed" && !warningsFor(f).length,
+                  ).length
+                }{" "}
+                approved in this view ·{" "}
                 {visibleFindings.filter(reviewable).length} ready to review
               </span>
               {selectedReviewable.length > 0 && (
@@ -1557,6 +1609,20 @@ function ReviewContent({ batchId, startAnalysis = false }: ReviewPageProps) {
                             : "",
                         );
                         evidenceQuery.delete("run");
+                        [
+                          "result",
+                          "support",
+                          "focusStudent",
+                          "focusQuestion",
+                        ].forEach((key) => evidenceQuery.delete(key));
+                        evidenceQuery.set(
+                          "student",
+                          sourceSubmission?.studentId ?? f.studentId,
+                        );
+                        evidenceQuery.set(
+                          "question",
+                          reading?.questionId ?? "",
+                        );
                         evidenceQuery.set("response", ref.responseId);
                         evidenceQuery.set(
                           "revision",
@@ -1585,6 +1651,12 @@ function ReviewContent({ batchId, startAnalysis = false }: ReviewPageProps) {
                               event.preventDefault();
                               focusInspector.current = true;
                               updateQuery({
+                                student: sourceSubmission.studentId,
+                                question: reading.questionId,
+                                result: undefined,
+                                support: undefined,
+                                focusStudent: undefined,
+                                focusQuestion: undefined,
                                 response: ref.responseId,
                                 revision: String(ref.responseRevision),
                                 observation: approvedObservation?.id,
@@ -1668,6 +1740,7 @@ function ReviewContent({ batchId, startAnalysis = false }: ReviewPageProps) {
         <TranscriptionEditor
           response={editingResponse}
           onClose={() => setEditingResponse(null)}
+          advance={advanceAfterSave}
           onSaved={
             advanceAfterSave
               ? () => {
@@ -1683,7 +1756,12 @@ function ReviewContent({ batchId, startAnalysis = false }: ReviewPageProps) {
                     });
                   }
                 }
-              : undefined
+              : () =>
+                  updateQuery({
+                    response: editingResponse.id,
+                    revision: undefined,
+                    observation: undefined,
+                  })
           }
         />
       )}
@@ -1691,6 +1769,9 @@ function ReviewContent({ batchId, startAnalysis = false }: ReviewPageProps) {
         <SupportEditor
           submission={editingSupport}
           onClose={() => setEditingSupport(null)}
+          onSaved={() =>
+            updateQuery({ revision: undefined, observation: undefined })
+          }
         />
       )}
       {editingFinding && (

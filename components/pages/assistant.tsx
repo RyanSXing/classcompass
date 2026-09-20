@@ -127,9 +127,9 @@ function Conversation({
   const { data, mutate, refresh } = useWorkspace();
   const [message, setMessage] = useState(initialPrompt);
   const [scope, setScope] = useState(initialScope);
-  const [mode, setMode] = useState<"fixture" | "live">(
-    data?.config.aiMode ?? "fixture",
-  );
+  // Follow refreshed configuration until the teacher explicitly chooses a mode.
+  const [selectedMode, setMode] = useState<"fixture" | "live" | null>(null);
+  const mode = selectedMode ?? data?.config.aiMode ?? "fixture";
   const [busy, setBusy] = useState(false);
   const [observedAt, setObservedAt] = useState(() => Date.now());
   const [pendingMessage, setPendingMessage] = useState("");
@@ -164,6 +164,11 @@ function Conversation({
     (sum, a) => sum + a.slots.filter((s) => !!s.response).length,
     0,
   );
+  const focusedAssignment = assignments.find(a => a.templateId === scope.templateId)
+    ?? [...assignments].reverse().find(a => totals.find(result => result.assignment.templateId === a.templateId)?.submittedStudents)
+    ?? assignments[0];
+  const lessonId = scope.lessonId ?? focusedAssignment.targetLessonId;
+  const lesson = state.plans.find(plan => plan.id === lessonId);
   const busyRequestVisible =
     pendingMessage &&
     !turns.some(
@@ -185,6 +190,10 @@ function Conversation({
     setError("");
     setPendingMessage(input.message);
     setFailedRequest(input);
+    if (retry) {
+      setMode(input.mode);
+      setScope(input.scope);
+    }
     try {
       await mutate<AssistantReplyResult>("/api/assistant/chat", input);
       setMessage("");
@@ -236,7 +245,7 @@ function Conversation({
                     setError("");
                   }}
                 >
-                  <option value="fixture">Sample</option>
+                  <option value="fixture">Sample · no model call</option>
                   <option
                     value="live"
                     disabled={data.config.assistantLiveAvailable === false}
@@ -316,7 +325,10 @@ function Conversation({
                           <button
                             className="text-link"
                             disabled={busy}
-                            onClick={() => focusPrompt(turn.content)}
+                            onClick={() => {
+                              setScope(turn.scope);
+                              focusPrompt(turn.content);
+                            }}
                           >
                             Ask again
                           </button>
@@ -362,7 +374,7 @@ function Conversation({
                   )}
                   <div className="assistant-wait" role="status">
                     <LoaderCircle className="spin" size={16} />
-                    Reading the classroom evidence…
+                    {mode === "live" ? "Asking Live AI and checking its sources…" : "Preparing a sample reply from saved data…"}
                   </div>
                 </>
               )}
@@ -378,7 +390,7 @@ function Conversation({
                     disabled={busy}
                     onClick={() => void send(true)}
                   >
-                    Retry answer
+                    Retry {failedRequest.mode === "live" ? "Live AI" : "sample"} answer
                   </Button>
                 )}
               </div>
@@ -419,7 +431,7 @@ function Conversation({
                 </p>
                 <Button disabled={busy || !message.trim()} type="submit">
                   <ArrowUp size={16} />
-                  {busy ? "Thinking…" : "Send"}
+                  {busy ? "Thinking…" : mode === "live" ? "Ask Live AI" : "Get sample reply"}
                 </Button>
               </div>
             </form>
@@ -501,10 +513,17 @@ function Conversation({
                 ))}
               </Select>
             </label>
-            {scope.lessonId && (
+            {lesson && (
               <p className="mt-16">
-                <Link className="text-link" href={`/plans/${scope.lessonId}`}>
-                  Open lesson <ArrowUpRight size={12} />
+                <Link className="text-link" href={`/plans/${lesson.id}`}>
+                  Open {dateLabel(lesson.date)} lesson <ArrowUpRight size={12} />
+                </Link>
+              </p>
+            )}
+            {lesson && (
+              <p className="mt-16">
+                <Link className="text-link" href={`/plans/${lesson.id}#lesson-suggestions`}>
+                  Review lesson changes <ArrowUpRight size={12} />
                 </Link>
               </p>
             )}

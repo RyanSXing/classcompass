@@ -434,7 +434,9 @@ test("classroom assistant uses saved goals, answers follow-ups and preserves evi
   await page
     .getByLabel("Ask about your classroom", { exact: true })
     .fill("What should I do with Casey next? Show me the evidence.");
-  await page.getByRole("button", { name: "Send", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Get sample reply", exact: true })
+    .click();
   const replies = page.getByRole("article", {
     name: "Assistant reply",
     exact: true,
@@ -450,7 +452,9 @@ test("classroom assistant uses saved goals, answers follow-ups and preserves evi
   await page
     .getByLabel("Ask about your classroom", { exact: true })
     .fill("How does that fit my goal and the next lesson?");
-  await page.getByRole("button", { name: "Send", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Get sample reply", exact: true })
+    .click();
   await expect(replies).toHaveCount(2, { timeout: 30_000 });
   await expect(replies.last()).toContainText(/goal|October|lesson/i);
   await page.reload();
@@ -485,7 +489,7 @@ test("AI briefing connects richer analytics to exact evidence and complete lesso
   await expect(matrix.locator("thead th")).toHaveCount(6);
   await matrix
     .getByRole("link", {
-      name: "Casey, Independent check: 2 correct of 2 usable answers",
+      name: "Casey, Independent check: 2 correct of 3 questions",
       exact: true,
     })
     .click();
@@ -769,7 +773,9 @@ test("goal drafts detect concurrent edits and interrupted questions can be asked
   await page
     .getByLabel("Ask about your classroom", { exact: true })
     .fill("What should I check next?");
-  await page.getByRole("button", { name: "Send", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Get sample reply", exact: true })
+    .click();
   await expect(
     page.getByRole("button", { name: "Save goals", exact: true }),
   ).toBeEnabled();

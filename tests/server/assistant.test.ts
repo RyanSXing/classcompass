@@ -64,6 +64,84 @@ describe('authoritative assistant context', () => {
 });
 
 describe('persistent teacher-controlled assistant', () => {
+  it('answers roster questions directly in sample mode without a teaching lecture or model call', async () => {
+    const repo = seeded(), fetcher = vi.fn(); vi.stubGlobal('fetch', fetcher);
+    for (const [index, message] of ['who are my students', 'name my students', 'Which students are in my class?', 'How many students do I have?', 'Show my class list', 'Who is in my class?'].entries()) {
+      const answer = await askClassroomAssistant(repo, { requestId: `roster-${index}`, message, mode: 'fixture' });
+      expect(answer.turn.content).toBe('Your 8 students are:\n\nAvery, Blake, Casey, Devon, Emery, Finley, Gray, Harper.');
+      expect(answer.turn.citations).toHaveLength(8); expect(answer.turn.citations.every(c => c.kind === 'student')).toBe(true);
+      expect(answer.turn.actions).toEqual([]);
+    }
+    expect(fetcher).not.toHaveBeenCalled();
+  });
+  it('keeps a how-many or which-students performance question out of the roster shortcut', async () => {
+    const repo = seeded();
+    const answer = await askClassroomAssistant(repo, { requestId: 'performance-roster-wording', message: 'Which students in my class need help with the work?', mode: 'fixture' });
+    expect(answer.turn.content).not.toContain('Your 8 students are:');
+    expect(answer.turn.citations.some(c => c.kind === 'response')).toBe(true);
+  });
+  it('explains sample limits for unsupported questions instead of pretending to answer them', async () => {
+    const repo = seeded(), fetcher = vi.fn(); vi.stubGlobal('fetch', fetcher);
+    const answer = await askClassroomAssistant(repo, { requestId: 'sample-limits', message: 'What is the school lunch today?', mode: 'fixture' });
+    expect(answer.turn.content).toContain('Choose Live AI for a response to this question');
+    expect(answer.turn.content).not.toContain('equal-length fraction strips'); expect(fetcher).not.toHaveBeenCalled();
+  });
+  it('accepts live roster membership with each own roster source but keeps performance checks strict', async () => {
+    const repo = seeded(); vi.stubEnv('OPENROUTER_API_KEY', 'test');
+    const names = repo.state.students.map(s => s.displayName).join(', '), sourceIds = repo.state.students.map(s => `student:${s.id}`);
+    const fetcher = vi.fn().mockImplementation(() => Promise.resolve(response({ answer: `Your current roster has eight students: ${names}.`, sourceIds, actions: [] })));
+    vi.stubGlobal('fetch', fetcher);
+    const result = await askClassroomAssistant(repo, { requestId: 'live-roster', message: 'Who are my students?', mode: 'live' });
+    expect(result.turn.content).toContain(names); expect(fetcher).toHaveBeenCalledTimes(1);
+    const sent = JSON.parse(JSON.parse(fetcher.mock.calls[0][1].body).messages[1].content);
+    expect(sent.context.roster).toHaveLength(8); expect(sent.context.classroom).toBeUndefined();
+    expect(result.turn.contextDisclosure?.responseCount).toBe(0);
+    fetcher.mockImplementation(() => Promise.resolve(response({ answer: 'Casey is ready for extension.', sourceIds: ['student:stu-03'], actions: [] })));
+    await expect(askClassroomAssistant(repo, { requestId: 'roster-extra-claim', message: 'Who are my students?', mode: 'live' })).rejects.toMatchObject({ code: 'AI_INVALID_ROSTER' });
+    expect(repo.state.assistant?.turns.filter(t => t.role === 'assistant')).toHaveLength(1);
+  });
+  it('repairs a missing student citation once with concrete feedback, without changing teacher data', async () => {
+    const repo = seeded(), before = domainState(repo.state), context = buildAssistantContext(repo.state);
+    const casey = context.classroom.assignments[4].responses.find(r => r.studentId === 'stu-03' && r.result === 'unanswered')!;
+    const answer = 'Casey has a blank answer on the Independent check. Ask for one fresh explanation before choosing additional support.';
+    const fetcher = vi.fn().mockResolvedValueOnce(response({ answer, sourceIds: ['student:stu-03'], actions: [] })).mockResolvedValueOnce(response({ answer, sourceIds: [casey.sourceId], actions: [] }));
+    vi.stubGlobal('fetch', fetcher); vi.stubEnv('OPENROUTER_API_KEY', 'test');
+    const result = await askClassroomAssistant(repo, { requestId: 'repair-one', message: 'What next for Casey?', mode: 'live' });
+    expect(fetcher).toHaveBeenCalledTimes(2); expect(result.turn.citations[0].id).toBe(casey.sourceId);
+    expect(result.turn.contextDisclosure?.text).toContain('one correction pass');
+    expect(repo.state.assistant?.turns).toHaveLength(2); expect(domainState(repo.state)).toEqual(before);
+    const repair = JSON.parse(JSON.parse(fetcher.mock.calls[1][1].body).messages[2].content);
+    expect(repair.validationFeedback.missingStudents[0].name).toBe('Casey');
+    expect(repair.validationFeedback.instruction).toContain('matching the claim and work date');
+    expect(repair.validationFeedback.missingStudents[0].availableEvidence.every((s:{id:string}) => /^s\d+$/.test(s.id))).toBe(true);
+  });
+  it('does not weaken citation checks when the single repair is still invalid', async () => {
+    const repo = seeded(); vi.stubEnv('OPENROUTER_API_KEY', 'test');
+    const fetcher = vi.fn().mockImplementation(() => Promise.resolve(response({ answer: 'Casey needs support.', sourceIds: ['student:stu-03'], actions: [] })));
+    vi.stubGlobal('fetch', fetcher);
+    await expect(askClassroomAssistant(repo, { requestId: 'repair-still-invalid', message: 'Help Casey', mode: 'live' })).rejects.toMatchObject({ code: 'AI_WRONG_STUDENT_SOURCE' });
+    expect(fetcher).toHaveBeenCalledTimes(2); expect(repo.state.assistant?.turns).toHaveLength(1);
+  });
+  it('does not start a repair after classroom evidence changes or the repair window closes', async () => {
+    const repo = seeded(); vi.stubEnv('OPENROUTER_API_KEY', 'test');
+    const fetcher = vi.fn().mockImplementation(() => { repo.state.responses[0].answerText = '5/6'; return Promise.resolve(response({ answer: 'Casey needs support.', sourceIds: ['student:stu-03'], actions: [] })); });
+    vi.stubGlobal('fetch', fetcher);
+    await expect(askClassroomAssistant(repo, { requestId: 'repair-stale', message: 'Help Casey', mode: 'live' })).rejects.toMatchObject({ code: 'ASSISTANT_STALE' });
+    expect(fetcher).toHaveBeenCalledTimes(1);
+    let current = 100000; const clock = vi.spyOn(Date, 'now').mockImplementation(() => current);
+    try {
+      fetcher.mockImplementation(() => { current += 41000; return Promise.resolve(response({ answer: 'Casey needs support.', sourceIds: ['student:stu-03'], actions: [] })); });
+      await expect(askClassroomAssistant(repo, { requestId: 'repair-too-late', message: 'Help Casey', mode: 'live' })).rejects.toMatchObject({ code: 'AI_WRONG_STUDENT_SOURCE' });
+      expect(fetcher).toHaveBeenCalledTimes(2);
+    } finally { clock.mockRestore(); }
+  });
+  it('repairs internal question labels into teacher language before saving', async () => {
+    const repo = seeded(), context = buildAssistantContext(repo.state), sourceId = context.classroom.assignments[4].responses.find(r => r.studentId === 'stu-03')!.sourceId;
+    const fetcher = vi.fn().mockResolvedValueOnce(response({ answer: 'Ask Casey to finish ic03.', sourceIds: [sourceId], actions: [] })).mockResolvedValueOnce(response({ answer: 'Ask Casey to complete question 3 on the Independent check, then explain the common unit.', sourceIds: [sourceId], actions: [] }));
+    vi.stubGlobal('fetch', fetcher); vi.stubEnv('OPENROUTER_API_KEY', 'test');
+    const result = await askClassroomAssistant(repo, { requestId: 'repair-label', message: 'One step for Casey', mode: 'live' });
+    expect(result.turn.content).not.toContain('ic03'); expect(fetcher).toHaveBeenCalledTimes(2);
+  });
   it('persists goals, dialogue and briefs locally, preserving classroom data and old briefs on goal changes', async () => {
     const dir = await mkdtemp(path.join(tmpdir(), 'classcompass-assistant-'));
     try {
@@ -135,7 +213,7 @@ describe('persistent teacher-controlled assistant', () => {
     const repo = seeded(), before = domainState(repo.state), id = buildAssistantContext(repo.state).sources[0].id;
     vi.stubEnv('OPENROUTER_API_KEY', 'test');
     const body = failure === 'unknown-source' ? rawReply('response:invented:1') : failure === 'unsafe-link' ? { ...rawReply(id), answer: 'Visit https://example.com to upload work.' } : { answer: 'Missing sources' };
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(response(body)));
+    vi.stubGlobal('fetch', vi.fn().mockImplementation(() => Promise.resolve(response(body))));
     await expect(askClassroomAssistant(repo, { requestId: failure, message: 'Help', mode: 'live' })).rejects.toMatchObject({ code: failure === 'unknown-source' ? 'AI_UNGROUNDED_CITATION' : failure === 'unsafe-link' ? 'AI_UNSAFE_LINK' : 'AI_INVALID_OUTPUT' });
     expect(repo.state.assistant?.turns).toHaveLength(1); expect(repo.state.assistant?.requests[0].status).toBe('failed'); expect(domainState(repo.state)).toEqual(before);
   });
@@ -164,7 +242,7 @@ describe('persistent teacher-controlled assistant', () => {
     const repo = seeded(), context = buildAssistantContext(repo.state), avery = context.classroom.assignments[0].responses.find(r => r.studentId === 'stu-01')!;
     vi.stubEnv('OPENROUTER_API_KEY', 'test');
     for (const [index, id] of [avery.sourceId!, 'student:stu-03'].entries()) {
-      vi.stubGlobal('fetch', vi.fn().mockResolvedValue(response({ answer: 'Casey independently solved every First check answer correctly and is ready for extension.', sourceIds: [id], actions: [] })));
+      vi.stubGlobal('fetch', vi.fn().mockImplementation(() => Promise.resolve(response({ answer: 'Casey independently solved every First check answer correctly and is ready for extension.', sourceIds: [id], actions: [] }))));
       await expect(askClassroomAssistant(repo, { requestId: `wrong-student-${index}`, message: 'How is Casey doing?', scope: { studentId: 'stu-03' }, mode: 'live' })).rejects.toMatchObject({ code: 'AI_WRONG_STUDENT_SOURCE' });
     }
     expect(repo.state.assistant!.turns.filter(t => t.role === 'assistant')).toHaveLength(0);

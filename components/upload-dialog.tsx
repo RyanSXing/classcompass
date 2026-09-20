@@ -78,7 +78,7 @@ export function UploadDialog({
     setBusy("Checking your files…");
     try {
       const added: UploadItem[] = [];
-      for (const [index, file] of Array.from(files).entries()) {
+      for (const file of Array.from(files)) {
         if (file.type === "application/json")
           throw new Error(
             "Student worksheets must be PNG, JPEG, or one-page PDF.",
@@ -94,8 +94,7 @@ export function UploadDialog({
           file,
           preview: inspected.preview,
           normalized: inspected.normalized,
-          studentId:
-            match?.id ?? state.students[items.length + index]?.id ?? "",
+          studentId: match?.id ?? "",
           support: "unknown",
           note: "",
         });
@@ -108,6 +107,10 @@ export function UploadDialog({
     }
   }
   async function submitWork() {
+    if (items.some((item) => !item.studentId)) {
+      setError("Choose the student for every worksheet before uploading.");
+      return;
+    }
     if (new Set(items.map((i) => i.studentId)).size !== items.length) {
       setError("Choose one worksheet per student.");
       return;
@@ -184,11 +187,14 @@ export function UploadDialog({
   }
   async function importLesson(file: File) {
     setError("");
+    setSource(file);
+    setPreview("");
+    setLessonImport(null);
+    setLesson(null);
     setBusy("Reading your lesson plan…");
     try {
       const inspected = await inspectFile(file, "lesson");
       previewURLs.current.push(inspected.preview);
-      setSource(file);
       setPreview(inspected.preview);
       const assetId = await uploadFile(
         file,
@@ -282,7 +288,9 @@ export function UploadDialog({
           </Button>
           {tab === "work" ? (
             <Button
-              disabled={!items.length || !!busy}
+              disabled={
+                !items.length || items.some((item) => !item.studentId) || !!busy
+              }
               onClick={() => void submitWork()}
             >
               Upload and analyze {items.length || ""} worksheet
@@ -387,7 +395,10 @@ export function UploadDialog({
               type="file"
               accept="image/png,image/jpeg,application/pdf"
               multiple
-              onChange={(e) => void filesAdded(e.target.files)}
+              onChange={(e) => {
+                void filesAdded(e.target.files);
+                e.target.value = "";
+              }}
               disabled={!!busy}
             />
           </label>
@@ -399,6 +410,10 @@ export function UploadDialog({
                   Applies to every answer on that page.
                 </span>
               </div>
+              <p className="help-note">
+                Check each student before uploading. Files without a recognized
+                student name need you to choose one.
+              </p>
               {items.map((item, index) => (
                 <div className="upload-row" key={`${item.file.name}-${index}`}>
                   <img
@@ -415,6 +430,7 @@ export function UploadDialog({
                   <Select
                     aria-label={`Student for ${item.file.name}`}
                     value={item.studentId}
+                    disabled={!!busy}
                     onChange={(e) =>
                       setItems((old) =>
                         old.map((x, i) =>
@@ -423,6 +439,7 @@ export function UploadDialog({
                       )
                     }
                   >
+                    <option value="">Choose student</option>
                     {state.students.map((s) => (
                       <option key={s.id} value={s.id}>
                         {s.displayName}
@@ -432,6 +449,7 @@ export function UploadDialog({
                   <Select
                     aria-label={`Help provided for ${item.file.name}`}
                     value={item.support}
+                    disabled={!!busy}
                     onChange={(e) =>
                       setItems((old) =>
                         old.map((x, i) =>
@@ -454,6 +472,7 @@ export function UploadDialog({
                     variant="ghost"
                     size="icon"
                     aria-label={`Remove ${item.file.name}`}
+                    disabled={!!busy}
                     onClick={() =>
                       setItems((old) => old.filter((_, i) => i !== index))
                     }

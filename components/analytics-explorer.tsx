@@ -9,7 +9,12 @@ import {
 } from "@/lib/insights";
 import { assignmentHref, supportLabels } from "@/lib/client/links";
 import { dateLabel } from "@/lib/utils";
-import { ResultCards, ResultCounts } from "./analytics";
+import {
+  ResultCards,
+  ResultCounts,
+  resultLabels,
+  resultOrder,
+} from "./analytics";
 import { Card } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { Select } from "./ui/input";
@@ -82,13 +87,13 @@ function Comparison({
         </span>
         <h3>
           {eligible
-            ? "Independent core results, side by side"
-            : "Keep the task and help in view"}
+            ? "Independent calculations, side by side"
+            : "No independent calculations to compare"}
         </h3>
         <p>
           {eligible
-            ? `${comparison.independentStudentIds.length} students have usable core answers completed without help in both assignments.`
-            : "There is no pair of usable core results completed independently in both assignments."}
+            ? `${comparison.independentStudentIds.length} students completed clear calculation answers without help in both assignments.`
+            : "Choose another assignment to compare calculation answers completed without help."}
         </p>
       </div>
       {eligible && (
@@ -100,7 +105,7 @@ function Comparison({
                 {comparison.pairedCore[period].correct}
                 <small> / {comparison.pairedCore[period].usable}</small>
               </strong>
-              <small>correct core answers · same students</small>
+              <small>correct calculations · same students</small>
             </div>
           ))}
           <ArrowRight size={19} aria-hidden="true" />
@@ -124,10 +129,10 @@ function Comparison({
           </p>
         )}
         <p>
-          <strong>Task mix:</strong> {comparison.previousMix.core} core +{" "}
-          {comparison.previousMix.transfer} context questions →{" "}
-          {comparison.currentMix.core} core + {comparison.currentMix.transfer}{" "}
-          context questions.
+          <strong>Questions:</strong> {comparison.previousMix.core} calculations
+          + {comparison.previousMix.transfer} word problems →{" "}
+          {comparison.currentMix.core} calculations +{" "}
+          {comparison.currentMix.transfer} word problems.
           {(comparison.previousMix.other > 0 ||
             comparison.currentMix.other > 0) &&
             ` Other question types: ${comparison.previousMix.other} → ${comparison.currentMix.other}.`}
@@ -180,19 +185,15 @@ function ClassResults({
         <Card className="answer-quality">
           <div className="quality-score">
             <div>
-              <span>Correct numerical answers</span>
+              <span>Correct answers</span>
               <strong>
-                {counts.correctPercent === null
-                  ? "—"
-                  : `${Math.round(counts.correctPercent)}%`}
+                {counts.correct} <small>of {counts.total}</small>
               </strong>
-              <p>
-                {counts.correct} of {counts.usable} usable results
-              </p>
+              <p>questions across the class</p>
             </div>
             <p className="quality-definition">
-              Usable means a clear, interpretable result. Flagged, unanswered,
-              and missing work stay separate.
+              All questions stay in view. Incorrect answers, reading flags, and
+              missing answers are counted separately.
             </p>
           </div>
           <div className="question-score-list">
@@ -212,15 +213,35 @@ function ClassResults({
                         : "Apply in context"}
                     </span>
                     <b>
-                      {item.counts.correct} / {item.counts.usable}{" "}
+                      {item.counts.correct} / {item.counts.total}{" "}
                       <small>correct</small>
                     </b>
                   </div>
                   <div className="question-score-track" aria-hidden="true">
-                    <span
-                      style={{ width: `${item.counts.correctPercent ?? 0}%` }}
-                    />
+                    {resultOrder
+                      .filter((result) => item.counts[result] > 0)
+                      .map((result) => (
+                        <span
+                          key={result}
+                          className={`question-segment-${result}`}
+                          style={{
+                            width: `${(item.counts[result] / Math.max(1, item.counts.total)) * 100}%`,
+                          }}
+                        />
+                      ))}
                   </div>
+                  <small className="question-score-breakdown">
+                    {resultOrder
+                      .filter(
+                        (result) =>
+                          result !== "correct" && item.counts[result] > 0,
+                      )
+                      .map(
+                        (result) =>
+                          `${item.counts[result]} ${resultLabels[result].toLowerCase()}`,
+                      )
+                      .join(" · ") || "All answers correct"}
+                  </small>
                 </div>
                 <ArrowRight size={14} />
               </Link>
@@ -311,7 +332,7 @@ function StudentMatrix({
       <div className="analysis-explanation">
         <h3>Every student, across the unit</h3>
         <p>
-          Each cell shows <strong>correct / usable answers</strong>. Missing
+          Each cell shows <strong>correct / all questions</strong>. Missing
           answers, reading flags, and help remain visible. Select a result to
           inspect the work.
         </p>
@@ -369,7 +390,7 @@ function StudentMatrix({
                     }
                   >
                     <div
-                      className={`matrix-cell matrix-${cell.counts.usable === 0 ? "empty" : cell.counts.correct === cell.counts.usable ? "secure" : cell.counts.correct === 0 ? "support" : "mixed"}`}
+                      className={`matrix-cell matrix-${cell.counts.usable === 0 ? "empty" : cell.counts.correct === cell.counts.total ? "secure" : cell.counts.correct === 0 ? "support" : "mixed"}`}
                     >
                       <Link
                         className="matrix-main-link"
@@ -378,18 +399,18 @@ function StudentMatrix({
                           cell.assignment.templateId,
                           { student: student.id },
                         )}
-                        aria-label={`${student.displayName}, ${cell.assignment.title}: ${cell.counts.correct} correct of ${cell.counts.usable} usable answers`}
+                        aria-label={`${student.displayName}, ${cell.assignment.title}: ${cell.counts.correct} correct of ${cell.counts.total} questions`}
                       >
                         {cell.received ? (
                           <>
                             <strong>
-                              {cell.counts.usable
-                                ? `${cell.counts.correct} / ${cell.counts.usable}`
+                              {cell.analyzed
+                                ? `${cell.counts.correct} / ${cell.counts.total}`
                                 : "—"}
                             </strong>
                             <small>
                               {cell.analyzed
-                                ? "correct / usable"
+                                ? "correct / questions"
                                 : "Not analyzed"}
                             </small>
                           </>
