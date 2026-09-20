@@ -469,6 +469,7 @@ test("classroom assistant uses saved goals, answers follow-ups and preserves evi
     .locator('.chat-citation-links a[href^="/review/"]')
     .first();
   if (await citation.count()) {
+    await replies.first().locator(".chat-citations > summary").click();
     await citation.click();
     await expect(page.locator(".scan-paper img")).toBeVisible();
     await expect(page.locator(".transcript")).toBeVisible();

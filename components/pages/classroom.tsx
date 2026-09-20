@@ -21,7 +21,10 @@ import { assignmentHref } from "@/lib/client/links";
 import { dateLabel } from "@/lib/utils";
 import { teacherNextStep } from "@/lib/teacher-workflow";
 import { getLearningInsights } from "@/lib/learning-insights";
-import { LearningOverview } from "@/components/learning-overview";
+import {
+  LearningFollowUps,
+  LearningOverview,
+} from "@/components/learning-overview";
 
 function ClassroomContent() {
   const { data } = useWorkspace();
@@ -129,6 +132,7 @@ function ClassroomContent() {
               Open assignment <ArrowRight size={15} />
             </Link>
           </div>
+          <LearningOverview learning={learning} state={state} />
           <DecisionBrief
             key={selected.templateId}
             templateId={selected.templateId}
@@ -140,7 +144,7 @@ function ClassroomContent() {
                 : undefined
             }
           />
-          <LearningOverview learning={learning} state={state} />
+          <LearningFollowUps learning={learning} state={state} />
           <details
             className="evidence-explorer"
             key={`evidence-${selected.templateId}`}

@@ -672,6 +672,7 @@ function PlanContent({
           </Banner>
         </div>
       )}
+      <LessonGuide guide={buildLessonGuide(state, version)} />
       <section
         id="lesson-suggestions"
         className="lesson-suggestions"
@@ -679,9 +680,8 @@ function PlanContent({
       >
         {!historical && !wrongTarget && !hasCurrentSavedChanges && (
           <p className="help-note mb-16">
-            <strong>Review evidence → Preview changes → Save lesson.</strong>{" "}
-            Suggestions use approved teaching notes. Your 45-minute lesson
-            changes only when you save your selection.
+            <strong>Make a change?</strong> Use approved teaching notes to adjust
+            this lesson. Nothing changes until you save.
           </p>
         )}
         {job && job.status !== "completed" && !historical && (
@@ -728,8 +728,7 @@ function PlanContent({
               <div>
                 <h2>Suggested changes</h2>
                 <p>
-                  Select a change to inspect its evidence. Check the changes you
-                  want to save.
+                  Compare each suggestion, then check the changes to save.
                 </p>
               </div>
               <Button
@@ -830,13 +829,14 @@ function PlanContent({
                 <div className="selected-change-content">
                   <Card>
                     <div className="change-body">
-                      <p className="selected-change-reason">
-                        <strong>Why:</strong> {activeChange.rationale}
-                      </p>
+                      <dl className="change-at-a-glance">
+                        <div><dt>Who</dt><dd>{studentNames(activeChange) || "Whole class"}</dd></div>
+                        <div><dt>Time</dt><dd>{activeChange.operation === "schedule_checkpoint" ? `${activeChange.payload.minutes} min within the next session` : `${activeChange.payload.block.minutes} min${oldBlock ? ` · was ${oldBlock.minutes} min` : ""}`}</dd></div>
+                      </dl>
                       {activeChange.operation === "schedule_checkpoint" ? (
                         <div className="before-after">
                           <div className="comparison-pane">
-                            <h3>Current plan</h3>
+                            <h3>Current</h3>
                             <p>
                               {
                                 state.calendarEntries.find(
@@ -857,7 +857,7 @@ function PlanContent({
                             <p>45 minutes of planned teaching.</p>
                           </div>
                           <div className="comparison-pane after">
-                            <h3>With this change</h3>
+                            <h3>Suggested</h3>
                             <p>
                               {activeChange.payload.title}:{" "}
                               {activeChange.payload.minutes} minutes within this
@@ -873,12 +873,16 @@ function PlanContent({
                         <>
                           <div className="before-after">
                             <div className="comparison-pane">
-                              <h3>Current plan</h3>
-                              <p>{oldBlock?.instructions}</p>
+                              <h3>Current <span>{oldBlock?.minutes ?? "—"} min</span></h3>
+                              <strong className="comparison-title">{oldBlock?.title}</strong>
+                              <details className="comparison-instructions"><summary>Full instructions</summary><p>{oldBlock?.instructions}</p>
+                                {oldBlock?.lanes && <Lanes block={oldBlock} />}
+                              </details>
                             </div>
                             <div className="comparison-pane after">
-                              <h3>With this change</h3>
-                              <p>{activeChange.payload.block.instructions}</p>
+                              <h3>Suggested <span>{activeChange.payload.block.minutes} min</span></h3>
+                              <strong className="comparison-title">{activeChange.payload.block.title}</strong>
+                              <details className="comparison-instructions"><summary>Full instructions</summary><p>{activeChange.payload.block.instructions}</p></details>
                             </div>
                           </div>
                           {activeChange.payload.block.lanes && (
@@ -894,6 +898,10 @@ function PlanContent({
                           )}
                         </>
                       )}
+                      <details className="selected-change-reason" open>
+                        <summary>Why this change</summary>
+                        <p>{activeChange.rationale}</p>
+                      </details>
                       {activeChange.dependsOnChangeIds.length > 0 && (
                         <p className="answer-facet">
                           Save together with:{" "}
@@ -1076,7 +1084,7 @@ function PlanContent({
                       {wrongTarget
                         ? "Keep this saved lesson for reference. Use the linked lesson above for new suggestions."
                         : hasCurrentSavedChanges
-                          ? "Your selected changes are saved. The complete 45-minute lesson is below, with activities ready to print."
+                          ? "Your changes are saved in the lesson above. Activities are ready to print."
                           : confirmed.length
                             ? `${confirmed.length} current teaching notes can inform a suggestion. Review every change before saving.`
                             : "Review the student work and approve the teaching notes you want to use."}
@@ -1116,7 +1124,6 @@ function PlanContent({
           </>
         )}
       </section>
-      <LessonGuide guide={buildLessonGuide(state, version)} />
       {editing && proposal && (
         <ChangeEditor
           proposal={proposal}

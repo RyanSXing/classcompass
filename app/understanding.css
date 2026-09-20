@@ -1,0 +1,488 @@
+/* Dated understanding stages use the original ClassCompass purple/aqua palette. */
+.understanding-panel,
+.understanding-student-detail {
+  --stage-support: #9c4168;
+  --stage-developing: #996715;
+  --stage-independent: #168b86;
+  --stage-unknown: #b7b3c3;
+}
+.understanding-panel {
+  margin: 0 0 24px;
+  padding: 25px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--surface);
+}
+.understanding-heading,
+.understanding-section-heading,
+.understanding-student-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+.understanding-heading h2 {
+  font-size: 28px;
+  margin: 5px 0 7px;
+}
+.understanding-heading p {
+  font-size: 13px;
+  color: var(--muted);
+}
+.understanding-skill {
+  min-width: 235px;
+  max-width: 100%;
+}
+.understanding-skill > span {
+  font-size: 12px;
+  font-weight: 800;
+}
+.understanding-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px 19px;
+  margin: 20px 0 16px;
+}
+.understanding-legend > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  color: var(--ink);
+}
+.stage-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 900;
+}
+.stage-needs_support {
+  background: #f5e3eb;
+  color: #863052;
+}
+.stage-developing {
+  background: #fff1d7;
+  color: #835400;
+}
+.stage-independent {
+  background: #d9f3ed;
+  color: #086c66;
+}
+.stage-insufficient_evidence {
+  background: #eeedf2;
+  color: #686273;
+}
+.understanding-definitions {
+  font-size: 12px;
+  color: var(--muted);
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 18px;
+}
+.understanding-definitions summary {
+  cursor: pointer;
+  color: var(--violet);
+  font-weight: 800;
+}
+.understanding-definitions dl {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+  line-height: 1.6;
+}
+.understanding-definition {
+  display: grid;
+  grid-template-columns: 170px 1fr;
+  gap: 14px;
+}
+.understanding-stage-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.understanding-definitions ul {
+  padding-left: 20px;
+  margin-top: 8px;
+  line-height: 1.6;
+}
+.understanding-definitions dt {
+  color: var(--ink);
+  font-weight: 800;
+}
+.understanding-definitions dd {
+  margin: 0;
+}
+.understanding-definitions > p {
+  margin-top: 10px;
+  line-height: 1.6;
+}
+.understanding-class-layout {
+  display: grid;
+  grid-template-columns: minmax(250px, 0.8fr) minmax(0, 1.4fr);
+  gap: 26px;
+  margin-top: 23px;
+}
+.understanding-section-heading {
+  align-items: baseline;
+  margin-bottom: 13px;
+}
+.understanding-section-heading h3 {
+  font-size: 16px;
+}
+.understanding-section-heading p {
+  font-size: 11px;
+  color: var(--muted);
+}
+.understanding-bars {
+  display: grid;
+  gap: 9px;
+}
+.understanding-bar-row {
+  display: grid;
+  grid-template-columns: 47px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  padding: 6px 7px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: transparent;
+  text-align: left;
+  width: 100%;
+  cursor: pointer;
+}
+.understanding-bar-row[aria-pressed="true"] {
+  border-color: #bca0dd;
+  background: #f7f2fc;
+}
+.understanding-bar-date {
+  font-size: 11px;
+  font-weight: 800;
+}
+.understanding-bar {
+  display: flex;
+  min-height: 29px;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #eeedf2;
+}
+.understanding-segment {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  font-size: 11px;
+  font-weight: 900;
+  border-right: 2px solid white;
+}
+.understanding-segment:last-child {
+  border-right: none;
+}
+.understanding-chart-caption {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.6;
+  margin-top: 11px;
+}
+.understanding-heatmap-scroll {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+.understanding-heatmap {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: 11px;
+}
+.understanding-heatmap th {
+  font-weight: 800;
+  text-align: center;
+  padding: 9px 3px;
+  color: var(--muted);
+}
+.understanding-heatmap th:first-child {
+  width: 76px;
+  text-align: left;
+  padding-left: 10px;
+}
+.understanding-heatmap tbody th {
+  color: var(--ink);
+}
+.understanding-heatmap td {
+  border-top: 1px solid var(--line);
+  padding: 4px;
+}
+.understanding-heatmap tbody th {
+  border-top: 1px solid var(--line);
+}
+.understanding-cell {
+  width: 100%;
+  min-height: 35px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid transparent;
+  border-radius: 7px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 900;
+}
+.understanding-cell[aria-pressed="true"] {
+  border-color: var(--violet);
+  box-shadow: 0 0 0 1px white inset;
+}
+.understanding-cell:hover {
+  filter: brightness(0.96);
+}
+.understanding-student-detail {
+  margin-top: 24px;
+  padding-top: 23px;
+  border-top: 1px solid var(--line);
+}
+.understanding-student-heading h3 {
+  font-size: 18px;
+}
+.understanding-student-heading p {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+.understanding-student-heading .text-link {
+  font-size: 12px;
+  white-space: nowrap;
+}
+.understanding-path-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(240px, 0.85fr);
+  gap: 22px;
+  margin-top: 14px;
+}
+.understanding-path {
+  min-width: 0;
+}
+.understanding-path svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+.understanding-path svg text {
+  fill: var(--muted);
+  font-size: 11px;
+  font-family: inherit;
+}
+.understanding-path .stage-axis {
+  font-size: 10px;
+}
+.understanding-gridline {
+  stroke: var(--line);
+  stroke-width: 1;
+}
+.understanding-line {
+  stroke: var(--violet);
+  stroke-width: 3;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.understanding-point {
+  stroke: white;
+  stroke-width: 3;
+}
+.understanding-point-selected {
+  stroke: var(--violet);
+  stroke-width: 3;
+}
+.understanding-point-needs_support {
+  fill: var(--stage-support);
+}
+.understanding-point-developing {
+  fill: var(--stage-developing);
+}
+.understanding-point-independent {
+  fill: var(--stage-independent);
+}
+.understanding-point-insufficient_evidence {
+  fill: var(--stage-unknown);
+}
+.understanding-date-controls {
+  display: flex;
+  gap: 5px;
+  margin-left: 95px;
+}
+.understanding-date-controls button {
+  flex: 1;
+  min-height: 32px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--muted);
+  border-radius: 6px;
+  font-size: 11px;
+  cursor: pointer;
+}
+.understanding-date-controls button[aria-pressed="true"] {
+  background: #eee6f8;
+  color: var(--violet);
+  border-color: #c8b2e1;
+  font-weight: 900;
+}
+.understanding-observation {
+  background: #f8f6fc;
+  border-radius: 12px;
+  padding: 16px;
+  min-width: 0;
+}
+.understanding-observation-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+}
+.understanding-observation > p {
+  font-size: 12px;
+  line-height: 1.65;
+  margin-top: 10px;
+  color: var(--muted);
+}
+.understanding-observation > .understanding-next {
+  color: var(--ink);
+}
+.understanding-observation .learning-evidence {
+  margin-top: 11px;
+}
+.understanding-observation-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px 13px;
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 9px;
+}
+.understanding-observation .text-link {
+  font-size: 12px;
+}
+.understanding-evidence-group h4 {
+  margin-top: 13px;
+  font-size: 12px;
+}
+.understanding-evidence-group ul {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0;
+  display: grid;
+  gap: 10px;
+}
+.understanding-evidence-group p {
+  font-size: 11px;
+}
+.understanding-followups {
+  margin-top: 27px;
+}
+.understanding-followups .learning-followups {
+  margin-top: 12px;
+}
+.understanding-followups .learning-followup {
+  padding: 17px 20px;
+  gap: 14px;
+}
+.understanding-followups .followup-content > p {
+  font-size: 12px;
+}
+.understanding-followups .followup-content h3 {
+  font-size: 15px;
+}
+.understanding-panel :is(button, summary, a, select):focus-visible {
+  outline: 3px solid var(--violet);
+  outline-offset: 3px;
+}
+@media (max-width: 1150px) {
+  .understanding-class-layout {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr);
+    gap: 20px;
+  }
+  .understanding-panel {
+    padding: 21px;
+  }
+}
+@media (max-width: 900px) {
+  .understanding-class-layout {
+    grid-template-columns: 1fr;
+  }
+  .understanding-bars {
+    grid-template-columns: 1fr;
+  }
+  .understanding-path-layout {
+    grid-template-columns: 1fr;
+  }
+  .understanding-bar-row {
+    grid-template-columns: 53px 1fr;
+  }
+}
+@media (max-width: 600px) {
+  .understanding-panel {
+    padding: 17px 13px;
+    border-radius: 15px;
+  }
+  .understanding-heading {
+    flex-direction: column;
+    gap: 15px;
+  }
+  .understanding-heading h2 {
+    font-size: 25px;
+  }
+  .understanding-skill {
+    width: 100%;
+    min-width: 0;
+  }
+  .understanding-legend {
+    gap: 8px 13px;
+  }
+  .understanding-legend > span {
+    font-size: 10px;
+  }
+  .understanding-definition {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+  .understanding-definitions dd {
+    margin-bottom: 8px;
+  }
+  .understanding-heatmap th:first-child {
+    width: 61px;
+    padding-left: 6px;
+  }
+  .understanding-heatmap th {
+    font-size: 10px;
+    padding: 8px 1px;
+  }
+  .understanding-heatmap td {
+    padding: 3px 2px;
+  }
+  .understanding-cell {
+    min-height: 37px;
+  }
+  .understanding-student-heading {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .understanding-observation {
+    padding: 14px;
+  }
+  .understanding-date-controls {
+    margin-left: 80px;
+    gap: 0;
+  }
+  .understanding-date-controls button {
+    font-size: 10px;
+    min-height: 36px;
+    padding: 2px;
+  }
+  .understanding-followups .learning-followup {
+    padding: 16px;
+  }
+}

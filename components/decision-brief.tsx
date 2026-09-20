@@ -15,6 +15,7 @@ import type { getLearningInsights } from "@/lib/learning-insights";
 import type { teacherNextStep } from "@/lib/teacher-workflow";
 import { dateLabel } from "@/lib/utils";
 import { LearningEvidence } from "./learning-evidence";
+import { TeachingAction } from "./teaching-action";
 
 export function assistantHref(templateId: string, prompt: string) {
   return `/assistant?${new URLSearchParams({ assignment: templateId, prompt })}`;
@@ -50,7 +51,7 @@ function GeneratedBrief({
           return (
             <article className="brief-action" key={action.id}>
               <h3>{action.title}</h3>
-              <p>{action.description}</p>
+              <TeachingAction description={action.description} />
               <details className="learning-evidence">
                 <summary>Show me why</summary>
                 {citation && (
@@ -65,7 +66,7 @@ function GeneratedBrief({
               <Link
                 href={assistantHref(
                   templateId,
-                  `Expand this suggestion into a practical classroom activity: ${action.title}. ${action.description} Include time, steps, and a fresh check for success using the dated evidence.`,
+                  `Plan this activity: ${action.title}. ${action.description} Use short steps, a time limit, and one check for understanding. Base it on the saved work.`,
                 )}
                 className="decision-ask"
               >

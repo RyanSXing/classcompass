@@ -1,11 +1,19 @@
 "use client";
 import Link from "next/link";
-import { ArrowRight, CheckCircle2, Compass, TrendingUp } from "lucide-react";
+import { ArrowRight, CheckCircle2, ChartNoAxesCombined } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 import type { AppState } from "@/lib/contracts";
 import type { getLearningInsights } from "@/lib/learning-insights";
-import { dateLabel } from "@/lib/utils";
+import { getUnderstandingOverview } from "@/lib/understanding";
 import { assistantHref } from "./decision-brief";
 import { LearningEvidence } from "./learning-evidence";
+import { Select } from "./ui/input";
+import {
+  ClassUnderstandingBars,
+  StudentUnderstandingChart,
+  UnderstandingHeatmap,
+  UnderstandingStageBadge,
+} from "./understanding-charts";
 
 type Learning = ReturnType<typeof getLearningInsights>;
 
@@ -16,138 +24,194 @@ export function LearningOverview({
   learning: Learning;
   state: AppState;
 }) {
+  const search = useSearchParams();
+  const overview = getUnderstandingOverview(
+    state,
+    learning.assignment.templateId,
+  );
+  const skill =
+    overview.skills.find((item) => item.id === search.get("skill")) ??
+    overview.skills.find((item) => item.id === "obj-add-unlike-fractions") ??
+    overview.skills[0];
+  const selectedTemplateId = skill.snapshots.some(
+    (item) => item.templateId === search.get("understandingDate"),
+  )
+    ? search.get("understandingDate")!
+    : overview.assignment.templateId;
+  const student =
+    overview.students.find(
+      (item) => item.studentId === search.get("understandingStudent"),
+    ) ??
+    overview.students.find(
+      (item) =>
+        item.skills.find((entry) => entry.skillId === skill.id)?.current
+          .stage === "needs_support",
+    ) ??
+    overview.students.find(
+      (item) =>
+        item.skills.find((entry) => entry.skillId === skill.id)?.current
+          .stage === "developing",
+    ) ??
+    overview.students[0];
+  function updateSelection(values: Record<string, string>) {
+    const query = new URLSearchParams(window.location.search);
+    Object.entries(values).forEach(([key, value]) => query.set(key, value));
+    window.history.replaceState(null, "", `/classroom?${query}`);
+  }
   return (
-    <>
-      <section
-        className="learning-section"
-        aria-labelledby="learning-development-title"
-      >
-        <div className="learning-section-heading">
-          <div>
-            <span className="intelligence-eyebrow">
-              <TrendingUp size={15} /> Across the unit
-            </span>
-            <h2 id="learning-development-title">How learning is developing</h2>
-          </div>
-          <span className="learning-through">
-            Through {dateLabel(learning.throughDate)}
+    <section
+      className="understanding-panel"
+      aria-labelledby="learning-picture-title"
+    >
+      <div className="understanding-heading">
+        <div>
+          <span className="intelligence-eyebrow">
+            <ChartNoAxesCombined size={14} /> Across the unit
           </span>
+          <h2 id="learning-picture-title">Learning picture</h2>
+          <p>Compare what the work shows, one skill at a time.</p>
         </div>
-        {learning.trends.length === 0 && (
-          <p className="learning-summary">{learning.summary}</p>
-        )}
-        <div className="learning-trend-grid">
-          {learning.trends.map((trend) => (
-            <article className="learning-trend" key={trend.id}>
-              <p className="learning-skill">{trend.skill}</p>
-              <h3>{trend.title}</h3>
-              {trend.studentIds.length > 0 && (
-                <p className="learning-students">
-                  {trend.studentIds
-                    .slice(0, 3)
-                    .map(
-                      (id) =>
-                        state.students.find((student) => student.id === id)
-                          ?.displayName,
-                    )
-                    .filter(Boolean)
-                    .join(", ")}
-                  {trend.studentIds.length > 3
-                    ? ` and ${trend.studentIds.length - 3} others`
-                    : ""}
-                </p>
-              )}
-              <div className="learning-dates">
-                {dateLabel(trend.dateRange.from)}
-                {trend.dateRange.to !== trend.dateRange.from && (
-                  <>
-                    {" "}
-                    <ArrowRight size={12} aria-label="to" />{" "}
-                    {dateLabel(trend.dateRange.to)}
-                  </>
-                )}
-              </div>
-              <p>{trend.description}</p>
-              <div className="learning-next">
-                <Compass size={16} />
-                <p>{trend.nextStep}</p>
-              </div>
-              <LearningEvidence state={state} evidence={trend.evidence}>
-                <p className="learning-comparability">{trend.comparability}</p>
-              </LearningEvidence>
-            </article>
-          ))}
-        </div>
-        {learning.limitations.length > 0 && (
-          <details className="learning-limits">
-            <summary>What we can tell from this work</summary>
-            <ul>
-              {learning.limitations.map((item) => (
-                <li key={item}>{item}</li>
-              ))}
-            </ul>
-          </details>
-        )}
-      </section>
-      <section
-        className="learning-section"
-        aria-labelledby="student-followups-title"
-      >
-        <div className="learning-section-heading">
-          <div>
-            <span className="intelligence-eyebrow">Individual follow-ups</span>
-            <h2 id="student-followups-title">Students to check</h2>
-          </div>
-          <Link href="/students" className="text-link">
-            All students <ArrowRight size={14} />
-          </Link>
-        </div>
-        {learning.followUps.length ? (
-          <>
-            <div className="learning-followups">
-              {learning.followUps.map((followUp) => (
-                <FollowUp
-                  key={followUp.id}
-                  followUp={followUp}
-                  state={state}
-                  templateId={learning.assignment.templateId}
-                />
-              ))}
+        <label className="field understanding-skill">
+          <span>Focus on a skill</span>
+          <Select
+            aria-label="Understanding skill"
+            value={skill.id}
+            onChange={(event) => updateSelection({ skill: event.target.value })}
+          >
+            {overview.skills.map((item) => (
+              <option value={item.id} key={item.id}>
+                {item.label}
+              </option>
+            ))}
+          </Select>
+        </label>
+      </div>
+      <div className="understanding-legend" aria-label="Understanding stages">
+        {overview.legend.map((item) => (
+          <UnderstandingStageBadge key={item.stage} stage={item.stage} />
+        ))}
+      </div>
+      <details className="understanding-definitions">
+        <summary>How to read these stages</summary>
+        <dl>
+          {overview.legend.map((item) => (
+            <div key={item.stage} className="understanding-definition">
+              <dt>
+                <UnderstandingStageBadge stage={item.stage} />
+              </dt>
+              <dd>{item.description}</dd>
             </div>
-            {learning.allFollowUps.length > learning.followUps.length && (
-              <details className="more-followups">
-                <summary>More student follow-ups</summary>
-                <div className="learning-followups">
-                  {learning.allFollowUps
-                    .filter(
-                      (item) =>
-                        !learning.followUps.some(
-                          (shown) => shown.id === item.id,
-                        ),
-                    )
-                    .map((followUp) => (
-                      <FollowUp
-                        key={followUp.id}
-                        followUp={followUp}
-                        state={state}
-                        templateId={learning.assignment.templateId}
-                      />
-                    ))}
-                </div>
-              </details>
-            )}
-          </>
-        ) : (
-          <div className="learning-empty">
-            <CheckCircle2 size={20} />
-            <p>
-              No specific follow-up is supported yet. Use the next independent
-              task to check the skill and record any help.
-            </p>
+          ))}
+        </dl>
+        <p>{skill.description}</p>
+        <ul>
+          {skill.criteria.map((criterion) => (
+            <li key={criterion}>{criterion}</li>
+          ))}
+        </ul>
+        {overview.limitations.map((limitation) => (
+          <p key={limitation}>{limitation}</p>
+        ))}
+      </details>
+      <div className="understanding-class-layout">
+        <ClassUnderstandingBars
+          skill={skill}
+          selectedTemplateId={selectedTemplateId}
+          onSelectDate={(templateId) =>
+            updateSelection({ understandingDate: templateId })
+          }
+        />
+        <UnderstandingHeatmap
+          overview={overview}
+          skill={skill}
+          selectedStudentId={student?.studentId ?? ""}
+          selectedTemplateId={selectedTemplateId}
+          onSelect={(studentId, templateId) =>
+            updateSelection({
+              understandingStudent: studentId,
+              understandingDate: templateId,
+            })
+          }
+        />
+      </div>
+      {student && (
+        <StudentUnderstandingChart
+          student={student}
+          skill={skill}
+          selectedTemplateId={selectedTemplateId}
+          onSelectDate={(templateId) =>
+            updateSelection({ understandingDate: templateId })
+          }
+        />
+      )}
+    </section>
+  );
+}
+
+export function LearningFollowUps({
+  learning,
+  state,
+}: {
+  learning: Learning;
+  state: AppState;
+}) {
+  return (
+    <section
+      className="learning-section understanding-followups"
+      aria-labelledby="student-followups-title"
+    >
+      <div className="learning-section-heading">
+        <div>
+          <span className="intelligence-eyebrow">Individual follow-ups</span>
+          <h2 id="student-followups-title">Students to check</h2>
+        </div>
+        <Link href="/students" className="text-link">
+          All students <ArrowRight size={14} />
+        </Link>
+      </div>
+      {learning.followUps.length ? (
+        <>
+          <div className="learning-followups">
+            {learning.followUps.map((followUp) => (
+              <FollowUp
+                key={followUp.id}
+                followUp={followUp}
+                state={state}
+                templateId={learning.assignment.templateId}
+              />
+            ))}
           </div>
-        )}
-      </section>
-    </>
+          {learning.allFollowUps.length > learning.followUps.length && (
+            <details className="more-followups">
+              <summary>More student follow-ups</summary>
+              <div className="learning-followups">
+                {learning.allFollowUps
+                  .filter(
+                    (item) =>
+                      !learning.followUps.some((shown) => shown.id === item.id),
+                  )
+                  .map((followUp) => (
+                    <FollowUp
+                      key={followUp.id}
+                      followUp={followUp}
+                      state={state}
+                      templateId={learning.assignment.templateId}
+                    />
+                  ))}
+              </div>
+            </details>
+          )}
+        </>
+      ) : (
+        <div className="learning-empty">
+          <CheckCircle2 size={20} />
+          <p>
+            No specific follow-up is supported yet. Use the next independent
+            task to check the skill and record any help.
+          </p>
+        </div>
+      )}
+    </section>
   );
 }
 
@@ -173,12 +237,12 @@ function FollowUp({
       </div>
       <div className="followup-content">
         <h3>{followUp.title}</h3>
-        <p>{followUp.reason}</p>
         <p className="followup-action">
           <strong>Next:</strong> {followUp.nextStep}
         </p>
         <details className="followup-steps">
           <summary>Teaching steps · {followUp.minutes} min</summary>
+          <p>{followUp.reason}</p>
           <ol>
             {followUp.steps.map((step) => (
               <li key={step}>{step}</li>

@@ -26,6 +26,7 @@ import {
   nextStepLabels,
 } from "@/lib/client/links";
 import { dateLabel } from "@/lib/utils";
+import { StudentLearning } from "@/components/student-learning";
 import type {
   Observation,
   ObservationStatus,
@@ -199,13 +200,10 @@ function StudentContent({ studentId }: { studentId: string }) {
           </div>
         </div>
       </div>
-      <div className="analytics-columns">
-        <Card className="analytics-panel">
-          <div className="panel-head">
-            <h2>Results over time</h2>
-          </div>
-          <AssignmentTrend state={state} studentId={studentId} />
-        </Card>
+      <StudentLearning state={state} studentId={studentId} templateId={
+        assignments.find(item => item.templateId === chosen)?.templateId ?? latestWork?.templateId ?? assignments[0].templateId
+      } />
+      <div>
         <Card className="analytics-panel">
           <div className="panel-head">
             <h2>Next steps</h2>
@@ -225,7 +223,7 @@ function StudentContent({ studentId }: { studentId: string }) {
                       {dateLabel(batch.activityDate)} ·{" "}
                       {getAssignment(batch.templateId)?.title}
                     </p>
-                    <p>{f.explanation}</p>
+                    <details className="student-work-details"><summary>Why this step</summary><p>{f.explanation}</p></details>
                   </li>
                 );
               })}
@@ -251,10 +249,9 @@ function StudentContent({ studentId }: { studentId: string }) {
           )}
         </Card>
       </div>
-      <section className="analytics-section">
-        <div className="section-heading">
-          <h2>Assignment results</h2>
-        </div>
+      <details className="evidence-explorer" open={search.has("result") || search.has("support") || search.has("assignment") || search.get("evidence") === "open"}>
+        <summary><span>Assignment results</span><small>Answers, help and totals</small></summary>
+        <details className="student-work-details"><summary>Answer totals over time</summary><AssignmentTrend state={state} studentId={studentId} /></details>
         <div className="analytics-toolbar">
           <label className="field">
             <span>Assignment</span>
@@ -386,7 +383,7 @@ function StudentContent({ studentId }: { studentId: string }) {
                   window.history.replaceState(
                     null,
                     "",
-                    `/students/${studentId}`,
+                    `/students/${studentId}?evidence=open`,
                   );
                 }}
               >
@@ -395,7 +392,7 @@ function StudentContent({ studentId }: { studentId: string }) {
             </div>
           )}
         </Card>
-      </section>
+      </details>
       <section className="analytics-section">
         <div className="section-heading">
           <h2>Teacher-reviewed evidence</h2>

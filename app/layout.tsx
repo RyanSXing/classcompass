@@ -4,6 +4,8 @@ import "./revamp.css";
 import "./review-plan.css";
 import "./assistant.css";
 import "./intelligence.css";
+import "./understanding.css";
+import "./teaching-visuals.css";
 import { WorkspaceProvider } from "@/components/workspace-provider";
 import { AppShell } from "@/components/app-shell";
 

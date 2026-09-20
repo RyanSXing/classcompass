@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { ArrowUpRight, FileText } from "lucide-react";
+import { TeachingAction } from "./teaching-action";
 import type {
   AssistantAction,
   AssistantCitation,
@@ -17,6 +18,12 @@ function InlineText({ text }: { text: string }) {
       ),
     );
 }
+function AnswerBlock({ text }: { text: string }) {
+  const lines = text.replace(/^#{1,4}\s+/gm, "").split("\n");
+  if (lines.every((line) => /^\s*[-•]\s+/.test(line))) return <ul>{lines.map((line, i) => <li key={i}><InlineText text={line.replace(/^\s*[-•]\s+/, "")} /></li>)}</ul>;
+  if (lines.every((line) => /^\s*\d+[.)]\s+/.test(line))) return <ol>{lines.map((line, i) => <li key={i}><InlineText text={line.replace(/^\s*\d+[.)]\s+/, "")} /></li>)}</ol>;
+  return <p><InlineText text={text.replace(/^#{1,4}\s+/gm, "")} /></p>;
+}
 export function AssistantAnswer({
   content,
   citations,
@@ -30,9 +37,7 @@ export function AssistantAnswer({
     <>
       <div className="chat-turn-content">
         {content.split(/\n\s*\n/).map((paragraph, index) => (
-          <p key={index}>
-            <InlineText text={paragraph.replace(/^#{1,4}\s+/gm, "")} />
-          </p>
+          <AnswerBlock key={index} text={paragraph} />
         ))}
       </div>
       {actions.length > 0 && (
@@ -40,7 +45,7 @@ export function AssistantAnswer({
           {actions.map((action) => (
             <div className="chat-action" key={action.id}>
               <h3>{action.title}</h3>
-              <p>{action.description}</p>
+              <TeachingAction description={action.description} />
               <Link href={action.href} className="text-link">
                 {citations.find((source) => source.id === action.citationId)
                   ?.kind === "lesson"
@@ -53,8 +58,8 @@ export function AssistantAnswer({
         </div>
       )}
       {citations.length > 0 && (
-        <div className="chat-citations">
-          <strong>Sources</strong>
+        <details className="chat-citations">
+          <summary>Sources · {citations.length}</summary>
           <div className="chat-citation-links">
             {citations.map((citation) => (
               <Link
@@ -67,7 +72,7 @@ export function AssistantAnswer({
               </Link>
             ))}
           </div>
-        </div>
+        </details>
       )}
     </>
   );

@@ -46,12 +46,13 @@ function Content() {
                 </div>
               </div>
               <div>
-                <ResultCounts
+                <Link className="text-link" href={`/classroom?assignment=${a.templateId}`}>View skill picture</Link>
+                <details className="student-work-details"><summary>Answer details</summary><ResultCounts
                   counts={stats.counts}
                   href={(result) =>
                     assignmentHref(data.state, a.templateId, { result })
                   }
-                />
+                /></details>
                 {stats.totalAttempts > stats.submittedStudents && (
                   <p className="help-note">
                     Latest upload per student shown. Earlier uploads are kept.

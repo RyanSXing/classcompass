@@ -234,9 +234,7 @@ function CalendarContent() {
                 </div>
               ))}
               <Banner>
-                Later units are authored calendar context. This preview
-                preserves the planned sequence; it doesn’t automatically
-                reschedule the school year.
+                Later units stay in order. This preview does not move their dates.
               </Banner>
             </>
           )}

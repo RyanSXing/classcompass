@@ -2,6 +2,19 @@
 
 Checks performed on September 19, 2026. All work, student identities and handwriting images used in these checks are fictional. Prepared AI results and live provider checks are reported separately.
 
+## Visual understanding revision
+
+The [visual understanding plan](visual-understanding-plan.md) is implemented. The overview leads with skill stages, class distribution bars, a student-by-date map and individual stage charts. Exact work and teaching checks sit behind each point. Student pages display their date cutoff. Lesson plans use a proportional timeline and Do / Ask / Check cards; AI activities show time, steps and what to look for. The purple/aqua palette is retained.
+
+- **Domain and server checks:** 266 tests across 24 files passed. New coverage verifies independent working versus help, answer-only and missing evidence, task comparability, exact revisions, historical cutoffs and skill-specific arithmetic slips. A teacher-verified contradiction cannot establish independence or be reused as earlier supporting evidence. Assistant context contains the same derived stages and linked work as the charts.
+- **Teacher workflows:** the 25-scenario Chromium suite covers the existing classroom workflow plus skill/date selection, exact evidence links, missing-evidence gaps, historical chart cutoffs, mobile layouts, the lesson timeline and preserved custom instructions. The first run exposed a collapsing result filter and a stage-label locator issue; both were fixed and the affected scenarios passed. The final visual/chart scenarios also passed without retries.
+- **Presentation and build:** ESLint, TypeScript, 670 authored-specification assertions and 89 local links passed. Production compilation and the artifact guard passed with 34 browser assets and 16 server traces checked. Letter and A4 lesson prints rendered as five pages with full teaching content; desktop and 390px layouts were inspected.
+- **Live AI check:** a normal-UI DeepSeek briefing saved and was compared with its visible sources. It keeps the saved Oct 1 lesson, checks Devon's numerator addition, asks Casey and Harper about unfinished work, and leaves the other students on the saved practice lanes. It correctly distinguishes Gray's earlier unknown help from later recorded independence. Action cards include minutes, short steps and a success check.
+
+The live check also exposed an earlier false claim that Harper had two unfinished Sep 30 answers. That version remains stale history. A narrow validator now rejects explicit named-student unfinished-work totals that contradict the selected or named assignment; tests cover rejecting the false count, allowing the accurate count and preserving dates/fractions during the existing single correction pass. Earlier malformed/rejected drafts were not saved. This check does not prove arbitrary model prose correct.
+
+Understanding stages are derived from the shown methods and recorded help; they are not a validated mastery scale. Handwriting extraction and Supabase isolation were unchanged and were not retested in this revision. No external teacher validated the new views.
+
 ## Learning insights revision
 
 The [implementation plan](insight-first-plan.md) is complete: the default overview shows the next lesson decision, dated learning trends and priority student follow-ups. Raw results are available under **Explore the evidence**. The original purple/aqua design is retained.

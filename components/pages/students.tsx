@@ -11,6 +11,8 @@ import { getAssignmentAnalytics } from "@/lib/analytics";
 import { assignments } from "@/lib/assignments";
 import { assignmentHref, supportLabels } from "@/lib/client/links";
 import { dateLabel } from "@/lib/utils";
+import { getUnderstandingOverview } from "@/lib/understanding";
+import { UnderstandingStageBadge } from "@/components/understanding-charts";
 function Content() {
   const { data } = useWorkspace();
   const search = useSearchParams();
@@ -24,6 +26,7 @@ function Content() {
       ) ??
     assignments[0];
   const name = search.get("name") ?? "";
+  const understanding = getUnderstandingOverview(data.state, selected.templateId);
   function filter(key: string, value: string) {
     const params = new URLSearchParams(window.location.search);
     if (value) params.set(key, value);
@@ -70,6 +73,10 @@ function Content() {
               s.displayName.toLowerCase().includes(name.toLowerCase()),
           )
           .map((student) => {
+            const picture = understanding.students.find(item => item.studentId === student.id);
+            const followUp = picture?.skills.find(item => item.current.stage === "needs_support")
+              ?? picture?.skills.find(item => item.current.stage === "developing")
+              ?? picture?.skills.find(item => item.current.stage === "insufficient_evidence");
             const stats = getAssignmentAnalytics(
               data.state,
               selected.templateId,
@@ -88,7 +95,7 @@ function Content() {
                   <div className="student-avatar">{student.displayName[0]}</div>
                   <div>
                     <h2>
-                      <Link href={`/students/${student.id}`}>
+                      <Link href={`/students/${student.id}?assignment=${selected.templateId}`}>
                         {student.displayName}
                       </Link>
                     </h2>
@@ -101,12 +108,16 @@ function Content() {
                   <Link
                     style={{ marginLeft: "auto" }}
                     className="text-link text-small"
-                    href={`/students/${student.id}`}
+                    href={`/students/${student.id}?assignment=${selected.templateId}`}
                   >
                     View student
                   </Link>
                 </div>
-                <ResultCounts
+                <div className="student-skills">{picture?.skills.map(skill => <div className="student-skill" key={skill.skillId}>
+                  <span>{skill.label}</span><UnderstandingStageBadge stage={skill.current.stage} />
+                </div>)}</div>
+                {followUp && <p className="student-next-check"><strong>Try next</strong>{followUp.current.nextStep}</p>}
+                <details className="student-work-details"><summary>Answer details</summary><ResultCounts
                   counts={stats.counts}
                   href={(result) =>
                     assignmentHref(data.state, selected.templateId, {
@@ -114,7 +125,7 @@ function Content() {
                       result,
                     })
                   }
-                />
+                /></details>
               </Card>
             );
           })}

@@ -1,5 +1,7 @@
 # Learning insights and teaching decisions
 
+This revision was followed by the [visual understanding plan](visual-understanding-plan.md), which replaces the overview’s text trend cards with skill charts and makes lesson plans more visual.
+
 ## Intended experience
 
 The overview should answer three questions: how learning is developing, what to teach next, and who needs a follow-up. Keep the original purple/aqua design. Use plain language and put detailed counts behind an accessible evidence disclosure.

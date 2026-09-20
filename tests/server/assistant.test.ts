@@ -233,9 +233,9 @@ describe('persistent teacher-controlled assistant', () => {
   it('produces concrete sample teaching steps, scoped lesson timing and distinct comparison guidance', async () => {
     const repo = seeded();
     const brief = await generateClassroomBrief(repo, { requestId: 'brief-specific', scope: { templateId: assignments[0].templateId }, mode: 'fixture' });
-    expect(brief.brief.content).toContain('Success check:'); expect(brief.brief.content).toContain('equal-length fraction strips'); expect(brief.brief.content).toContain('Avery');
+    expect(brief.brief.actions.some(action => action.description.includes('Check:'))).toBe(true); expect(brief.brief.actions.some(action => action.description.includes('equal-length fraction strips'))).toBe(true); expect(brief.brief.content).toContain('Avery');
     const lesson = await askClassroomAssistant(repo, { requestId: 'old-lesson', message: 'Help me teach this lesson', scope: { lessonId: 'lesson-2026-09-23' }, mode: 'fixture' });
-    expect(lesson.turn.content).toContain('First check (2026-09-22)'); expect(lesson.turn.content).not.toContain('Independent check'); expect(lesson.turn.content).toContain('Worked example:');
+    expect(lesson.turn.content).toContain('First check:'); expect(lesson.turn.content).not.toContain('Independent check'); expect(lesson.turn.content).toContain('Worked example:');
     const compare = await askClassroomAssistant(repo, { requestId: 'compare', message: 'Compare Casey’s progress', mode: 'fixture' });
     expect(compare.turn.content).toContain('Casey:'); expect(compare.turn.content).toContain('not a standardized growth measure');
   });
@@ -535,7 +535,7 @@ describe('learning-first classroom briefings', () => {
     vi.stubGlobal('fetch', fetcher); vi.stubEnv('OPENROUTER_API_KEY', 'test');
     const { brief } = await generateClassroomBrief(repo, { requestId: 'comparison-aliases', mode: 'live' });
     expect(brief.citations.map(source => source.id)).toEqual([earlier, later]);
-    expect(brief.provenance.promptVersion).toBe('classroom-assistant-v9');
+    expect(brief.provenance.promptVersion).toBe('classroom-assistant-v12');
     expect(brief).not.toHaveProperty('comparisons'); expect(repo.state.assistant!.brief).not.toHaveProperty('comparisons');
     const schema = JSON.parse(fetcher.mock.calls[0][1].body).response_format.json_schema.schema;
     expect(schema.required).toContain('comparisons'); expect(schema.properties.comparisons.maxItems).toBe(2);
@@ -607,7 +607,7 @@ describe('learning-first classroom briefings', () => {
     expect(reply.turn.content).toMatch(/with (?:recorded )?help earlier/);
     expect(reply.turn.content).toMatch(/independently on the later task|without recorded help/);
     expect(reply.turn.content).toContain('Sep 22 → Sep 24');
-    expect(reply.turn.content).toContain('Success check:');
+    expect(reply.turn.actions.some(action => action.description.includes('Check:'))).toBe(true);
     expect(reply.turn.content).not.toContain('usable answers correct');
     const citedObservations = reply.turn.citations.map(source => new URL(source.href, 'http://classroom').searchParams.get('observation')).filter(Boolean);
     expect(citedObservations).toHaveLength(2);
@@ -620,7 +620,7 @@ describe('learning-first classroom briefings', () => {
     const { brief } = await generateClassroomBrief(repo, { requestId: 'earlier-learning', scope: { templateId: 'followup-template-v1' }, mode: 'fixture' });
     const firstParagraph = brief.content.split('\n\n')[0];
     expect(firstParagraph).not.toMatch(/\d+ correct|\d+ incorrect|\d+\/\d+ usable|%/);
-    expect(brief.content).toContain('Success check:'); expect(brief.content).toContain('45-minute lesson');
+    expect(brief.actions.some(action => action.description.includes('Check:'))).toBe(true); expect(brief.content).toContain('45-minute lesson');
     const citedBatches = brief.citations.filter(source => source.kind === 'response').map(source => source.href.match(/^\/review\/([^?]+)/)?.[1]);
     expect(citedBatches.length).toBeGreaterThan(1);
     expect(citedBatches.every(id => repo.state.batches.find(batch => batch.id === id)!.activityDate <= '2026-09-24')).toBe(true);
@@ -647,6 +647,36 @@ describe('learning-first classroom briefings', () => {
     expect(buildAssistantContext(repo.state).classroom.assignments[4].responses.find(response => response.responseId === later.responseId)!.workingText).toBe('FUTURE_WORK_MUST_NOT_REACH_THE_MODEL');
   });
 
+  it('rejects a false named-student unfinished-work total in a learning brief', async () => {
+    const repo = seeded(), context = buildAssistantContext(repo.state);
+    const source = context.classroom.assignments[4].responses.find(row => row.studentId === 'stu-08' && row.questionId === 'ic02')!.sourceId!;
+    const fetcher = vi.fn().mockImplementation(() => Promise.resolve(briefResponse({ answer: 'Ask Harper where she stopped.\n\nHarper left two Sep 30 answers unfinished.', sourceIds: [source], actions: [] })));
+    vi.stubGlobal('fetch', fetcher); vi.stubEnv('OPENROUTER_API_KEY', 'test');
+    await expect(generateClassroomBrief(repo, { requestId: 'wrong-total', mode: 'live' })).rejects.toMatchObject({ code: 'AI_BRIEF_ANSWER_TOTALS' });
+    expect(repo.state.assistant?.briefs).toHaveLength(0);
+  });
+
+  it('repairs an answer tally into the specific task to check while keeping fractions and dates', async () => {
+    const repo = seeded(), context = buildAssistantContext(repo.state);
+    const source = context.classroom.assignments[4].responses.find(row => row.studentId === 'stu-08' && row.questionId === 'ic02')!.sourceId!;
+    const answer = 'Ask Harper to finish question 2.\n\nOn Sep 30, Harper wrote 1/5 = 3/15 but left the answer blank. Ask what she tried and record any help.';
+    const fetcher = vi.fn().mockResolvedValueOnce(briefResponse({ answer: 'Harper has two unfinished answers.', sourceIds: [source], actions: [] })).mockResolvedValueOnce(briefResponse({ answer, sourceIds: [source], actions: [{ title: 'Ask where Harper stopped', description: 'Time: 4 min\nDo: Ask what Harper tried.\nCheck: Record the finished work and any help.', sourceId: source }] }));
+    vi.stubGlobal('fetch', fetcher); vi.stubEnv('OPENROUTER_API_KEY', 'test');
+    const { brief } = await generateClassroomBrief(repo, { requestId: 'repair-answer-total', mode: 'live' });
+    expect(brief.content).toBe(answer); expect(fetcher).toHaveBeenCalledTimes(2);
+    expect(brief.actions[0].description).toContain('Time: 4 min');
+  });
+
+  it('allows an accurate unfinished-work count when it supports a teaching action', async () => {
+    const repo = seeded(), context = buildAssistantContext(repo.state);
+    const source = context.classroom.assignments[4].responses.find(row => row.studentId === 'stu-08' && row.questionId === 'ic02')!.sourceId!;
+    const answer = 'Ask Harper where she stopped.\n\nHarper left one Sep 30 answer unfinished. Ask her to finish question 2 and record any help.';
+    const fetcher = vi.fn().mockResolvedValueOnce(briefResponse({ answer, sourceIds: [source], actions: [] }));
+    vi.stubGlobal('fetch', fetcher); vi.stubEnv('OPENROUTER_API_KEY', 'test');
+    const { brief } = await generateClassroomBrief(repo, { requestId: 'accurate-answer-total', mode: 'live' });
+    expect(brief.content).toBe(answer); expect(fetcher).toHaveBeenCalledTimes(1);
+  });
+
   it('keeps old briefing content but marks a previous prompt version for refresh', async () => {
     const repo = seeded();
     await generateClassroomBrief(repo, { requestId: 'old-format', mode: 'fixture' });
@@ -664,7 +694,7 @@ describe('learning-first classroom briefings', () => {
     const repo = new MemoryRepository();
     const { brief } = await generateClassroomBrief(repo, { requestId: 'no-development-yet', mode: 'fixture' });
     expect(brief.content).toContain('There is no submitted work');
-    expect(brief.content).toContain('One task does not establish progress');
+    expect(brief.content).toContain('Check another task and record any help before judging progress');
     expect(brief.content).not.toContain('showed correct');
     expect(brief.actions.length).toBeGreaterThan(0);
   });

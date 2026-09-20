@@ -4,7 +4,7 @@
 
 Upload work → review the evidence → adjust instruction → teach → check progress.
 
-ClassCompass is a working Grade 5 fraction-addition prototype. Its overview leads with the next teaching decision, learning trends across dated work, and specific student follow-ups. Each insight opens the supporting work and help records; detailed scores and tables live under **Explore the evidence**. Teachers can generate a cited teaching brief, ask the classroom assistant questions, correct evidence, and save selected changes to a complete lesson plan. The interface retains its original purple and aqua design.
+ClassCompass is a working Grade 5 fraction-addition prototype. Teachers can see how each skill is developing, open the work behind it, and choose what to teach next. The overview shows skill stages across five dates, a student map and an individual progress chart. Detailed answer counts remain under **Explore the evidence**. AI suggestions show the time, teaching step and what to look for. Lessons use a timed sequence with **Do / Ask / Check** cards, while full instructions and printable plans remain available. The interface retains its original purple and aqua design.
 
 [Demo and recording guide](docs/demo-guide.md) · [Implementation reference](docs/implementation.md) · [Supabase setup](docs/supabase-setup.md) · [Public repository](https://github.com/RyanSXing/classcompass)
 
@@ -36,7 +36,8 @@ Use the reset command only for a dedicated fictional demo workspace.
 
 - Eight fictional students, five dated assignments, 120 answers and five 45-minute lesson plans.
 - A teaching brief generated from saved classroom evidence and teacher goals, with cited actions. Data-based starting points remain available before generation and after a provider error.
-- Learning trends describe changes in independence, consistency, repeated working patterns and application in word problems. There is no overall progress or mastery score.
+- Skill stages: **Needs support**, **Getting there**, **Works independently**, and separate **Not enough evidence** gaps. Stages use shown methods, explanations and recorded help. There is no overall progress or mastery score.
+- Class bars, a student-by-date skill map and individual stage charts link to exact dated work. The same skill picture appears on student pages and in the assistant context.
 - Three analytics views under **Explore the evidence**: **Class results**, **Students over time**, and **Question patterns**. The class matrix follows all eight students across five dates; question patterns distinguish wrong values, common-unit working, missing units and incomplete explanations.
 - A **Compare with** chooser for earlier assignments. Comparisons use the same students' usable independent core results and show changes in tasks or help; they do not claim measured learning gains.
 - A classroom **Assistant** with saved teaching goals, persistent conversation, assignment/student/lesson context, and links to its sources. Suggestions do not approve notes or change lessons.

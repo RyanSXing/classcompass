@@ -56,8 +56,9 @@ test("the overview leads with teaching decisions and dated evidence opens the ed
     page.getByRole("tab", { name: "Students over time", exact: true }),
   ).toBeHidden();
 
-  const trend = page.locator(".learning-trend").first();
-  const evidence = trend.locator("details.learning-evidence");
+  const evidence = page.locator(
+    ".understanding-observation details.learning-evidence",
+  );
   await expect(evidence).not.toHaveAttribute("open");
   await evidence.getByText("Show me why", { exact: true }).click();
   const source = evidence.getByRole("link").first();
