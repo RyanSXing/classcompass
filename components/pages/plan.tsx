@@ -34,6 +34,7 @@ import { assignments } from "@/lib/assignments";
 import { assignmentHref } from "@/lib/client/links";
 import { buildLessonGuide } from "@/lib/lesson-guide";
 import { LessonGuide } from "@/components/lesson-guide";
+import { getLessonPlanningState } from "@/lib/teacher-workflow";
 
 function Lanes({ block }: { block: LessonBlock }) {
   const { data } = useWorkspace();
@@ -421,11 +422,11 @@ function PlanContent({
       </div>
     );
   const historical = version.id !== currentVersion.id;
-  const proposal = [...state.proposals]
-    .reverse()
-    .find(
-      (p) => p.lessonId === lessonId && ["draft", "stale"].includes(p.status),
-    );
+  const {
+    proposal,
+    hasFreshDraft: fresh,
+    hasCurrentSavedChanges,
+  } = getLessonPlanningState(state, lessonId);
   const confirmed = getPlanningFindings(state, plan.date);
   const latestReviewedBatch = state.findings
     .filter((finding) => finding.status === "confirmed")
@@ -456,16 +457,6 @@ function PlanContent({
   const sourceAssignment = assignments.find(
     (assignment) => assignment.targetLessonId === lessonId,
   );
-  const fresh =
-    proposal?.status === "draft" &&
-    proposal.evidenceRevision === state.classroom.evidenceRevision &&
-    proposal.calendarRevision === state.classroom.calendarRevision &&
-    proposal.basePlanVersionId === plan.currentVersionId &&
-    proposal.changes.every((change) =>
-      change.findingIds.every((id) =>
-        confirmed.some((finding) => finding.id === id),
-      ),
-    );
   const job = [...state.jobs]
     .reverse()
     .find((j) => j.lessonId === lessonId && j.type === "proposal");
@@ -686,6 +677,13 @@ function PlanContent({
         className="lesson-suggestions"
         aria-label="Lesson suggestions"
       >
+        {!historical && !wrongTarget && !hasCurrentSavedChanges && (
+          <p className="help-note mb-16">
+            <strong>Review evidence → Preview changes → Save lesson.</strong>{" "}
+            Suggestions use approved teaching notes. Your 45-minute lesson
+            changes only when you save your selection.
+          </p>
+        )}
         {job && job.status !== "completed" && !historical && (
           <JobProgress key={job.id} job={job} autoStart={autoRun} />
         )}
@@ -1077,9 +1075,11 @@ function PlanContent({
                     <p>
                       {wrongTarget
                         ? "Keep this saved lesson for reference. Use the linked lesson above for new suggestions."
-                        : confirmed.length
-                          ? `${confirmed.length} current teaching notes can inform a suggestion. Review every change before saving.`
-                          : "Review the student work and approve the teaching notes you want to use."}
+                        : hasCurrentSavedChanges
+                          ? "Your selected changes are saved. The complete 45-minute lesson is below, with activities ready to print."
+                          : confirmed.length
+                            ? `${confirmed.length} current teaching notes can inform a suggestion. Review every change before saving.`
+                            : "Review the student work and approve the teaching notes you want to use."}
                     </p>
                   </div>
                   {!canGenerate && !wrongTarget && sourceAssignment ? (
@@ -1092,6 +1092,7 @@ function PlanContent({
                     </Button>
                   ) : (
                     <Button
+                      variant={hasCurrentSavedChanges ? "outline" : "default"}
                       disabled={
                         busy ||
                         !canGenerate ||

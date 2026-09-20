@@ -28,6 +28,9 @@ test("incomplete answers remain in the total and lead to a clear review step", a
   await expect(
     next.getByRole("link", { name: "Review teaching notes", exact: true }),
   ).toBeVisible();
+  await expect(page.locator(".quality-score")).not.toBeVisible();
+  await page.getByText("Explore the evidence", { exact: true }).click();
+  await expect(page.locator(".quality-score")).toBeVisible();
   await expect(page.locator(".quality-score")).toContainText("21 of 24");
   await expect(page.locator(".question-score-breakdown").last()).toContainText(
     "1 no answer",

@@ -20,6 +20,8 @@ import { assignments } from "@/lib/assignments";
 import { assignmentHref } from "@/lib/client/links";
 import { dateLabel } from "@/lib/utils";
 import { teacherNextStep } from "@/lib/teacher-workflow";
+import { getLearningInsights } from "@/lib/learning-insights";
+import { LearningOverview } from "@/components/learning-overview";
 
 function ClassroomContent() {
   const { data } = useWorkspace();
@@ -40,6 +42,7 @@ function ClassroomContent() {
       (assignment) => assignment.templateId === search.get("assignment"),
     ) ?? latest;
   const insights = getAssignmentInsights(state, selected.templateId);
+  const learning = getLearningInsights(state, selected.templateId);
   const nextStep = teacherNextStep(state, selected.templateId);
   const view: AnalyticsView =
     search.get("view") === "students"
@@ -97,7 +100,7 @@ function ClassroomContent() {
         <>
           <div className="intelligence-assignment-bar">
             <label className="field">
-              <span>Assignment</span>
+              <span>Latest work to consider</span>
               <Select
                 aria-label="Assignment"
                 value={selected.templateId}
@@ -116,58 +119,68 @@ function ClassroomContent() {
               </Select>
             </label>
             <p>
-              {selected.purpose}
-              <span>
-                {dateLabel(selected.date)} ·{" "}
-                {insights.analytics.submittedStudents} of{" "}
-                {insights.analytics.expectedStudents} worksheets
-              </span>
+              Learning insights use this assignment and earlier work.
+              <span>{selected.purpose}</span>
             </p>
             <Link
               className="text-link"
               href={assignmentHref(state, selected.templateId)}
             >
-              Open answers <ArrowRight size={15} />
+              Open assignment <ArrowRight size={15} />
             </Link>
           </div>
-          <section className="teacher-next-step" aria-label="Next step">
-            <div>
-              <span className="intelligence-eyebrow">Next step</span>
-              <h2>{nextStep.title}</h2>
-              <p>{nextStep.detail}</p>
-            </div>
-            <div className="inline-actions">
-              <Button asChild>
-                <Link href={nextStep.href}>
-                  {nextStep.label}
-                  <ArrowRight size={16} />
-                </Link>
-              </Button>
-              {nextStep.kind !== "plan" && (
-                <Link className="text-link" href={nextStep.lessonHref}>
-                  Open lesson plan
-                </Link>
-              )}
-            </div>
-          </section>
           <DecisionBrief
             key={selected.templateId}
             templateId={selected.templateId}
-            actions={insights.actions}
-          />
-          <AnalyticsExplorer
-            state={state}
-            templateId={selected.templateId}
-            insights={insights}
-            view={view}
-            comparisonTemplateId={search.get("compare") ?? undefined}
-            onComparisonChange={(templateId) =>
-              updateQuery({ compare: templateId })
-            }
-            onViewChange={(next) =>
-              updateQuery({ view: next === "class" ? undefined : next })
+            learning={learning}
+            nextStep={nextStep}
+            newerTemplateId={
+              selected.sequence < latest.sequence
+                ? latest.templateId
+                : undefined
             }
           />
+          <LearningOverview learning={learning} state={state} />
+          <details
+            className="evidence-explorer"
+            key={`evidence-${selected.templateId}`}
+            open={
+              search.has("view") ||
+              search.has("compare") ||
+              search.get("evidence") === "open"
+            }
+            onToggle={(event) => {
+              if (event.currentTarget.open && search.get("evidence") !== "open")
+                updateQuery({ evidence: "open" });
+              else if (
+                !event.currentTarget.open &&
+                search.get("evidence") === "open"
+              )
+                updateQuery({
+                  evidence: undefined,
+                  view: undefined,
+                  compare: undefined,
+                });
+            }}
+          >
+            <summary>
+              <span>Explore the evidence</span>
+              <small>Class results, student work, and question patterns</small>
+            </summary>
+            <AnalyticsExplorer
+              state={state}
+              templateId={selected.templateId}
+              insights={insights}
+              view={view}
+              comparisonTemplateId={search.get("compare") ?? undefined}
+              onComparisonChange={(templateId) =>
+                updateQuery({ compare: templateId })
+              }
+              onViewChange={(next) =>
+                updateQuery({ view: next === "class" ? undefined : next })
+              }
+            />
+          </details>
         </>
       )}
       {(upload || search.get("upload") === "work") && (

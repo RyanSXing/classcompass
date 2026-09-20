@@ -293,6 +293,7 @@ test("five assignments give linked class and individual analytics without erasin
   await page
     .getByLabel("Assignment", { exact: true })
     .selectOption("word-problems-template-v1");
+  await page.getByText("Explore the evidence", { exact: true }).click();
   await page.getByRole("link", { name: /1 Flagged Check the reading/ }).click();
   await expect(page.getByLabel("Filter result")).toHaveValue("flagged");
   await expect(
@@ -477,7 +478,9 @@ test("classroom assistant uses saved goals, answers follow-ups and preserves evi
 test("AI briefing connects richer analytics to exact evidence and complete lesson versions", async ({
   page,
 }) => {
-  await page.goto("/classroom?assignment=independent-check-template-v1");
+  await page.goto(
+    "/classroom?assignment=independent-check-template-v1&evidence=open",
+  );
   await page
     .getByRole("tab", { name: "Students over time", exact: true })
     .click();
@@ -497,7 +500,9 @@ test("AI briefing connects richer analytics to exact evidence and complete lesso
   await expect(
     page.getByRole("button", { name: /Casey, question 3: No answer/ }),
   ).toBeVisible();
-  await page.goto("/classroom?assignment=independent-check-template-v1");
+  await page.goto(
+    "/classroom?assignment=independent-check-template-v1&evidence=open",
+  );
   await page
     .getByRole("tab", { name: "Question patterns", exact: true })
     .click();
@@ -548,7 +553,9 @@ test("AI briefing connects richer analytics to exact evidence and complete lesso
       exact: true,
     }),
   ).toBeVisible();
-  await page.goto("/classroom?assignment=independent-check-template-v1");
+  await page.goto(
+    "/classroom?assignment=independent-check-template-v1&evidence=open",
+  );
   const goals = saved.assistant!.goals;
   const update = await page.request.patch("/api/assistant/goals", {
     data: {
@@ -560,7 +567,9 @@ test("AI briefing connects richer analytics to exact evidence and complete lesso
   expect(update.ok()).toBeTruthy();
   await page.reload();
   await expect(
-    page.getByText(/Work or teaching goals changed after this brief/),
+    page.getByText(
+      /Refresh this briefing for the current learning insights and evidence/,
+    ),
   ).toBeVisible();
 });
 
@@ -608,7 +617,7 @@ test("real PNG upload and source PDF lesson import still use the complete pipeli
   await expect(page).toHaveURL(/\/review\//);
   await finishAnalysis(page);
   await expect(page.locator(".scan-paper img")).toBeVisible();
-  await page.goto("/classroom?assignment=baseline-template-v1");
+  await page.goto("/classroom?assignment=baseline-template-v1&evidence=open");
   await expect(
     page.getByText("8 of 8 worksheets received", { exact: true }),
   ).toBeVisible();

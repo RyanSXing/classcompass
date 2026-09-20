@@ -1240,3 +1240,439 @@
     min-height: 38px;
   }
 }
+
+/* Learning comes first; detailed counts stay in the evidence drawer. */
+.lesson-decision .intelligence-heading {
+  align-items: flex-start;
+}
+.lesson-decision .intelligence-heading h2 {
+  font-size: 28px;
+}
+.lesson-decision .brief-generate-controls > .button {
+  background: white;
+  color: var(--violet);
+  border-color: #d5c9eb;
+  box-shadow: none;
+  font-size: 12px;
+}
+.lesson-decision .brief-generate-controls {
+  gap: 8px;
+}
+.lesson-decision .brief-summary {
+  max-width: 90ch;
+  line-height: 1.75;
+  font-size: 15px;
+}
+.lesson-decision .brief-action {
+  box-shadow: none;
+  padding: 18px;
+}
+.lesson-decision .brief-action h3 {
+  font-size: 17px;
+}
+.lesson-decision .brief-action > p {
+  font-size: 13px;
+  line-height: 1.65;
+}
+.lesson-decision .brief-action .decision-ask {
+  margin-top: 15px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.lesson-starting-point {
+  max-width: 88ch;
+}
+.starting-point-label {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--muted);
+}
+.lesson-starting-point h3 {
+  font-size: 24px;
+  line-height: 1.35;
+  margin: 9px 0;
+}
+.lesson-starting-point > p {
+  font-size: 15px;
+  line-height: 1.75;
+}
+.lesson-direction-next {
+  margin-top: 12px;
+}
+.lesson-decision-footer {
+  border-top: 1px solid #d7cee6;
+  margin-top: 22px;
+  padding-top: 20px;
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+}
+.lesson-decision-footer > div > p {
+  margin-bottom: 12px;
+  font-size: 13px;
+  max-width: 70ch;
+  color: var(--muted);
+}
+.lesson-approval-note {
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.brief-goal-details {
+  margin-top: 20px;
+  font-size: 13px;
+}
+.brief-goal-details summary {
+  font-weight: 800;
+  cursor: pointer;
+}
+.brief-goal-details p {
+  margin: 10px 0;
+  max-width: 85ch;
+  white-space: pre-wrap;
+}
+.learning-section {
+  margin-top: 36px;
+}
+.learning-section-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+.learning-section-heading h2 {
+  font-size: 23px;
+  margin-top: 6px;
+  letter-spacing: -0.02em;
+}
+.learning-through {
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.learning-summary {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.75;
+  max-width: 90ch;
+  margin: 12px 0 18px;
+}
+.learning-trend-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+.learning-trend {
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.learning-skill {
+  font-size: 11px;
+  color: var(--violet);
+  font-weight: 900;
+}
+.learning-trend h3 {
+  font-size: 18px;
+  margin: 8px 0 10px;
+  line-height: 1.35;
+}
+.learning-trend > p:not(.learning-skill) {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.75;
+}
+.learning-next {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin: 18px 0 4px;
+  padding-top: 15px;
+  border-top: 1px solid var(--line);
+}
+.learning-next svg {
+  color: var(--violet);
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+.learning-next p {
+  font-size: 13px;
+  line-height: 1.65;
+}
+.learning-evidence {
+  margin-top: 15px;
+  font-size: 12px;
+}
+.learning-evidence summary,
+.followup-steps summary {
+  cursor: pointer;
+  font-weight: 800;
+  color: var(--violet);
+  padding: 5px 0;
+}
+.learning-evidence > ul {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0;
+  display: grid;
+  gap: 10px;
+}
+.learning-evidence li {
+  border-top: 1px solid var(--line);
+  padding-top: 9px;
+}
+.learning-evidence a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--violet);
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  line-height: 1.6;
+}
+.learning-evidence li > span {
+  display: block;
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+.learning-evidence p {
+  margin-top: 8px;
+  color: var(--muted);
+  line-height: 1.65;
+}
+.learning-limits {
+  margin-top: 15px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.learning-limits summary {
+  cursor: pointer;
+}
+.learning-limits ul {
+  padding-left: 20px;
+  margin-top: 10px;
+  line-height: 1.8;
+}
+.learning-followups {
+  margin-top: 18px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: 16px;
+  overflow: hidden;
+}
+.learning-followup {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr) auto;
+  gap: 20px;
+  padding: 23px;
+  align-items: start;
+}
+.learning-followup + .learning-followup {
+  border-top: 1px solid var(--line);
+}
+.followup-person {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-weight: 900;
+  font-size: 14px;
+}
+.followup-person .matrix-avatar {
+  flex-shrink: 0;
+}
+.followup-content h3 {
+  font-size: 16px;
+  margin: 2px 0 7px;
+}
+.followup-content > p {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.7;
+}
+.followup-content .followup-action {
+  margin-top: 9px;
+  color: var(--ink);
+}
+.followup-steps {
+  font-size: 12px;
+  margin-top: 12px;
+}
+.followup-steps ol {
+  padding-left: 20px;
+  margin: 10px 0;
+}
+.followup-steps li {
+  padding: 3px 0;
+  line-height: 1.7;
+}
+.followup-steps p {
+  line-height: 1.7;
+}
+.followup-ask {
+  margin-top: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.more-followups {
+  margin-top: 14px;
+  font-size: 13px;
+}
+.more-followups > summary {
+  font-weight: 800;
+  color: var(--violet);
+  cursor: pointer;
+}
+.learning-empty {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-top: 18px;
+  padding: 22px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: white;
+  font-size: 14px;
+  color: var(--muted);
+}
+.learning-empty svg {
+  flex-shrink: 0;
+  color: var(--violet);
+}
+.evidence-explorer {
+  margin-top: 36px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: white;
+}
+.evidence-explorer > summary {
+  cursor: pointer;
+  padding: 23px;
+  font-weight: 900;
+  color: var(--violet);
+  font-size: 17px;
+}
+.evidence-explorer > summary > small {
+  display: block;
+  font-weight: 500;
+  font-size: 12px;
+  color: var(--muted);
+  margin: 6px 0 0 20px;
+}
+.evidence-explorer > .analytics-explorer {
+  margin: 0;
+  padding: 0 22px 22px;
+}
+.evidence-explorer > section {
+  margin-top: 0;
+  padding: 0 22px 22px;
+}
+.learning-evidence summary:focus-visible,
+.followup-steps summary:focus-visible,
+.evidence-explorer > summary:focus-visible,
+.learning-limits summary:focus-visible,
+.more-followups summary:focus-visible,
+.brief-goal-details summary:focus-visible {
+  outline: 3px solid var(--violet);
+  outline-offset: 4px;
+  border-radius: 3px;
+}
+@media (max-width: 1100px) {
+  .lesson-decision .intelligence-heading {
+    flex-wrap: wrap;
+  }
+  .learning-trend-grid {
+    gap: 12px;
+  }
+  .learning-trend {
+    padding: 17px;
+  }
+  .learning-followup {
+    grid-template-columns: 95px minmax(0, 1fr);
+  }
+  .followup-ask {
+    grid-column: 2;
+  }
+}
+@media (max-width: 750px) {
+  .learning-trend-grid {
+    grid-template-columns: 1fr;
+  }
+  .learning-trend {
+    padding: 20px;
+  }
+  .learning-section-heading h2 {
+    font-size: 21px;
+  }
+  .lesson-decision-footer {
+    align-items: start;
+    flex-direction: column;
+  }
+  .learning-followup {
+    padding: 18px;
+    gap: 10px 15px;
+  }
+}
+@media (max-width: 480px) {
+  .learning-section-heading {
+    flex-wrap: wrap;
+  }
+  .learning-through {
+    display: none;
+  }
+  .lesson-starting-point h3 {
+    font-size: 21px;
+  }
+  .learning-followup {
+    grid-template-columns: 1fr;
+  }
+  .followup-ask {
+    grid-column: 1;
+  }
+  .followup-person .matrix-avatar {
+    display: inline-flex;
+  }
+  .lesson-decision-footer .inline-actions {
+    gap: 15px;
+  }
+  .lesson-decision-footer .inline-actions > .button {
+    width: 100%;
+  }
+  .evidence-explorer > summary {
+    padding: 18px;
+  }
+  .evidence-explorer > section {
+    padding: 0 12px 16px;
+  }
+  .learning-evidence a,
+  .learning-evidence summary,
+  .followup-steps summary,
+  .followup-ask {
+    min-height: 36px;
+  }
+}
+.learning-trend > p.learning-students {
+  color: var(--violet);
+  font-size: 12px;
+  font-weight: 800;
+  margin: 0 0 7px;
+}
+.learning-dates {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 11px;
+  margin: 0 0 12px;
+}
+.learning-section-heading + .learning-trend-grid {
+  margin-top: 18px;
+}
