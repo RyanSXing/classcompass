@@ -1,118 +1,153 @@
 # ClassCompass
 
-**A teacher-controlled lesson planner that connects student work to what gets taught next.**
+**Know what to teach next.**
 
-Upload work → review the evidence → adjust instruction → teach → check progress.
+ClassCompass helps teachers turn student work into a clear next step: who needs support, what to teach, and how to fit it into the lesson. AI connects patterns across assignments to suggested actions, with the original work one click away. The teacher reviews the evidence and chooses what changes.
 
-ClassCompass is a working Grade 5 fraction-addition prototype. Teachers can see how each skill is developing, open the work behind it, and choose what to teach next. The overview shows skill stages across five dates, a student map and an individual progress chart. Detailed answer counts remain under **Explore the evidence**. AI suggestions show the time, teaching step and what to look for. Lessons use a timed sequence with **Do / Ask / Check** cards, while full instructions and printable plans remain available. The interface uses a warm notebook workspace with original compass and student illustrations, clear line icons, and quiet paper-like data views.
+Built for **SASEhack 2026** · Grade 5 math · Education
 
-[Demo and recording guide](docs/demo-guide.md) · [Implementation reference](docs/implementation.md) · [Supabase setup](docs/supabase-setup.md) · [Public repository](https://github.com/RyanSXing/classcompass)
+<p align="center">
+  <img src="classcompass-devpost-thumbnail.png" alt="ClassCompass: student work connects to progress and the next lesson." width="720" />
+</p>
 
-## Run locally
+[Try it locally](#try-it-locally) · [Judge walkthrough](#judge-walkthrough) · [How it works](#how-it-works) · [Verification](#verification)
 
-Use Node 24 (see `.nvmrc`). No service credentials are needed for the complete prepared demonstration.
+[![ClassCompass CI](https://github.com/RyanSXing/classcompass/actions/workflows/ci.yml/badge.svg)](https://github.com/RyanSXing/classcompass/actions/workflows/ci.yml)
+
+## Why we built it
+
+A worksheet score leaves a teacher with the hardest question: **what should I do tomorrow?**
+
+Two students can get the same answer wrong for different reasons. One may add the denominators; another may understand equivalent fractions but make an arithmetic slip. A correct answer can also hide a need for help.
+
+ClassCompass keeps the method, explanation, task and help provided beside each observation. It brings the most useful teaching actions forward, while keeping the detailed results available for inspection.
+
+**Upload work → Review findings → Adjust the lesson → Teach → Check progress**
+
+## What teachers can do
+
+| Teacher question | ClassCompass |
+| --- | --- |
+| **What needs my attention?** | Two priority actions show who needs a check, why, what to do, how long it takes, and what to look for. |
+| **How is understanding changing?** | Student stage bars, a skill radar and dated progress charts show independence and support needs. Open a student or date to inspect the work behind the picture. |
+| **Can I trust this finding?** | Open the original worksheet and answer crop. Correct a reading or record help provided. Uncertain readings stay separate from incorrect answers. |
+| **What should I teach?** | Review proposed changes beside their evidence. Save individual changes to a complete 45-minute lesson with materials, worked examples, and timed **Do / Ask / Check** steps. |
+| **How does it fit the unit?** | Preview lesson and calendar effects while preserving teaching time and the fixed assessment date. Targeted groups can get help while classmates continue. |
+| **Can I ask a follow-up?** | Ask the classroom assistant about students, assignments, goals, saved lessons or the calendar. Answers link back to sources. |
+
+Understanding is shown as **Needs support**, **Getting there**, or **Works independently**. **Not enough evidence** stays separate. These stages describe the available work; they are not a permanent label or a validated mastery score.
+
+### A concrete example
+
+In the fictional first assignment, several students write `1/2 + 1/3 = 2/5`. The teacher can inspect their working, confirm the pattern, and review a lesson change that uses fraction strips to revisit equal-sized parts.
+
+The class then works in parallel: targeted support, independent practice and extension fit inside the existing **12-minute practice block**. Follow-up work informs the next recommendation. Earlier work and saved lessons remain available, so the teacher can see what changed.
+
+## Try it locally
+
+Use **Node.js 24**; the pinned version is in [.nvmrc](.nvmrc). The sample workflow needs **no API key, Supabase project or sign-in**.
 
 ```sh
+git clone https://github.com/RyanSXing/classcompass.git
+cd classcompass
 npm ci
-# For a fresh checkout only; preserve an existing .env.local.
 cp .env.example .env.local
 npm run dev
 ```
 
-Open [ClassCompass](http://127.0.0.1:3000). Choose **Assignments → Load sample class** to explore five assignments, 40 worksheets and 120 answers from the same eight fictional students. This uses prepared results and preserves existing corrections and reviews. For the step-by-step correction demo, choose **Upload work → First check → Load sample worksheets**, then **Analyze this upload**.
+The copy command is for a fresh checkout. Keep an existing `.env.local` if you have already configured the app.
 
-Local work persists in `.local/classcompass` across reloads and restarts. Local mode is restricted to loopback access and is refused in a hosted deployment. Credentials and runtime data are Git-ignored.
+Open **[http://127.0.0.1:3000](http://127.0.0.1:3000)**, then choose **Assignments → Load sample class**.
 
-```sh
-npm run demo:seed          # Optional: load the baseline files through normal validation
-npm run demo:reset -- --yes # Deliberately reset only the local fictional workspace
-npm run build
-npm start
+This loads **8 fictional students, 5 dated assignments, 40 worksheets and 5 lesson plans**. Sample readings are prepared and labeled. Loading them preserves existing corrections and reviews; it does not approve findings for the teacher. Work persists in `.local/classcompass`.
+
+Local mode runs only on your machine. Connected use has a teacher sign-in through Supabase; see [Supabase setup](docs/supabase-setup.md).
+
+## Judge walkthrough
+
+1. **See the next step.** Open the overview and inspect the two actions. Generate teaching insights in **Sample** mode to explore the prepared-data workflow without credentials.
+2. **Follow the evidence.** Explore a skill, student and earlier date. Compare shown methods and recorded help, then open the original response.
+3. **Correct an interpretation.** In **First check**, inspect Finley's uncertain reading. The source says `1/2`; the prepared reading deliberately says `1/5`. Correct it and review the updated evidence.
+4. **Make a teaching decision.** Review and approve relevant teaching notes. Open the lesson for the latest reviewed assignment, compare proposed changes, and save only the changes you want.
+5. **Use the result.** Inspect the lesson timeline, printable activities and calendar. Ask the assistant: “What should I check before the next lesson, and which work supports that?”
+
+The handwriting mistake is an explicit sample case, not an error injected into live processing. To try the upload path, use **Upload work → First check → Load sample worksheets → Analyze this upload** in a fresh local workspace.
+
+[Detailed walkthrough](docs/demo-guide.md) · [Blank worksheet](public/demo/baseline-template-v1.pdf) · [Original lesson](public/demo/lesson-2026-09-23-original.pdf) · [Teacher answer keys](public/demo/classcompass-teacher-answer-keys.pdf)
+
+## How it works
+
+Live processing follows this loop. Sample mode uses prepared readings and suggestions based on the saved work.
+
+```mermaid
+flowchart LR
+    A["Worksheet + task context"] --> B["AI transcription"]
+    B --> C["Math checks + AI findings"]
+    C --> D["Teacher review"]
+    D --> E["AI lesson proposal"]
+    E --> F["Teacher saves changes"]
+    F --> G["Teach + follow-up work"]
+    G --> A
 ```
 
-Use the reset command only for a dedicated fictional demo workspace.
+Three boundaries make the workflow inspectable:
 
-## What the demo covers
+- **AI reads and suggests.** It transcribes known worksheet layouts, proposes findings, drafts lesson changes and answers questions using classroom context.
+- **Code checks the result.** Exact fraction arithmetic, response references, evidence revisions, lesson timing and student groups are validated before a proposal can be saved. This catches defined errors; it does not prove every AI interpretation correct.
+- **The teacher decides.** Readings and help can be corrected. Teaching notes need review. Chat cannot approve findings or change a saved lesson. Accepted lesson versions preserve their history.
 
-- Eight fictional students, five dated assignments, 120 answers and five 45-minute lesson plans.
-- A teaching brief generated from saved classroom evidence and teacher goals, with cited actions. Data-based starting points remain available before generation and after a provider error.
-- Skill stages: **Needs support**, **Getting there**, **Works independently**, and separate **Not enough evidence** gaps. Stages use shown methods, explanations and recorded help. There is no overall progress or mastery score.
-- Class bars, a student-by-date skill map and individual stage charts link to exact dated work. The same skill picture appears on student pages and in the assistant context.
-- Three analytics views under **Explore the evidence**: **Class results**, **Students over time**, and **Question patterns**. The class matrix follows all eight students across five dates; question patterns distinguish wrong values, common-unit working, missing units and incomplete explanations.
-- A **Compare with** chooser for earlier assignments. Comparisons use the same students' usable independent core results and show changes in tasks or help; they do not claim measured learning gains.
-- A classroom **Assistant** with saved teaching goals, persistent conversation, assignment/student/lesson context, and links to its sources. Suggestions do not approve notes or change lessons.
-- Separate correct, incorrect, flagged, unanswered, unprocessed and missing results. Help, units and reasoning stay visible as separate details.
-- PNG/JPEG and one-page worksheet PDF uploads, student mapping, support context, private originals, and source crops.
-- Editable lesson imports from the supplied PDF or structured JSON, with an explicit preview before saving.
-- Exact rational arithmetic, equivalent unreduced answers, contradictory steps, uncertain readings, and incomplete work.
-- Separate candidate findings, teacher confirmations, dated skill observations, and accepted lesson versions.
-- Complete 45-minute teacher plans with objectives, success criteria, preparation, materials, timed instruction, worked examples, questions, practice and checks. Authored guidance is labeled separately from model suggestions; saved instructions and teacher edits are preserved.
-- Proposed lesson changes include a 12-minute practice block with simultaneous groups, an optional exit activity, and an optional eight-minute follow-up checkpoint within the existing teaching time. Teachers inspect evidence beside each change and choose what to save.
-- A ten-day unit calendar with a fixed assessment and a wider calendar preview.
-- Printable full teacher plans, version-bound student activities and separate answer keys. Historical evidence and accepted plans remain inspectable.
-- Saved processing jobs, retries, cancellation, duplicate-request protection, and rejection of stale model results.
+Corrections invalidate affected findings and drafts so old interpretations do not silently become new plans. Source links retain the student, task, date and response version.
 
-The prepared correction cases are explicit: Finley’s source contains `1/2` but the prepared extraction deliberately reads `1/5`; Gray’s initially entered independent condition is corrected to supported. Live mode never injects either mistake.
+### Built with
 
-## Real services
-
-The frontend and backend use Next.js App Router, React, TypeScript, Tailwind, Radix primitives, and Zod. Supabase supplies connected authentication, PostgreSQL, and private Storage. Native server-side requests call the explicitly selected OpenRouter or direct DeepSeek provider; deterministic domain code validates model output before it affects the review workflow.
-
-Storage, execution mode and provider are configured separately:
-
-| Setting | Choices |
+| Layer | Technology |
 | --- | --- |
-| `DATA_BACKEND` | `local` for a persistent single-machine demo; `supabase` for authenticated connected storage |
-| `AI_MODE` | `fixture` for disclosed prepared outputs; `live` for actual calls to the selected provider |
-| `AI_PROVIDER` | `openrouter` for free models only; `deepseek` for direct calls billed to your DeepSeek account |
+| App and backend | Next.js App Router, React, TypeScript |
+| Interface | Tailwind CSS, Radix primitives, Lucide icons, custom charts |
+| AI | Direct DeepSeek API or OpenRouter, called server-side |
+| Validation | Zod schemas and deterministic domain checks |
+| Connected data | Supabase Auth, PostgreSQL and private Storage |
+| Document handling | PDF.js and Sharp |
+| Testing | Vitest, Playwright and GitHub Actions |
 
-For direct DeepSeek, set `AI_PROVIDER=deepseek`, add `DEEPSEEK_API_KEY` to `.env.local`, and set `AI_MODE=live` for worksheet processing. Both `DEEPSEEK_VISION_MODEL` and `DEEPSEEK_REASONING_MODEL` default to `deepseek-flash`. Direct calls are billed to the configured DeepSeek account. A fresh eight-worksheet live check completed handwriting extraction, findings and a valid lesson proposal in ten calls. This was fictional data with simulated teacher review; see the [teacher workflow audit](docs/teacher-workflow-audit.md) and [verification results](docs/verification-results.md) for scope and limits.
+### Sample and live AI
 
-For free-only OpenRouter, set `AI_PROVIDER=openrouter` and add `OPENROUTER_API_KEY`. The configured models are Gemma for transcription and DeepSeek for analysis/planning. **The free-provider path is not validated for an all-live demo:** Gemma returned rate limits; DeepSeek's full-class findings failed evidence/coverage checks, and a low-reasoning attempt timed out. One live lesson proposal passed validation using previously confirmed fictional findings, but that did not establish a successful live analysis loop. Provider failures stay visible. Neither provider silently switches to the other, to prepared results, or to a paid model; direct DeepSeek requires explicit selection.
+The default checkout uses **prepared worksheet readings** and labeled **Sample** assistance. Sample insights use the current saved evidence, including teacher corrections. A provider failure never silently switches live work to prepared results.
 
-The overview's **Teaching insights mode** and the Assistant's mode chooser can request **Live AI** from the selected provider while worksheet readings remain prepared. Each brief, chat answer and reading retains its own provenance. **Sample** assistance is generated from current saved data and is labeled explicitly. Saved goals and evidence changes mark prior briefs as needing an update. Successful text assistance does not establish live handwriting accuracy; the verification record reports these checks separately.
+For live worksheet processing, edit `.env.local` and restart:
 
-For connected storage, follow [Supabase setup](docs/supabase-setup.md). Apply all migrations, configure the project URL and publishable key, provision the teacher with `npm run teacher:provision`, and set `DATA_BACKEND=supabase`. The provisioning command reads private teacher credentials from `.env.local` and stores the login only in `.local/teacher-login.json`. The admin secret is used by explicit local setup/test scripts; ordinary application requests use the signed-in teacher’s identity. Public signup is disabled for the provisioned project.
-
-## Validation
-
-```sh
-npm run verify        # Authored specifications, lint, TypeScript, unit/service tests, production build
-npm run test:e2e      # Isolated Chromium teacher journey on port 3001
-npm run test:supabase # Real two-owner database/Storage isolation checks; requires private admin configuration
-npm run test:connected # Real app HTTP lifecycle against the connected server (see implementation docs)
-npm run test:live     # Actual provider evaluation; failures are reported without substituting fixtures
+```dotenv
+AI_MODE=live
+AI_PROVIDER=deepseek
+DEEPSEEK_API_KEY=your_private_key
 ```
 
-Install the test browser once with `npx playwright install chromium` (Linux CI also uses `--with-deps`). GitHub Actions runs credential-free verification and browser tests on each push. The production build checks that private reference transcripts do not enter browser assets and local credentials/runtime data are excluded from deployment traces.
+Direct DeepSeek calls are billed to your account. OpenRouter is also supported with `AI_PROVIDER=openrouter` and `OPENROUTER_API_KEY`; that adapter permits configured free endpoints only. Model settings are in [.env.example](.env.example). Provider availability and output quality can vary.
 
-The browser tests use `.local/e2e` and `.next-e2e`; they do not reset the normal demo workspace. See [verification results](docs/verification-results.md) for the exact checks completed and remaining external limitations.
+The overview and assistant also have their own **Live AI** selection. Each reading and generated answer retains its source mode; live chat does not turn prepared worksheet readings into live OCR.
 
-## Demo files and scope
+For authenticated storage, follow [Supabase setup](docs/supabase-setup.md). API keys and teacher credentials stay in local configuration, outside Git.
 
-[Blank baseline worksheet](public/demo/baseline-template-v1.pdf) · [Follow-up worksheet](public/demo/followup-template-v1.pdf) · [Original lesson PDF](public/demo/lesson-2026-09-23-original.pdf) · [Runtime lesson JSON](public/demo/lesson-2026-09-23-original.json) · [Teacher keys](public/demo/classcompass-teacher-answer-keys.pdf)
+## Verification
 
-All student identities and work are fictional. The handwritten scans are generated demonstration assets. [Asset generation](docs/asset-generation.md) documents the reproducible generator and the Nunito/Caveat font licenses. The UI uses original branding, shapes, and code; no Blooket assets are included.
+The project includes tests for arithmetic, evidence links, corrections, teacher approval, lesson constraints, uploads, chat, history and browser workflows.
 
-This prototype supports one known Grade 5 unit and previews its calendar impact. It does not claim arbitrary worksheet recognition, general curriculum planning, permanent student mastery scores, or validated educational outcomes. Teacher participation in the recorded demo remains optional and unconfirmed.
+```sh
+npm run verify               # Specifications, lint, types, unit tests and production build
+npx playwright install chromium
+npm run test:e2e              # Isolated browser workflows on port 3001
+```
 
-## Original specifications
+The specification check also needs **Python 3**. Browser tests use a separate workspace and preserve the normal local class.
 
-| Document | Purpose |
-| --- | --- |
-| [00 — Decisions and scope](docs/00-decisions-and-scope.md) | Confirmed product decisions and completion boundary |
-| [01 — Product and UX](docs/01-product-and-ux.md) | Teacher workflows and screen requirements |
-| [02 — Architecture and operations](docs/02-architecture-and-operations.md) | Storage, authentication, uploads and processing |
-| [03 — Data and API contracts](docs/03-data-and-api-contracts.md) | Entities, routes, revisions and invariants |
-| [04 — Demo and curriculum](docs/04-demo-and-curriculum.md) | Authored lessons, worksheets and scenarios |
-| [05 — AI contracts and prompts](docs/05-ai-contracts-and-prompts.md) | Model responsibilities and evidence boundaries |
-| [06 — Validation and delivery](docs/06-validation-and-delivery.md) | Acceptance requirements |
-| [07 — One-shot build prompt](docs/07-one-shot-build-prompt.md) | Original implementation brief |
-| [08 — Sources and assumptions](docs/08-sources-and-assumptions.md) | External sources and volatile assumptions |
-| [09 — Specification verification](docs/09-specification-verification.md) | Historical document/fixture verification |
-| [10 — Visual design](docs/10-visual-design.md) | Design tokens and original visual direction |
-| [11 — UX and analytics revamp](docs/11-ux-analytics-revamp.md) | Navigation, result rules and five-assignment scope |
-| [12 — AI teaching workspace](docs/12-ai-teaching-workspace.md) | Teaching briefs, richer analytics, classroom assistant and complete teacher plans |
-| [Notebook redesign](docs/notebook-redesign.md) | Current product shell, private account boundary and responsive layouts |
+[GitHub Actions](https://github.com/RyanSXing/classcompass/actions/workflows/ci.yml) runs the credential-free checks. [Verification results](docs/verification-results.md) records the scope of completed checks, including separate live-provider and Supabase tests. Prepared-data test results are not handwriting-accuracy or learning-outcome measurements.
 
-Documents 00–10 preserve the original specification. Document 11 supersedes their screen layouts and two-assignment limits. Document 12 supersedes the earlier overview and lesson presentation while retaining the result definitions and teacher approval rules. The notebook redesign supersedes the earlier shell colours and visual layout while retaining the same evidence and teacher-approval rules. The implementation reference and verification results describe what was built and tested. The [classroom fixture](docs/fixtures/classroom.json) is authored reference/test data; its historical “specified-not-generated” flags are not the current delivery status. The actual generated files are listed in [the asset manifest](public/demo/manifest.json).
+## Scope and next steps
+
+The working prototype covers one Grade 5 fraction-addition unit, five registered worksheet layouts and a wider-calendar preview. All students and worksheet images are fictional. It has not been validated in a real classroom or on real children's handwriting.
+
+Next, we would work with teachers to check whether the suggested actions are useful, evaluate extraction on consented work, and add more units and worksheet layouts. The aim is to help teachers spend less time assembling evidence and more time responding to it; time savings and learning gains still need to be measured.
+
+Development was assisted by **OpenAI Codex**. The project cover was made with image generation. Worksheet samples are reproducibly generated; [asset generation and font licenses](docs/asset-generation.md) explains their source.
+
+[Implementation details](docs/implementation.md) · [Data and API contracts](docs/03-data-and-api-contracts.md) · [AI contracts](docs/05-ai-contracts-and-prompts.md) · [Original scope](docs/00-decisions-and-scope.md)
