@@ -43,8 +43,8 @@ test("the overview leads with teaching decisions and dated evidence opens the ed
 }) => {
   await loadSampleClass(page);
   for (const name of [
-    "Your next lesson",
-    "How learning is developing",
+    "Do these next",
+    "Learning over time",
     "Students to check",
   ])
     await expect(
@@ -56,6 +56,7 @@ test("the overview leads with teaching decisions and dated evidence opens the ed
     page.getByRole("tab", { name: "Students over time", exact: true }),
   ).toBeHidden();
 
+  await page.getByText("Explore student progress", { exact: true }).click();
   const evidence = page.locator(
     ".understanding-observation details.learning-evidence",
   );
@@ -135,7 +136,7 @@ test("detailed evidence opens on demand and historical work points back to the l
     }),
   ).toBeVisible();
   await expect(
-    page.getByRole("heading", { name: "Your next lesson", exact: true }),
+    page.getByRole("heading", { name: "Do these next", exact: true }),
   ).toHaveCount(0);
   await expect(
     page.getByRole("region", { name: "Next step", exact: true }),
@@ -153,7 +154,7 @@ test("detailed evidence opens on demand and historical work points back to the l
     "independent-check-template-v1",
   );
   await expect(
-    page.getByRole("heading", { name: "Your next lesson", exact: true }),
+    page.getByRole("heading", { name: "Do these next", exact: true }),
   ).toBeVisible();
 });
 

@@ -569,7 +569,7 @@ test("AI briefing connects richer analytics to exact evidence and complete lesso
   await page.reload();
   await expect(
     page.getByText(
-      /Refresh this briefing for the current learning insights and evidence/,
+      /Work has changed\. Refresh AI insights\./,
     ),
   ).toBeVisible();
 });

@@ -103,7 +103,7 @@ function ClassroomContent() {
         <>
           <div className="intelligence-assignment-bar">
             <label className="field">
-              <span>Latest work to consider</span>
+              <span>Work through</span>
               <Select
                 aria-label="Assignment"
                 value={selected.templateId}
@@ -122,8 +122,7 @@ function ClassroomContent() {
               </Select>
             </label>
             <p>
-              Learning insights use this assignment and earlier work.
-              <span>{selected.purpose}</span>
+              {selected.purpose}
             </p>
             <Link
               className="text-link"
@@ -132,7 +131,6 @@ function ClassroomContent() {
               Open assignment <ArrowRight size={15} />
             </Link>
           </div>
-          <LearningOverview learning={learning} state={state} />
           <DecisionBrief
             key={selected.templateId}
             templateId={selected.templateId}
@@ -144,6 +142,7 @@ function ClassroomContent() {
                 : undefined
             }
           />
+          <LearningOverview learning={learning} state={state} />
           <LearningFollowUps learning={learning} state={state} />
           <details
             className="evidence-explorer"

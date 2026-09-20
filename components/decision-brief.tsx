@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useRef, useState } from "react";
-import { ArrowRight, LoaderCircle, Sparkles } from "lucide-react";
+import { ArrowRight, Clock3, LoaderCircle, Sparkles, UsersRound } from "lucide-react";
 import { useWorkspace } from "./workspace-provider";
 import { Banner } from "./shared";
 import { Button } from "./ui/button";
@@ -14,8 +14,8 @@ import type {
 import type { getLearningInsights } from "@/lib/learning-insights";
 import type { teacherNextStep } from "@/lib/teacher-workflow";
 import { dateLabel } from "@/lib/utils";
-import { LearningEvidence } from "./learning-evidence";
-import { TeachingAction } from "./teaching-action";
+import type { AppState } from "@/lib/contracts";
+import { getPriorityActions, type PriorityAction } from "@/lib/priority-actions";
 
 export function assistantHref(templateId: string, prompt: string) {
   return `/assistant?${new URLSearchParams({ assignment: templateId, prompt })}`;
@@ -25,12 +25,15 @@ function GeneratedBrief({
   brief,
   templateId,
   handoff,
+  state,
+  priorityActions,
 }: {
   brief: ClassroomBrief;
   templateId: string;
   handoff: React.ReactNode;
+  state: AppState;
+  priorityActions: PriorityAction[];
 }) {
-  const paragraphs = brief.content.split(/\n\s*\n/).filter(Boolean);
   return (
     <div className="generated-brief">
       <div className="brief-provenance">
@@ -41,44 +44,28 @@ function GeneratedBrief({
         </Badge>
         <span>{dateLabel(brief.createdAt)}</span>
       </div>
-      <p className="brief-summary">{paragraphs[0] ?? brief.content}</p>
+      <PriorityActionCards
+        actions={priorityActions}
+        state={state}
+        templateId={templateId}
+      />
       {handoff}
-      <div className="brief-action-grid">
-        {brief.actions.slice(0, 3).map((action) => {
-          const citation = brief.citations.find(
-            (item) => item.id === action.citationId,
-          );
-          return (
-            <article className="brief-action" key={action.id}>
-              <h3>{action.title}</h3>
-              <TeachingAction description={action.description} />
-              <details className="learning-evidence">
-                <summary>Show me why</summary>
-                {citation && (
-                  <>
-                    <p>{citation.excerpt}</p>
-                    <Link href={citation.href}>
-                      {citation.label} <ArrowRight size={13} />
-                    </Link>
-                  </>
-                )}
-              </details>
-              <Link
-                href={assistantHref(
-                  templateId,
-                  `Plan this activity: ${action.title}. ${action.description} Use short steps, a time limit, and one check for understanding. Base it on the saved work.`,
-                )}
-                className="decision-ask"
-              >
-                Plan this activity <ArrowRight size={13} />
-              </Link>
-            </article>
-          );
-        })}
-      </div>
       <details className="brief-full">
-        <summary>Full explanation and sources</summary>
+        <summary>Why this matters and sources</summary>
         <div className="brief-full-text">{brief.content}</div>
+        {brief.actions.length > 0 && (
+          <>
+            <h3>All suggested actions</h3>
+            <ul>
+              {brief.actions.map((action) => (
+                <li key={action.id}>
+                  <strong>{action.title}</strong>
+                  <p>{action.description}</p>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
         <ul>
           {brief.citations.map((citation) => (
             <li key={citation.id}>
@@ -89,6 +76,123 @@ function GeneratedBrief({
         </ul>
         <p className="brief-disclosure">{brief.contextDisclosure.text}</p>
       </details>
+    </div>
+  );
+}
+
+function sourceLabel(source: PriorityAction["source"]) {
+  if (source === "live") return "AI recommendation";
+  if (source === "sample") return "Sample recommendation";
+  return "From classroom evidence";
+}
+
+function PriorityEvidence({
+  action,
+  state,
+}: {
+  action: PriorityAction;
+  state: AppState;
+}) {
+  return (
+    <details className="learning-evidence">
+      <summary>See evidence</summary>
+      {action.reason && <p>{action.reason}</p>}
+      {action.citation ? (
+        <>
+          <p>{action.citation.excerpt}</p>
+          <Link href={action.citation.href}>
+            {action.citation.label} <ArrowRight size={13} />
+          </Link>
+        </>
+      ) : action.evidence?.length ? (
+        <ul>
+          {action.evidence.map((evidence) => (
+            <li
+              key={`${evidence.responseId}:${evidence.responseRevision}:${evidence.observationId ?? "current"}`}
+            >
+              <Link href={evidence.href}>
+                {state.students.find((student) => student.id === evidence.studentId)
+                  ?.displayName ?? "Student"}{" "}
+                · {dateLabel(evidence.activityDate)} · Q{evidence.questionNumber}{" "}
+                <ArrowRight size={13} />
+              </Link>
+              <span>
+                {evidence.support.level === "independent"
+                  ? "Without help"
+                  : evidence.support.level === "supported"
+                    ? "With help"
+                    : "Help not recorded"}
+                {!evidence.readingReviewed ? " · Reading not checked" : ""}
+              </span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p>Collect and read the work before drawing a conclusion.</p>
+      )}
+    </details>
+  );
+}
+
+function PriorityActionCards({
+  actions,
+  state,
+  templateId,
+}: {
+  actions: PriorityAction[];
+  state: AppState;
+  templateId: string;
+}) {
+  if (!actions.length) return null;
+  return (
+    <div className="priority-actions" aria-label="Top teaching actions">
+      {actions.map((action, index) => (
+        <article className="priority-action brief-action" key={action.id}>
+          <div className="priority-action-head">
+            <span className="priority-action-number">{index + 1}</span>
+            <Badge tone={action.source === "live" ? "aqua" : "neutral"}>
+              {sourceLabel(action.source)}
+            </Badge>
+          </div>
+          <h3>{action.title}</h3>
+          {(action.who || action.time) && (
+            <div className="priority-action-meta">
+              {action.who && (
+                <span>
+                  <UsersRound size={14} aria-hidden="true" /> Who: {action.who}
+                </span>
+              )}
+              {action.time && (
+                <span>
+                  <Clock3 size={14} aria-hidden="true" /> Time: {action.time}
+                </span>
+              )}
+            </div>
+          )}
+          <div className="priority-action-next">
+            <span>Next step</span>
+            <p>{action.nextStep}</p>
+          </div>
+          {action.check && (
+            <div className="priority-action-check">
+              <strong>Check for</strong>
+              <p>{action.check}</p>
+            </div>
+          )}
+          <PriorityEvidence action={action} state={state} />
+          <div className="priority-action-links">
+            <Link
+              href={assistantHref(
+                templateId,
+                `Plan this activity: ${action.title}. ${action.description} Use the saved steps, time, and success check. Base it on the saved work.`,
+              )}
+              className="decision-ask"
+            >
+              Plan activity <ArrowRight size={13} />
+            </Link>
+          </div>
+        </article>
+      ))}
     </div>
   );
 }
@@ -135,6 +239,11 @@ export function DecisionBrief({
     (item) => item.id === lesson?.currentVersionId,
   );
   const direction = learning.lessonDirection;
+  const priorityActions = getPriorityActions({
+    brief: brief && !brief.stale ? brief : undefined,
+    learning,
+    students: state.students,
+  });
   const saved = nextStep.kind === "saved";
   const handoff = newerTemplateId ? (
     <div className="lesson-decision-footer">
@@ -216,7 +325,7 @@ export function DecisionBrief({
           <h2 id="teaching-decisions-title">
             {newerTemplateId
               ? "Teaching picture at this point"
-              : "Your next lesson"}
+              : "Do these next"}
           </h2>
           {lesson && !newerTemplateId && (
             <p>
@@ -285,7 +394,7 @@ export function DecisionBrief({
       )}
       {brief?.stale && (
         <Banner tone="warning">
-          Refresh this briefing for the current learning insights and evidence.
+          Work has changed. Refresh AI insights.
         </Banner>
       )}
       {brief && !brief.stale ? (
@@ -293,39 +402,22 @@ export function DecisionBrief({
           brief={brief}
           templateId={templateId}
           handoff={handoff}
+          state={state}
+          priorityActions={priorityActions}
         />
       ) : (
         <div className="lesson-starting-point">
           <span className="starting-point-label">Based on the saved work</span>
-          <h3>
-            {saved
-              ? "Your reviewed changes are saved"
-              : (direction?.title ??
-                "Check the work before changing the lesson")}
-          </h3>
+          <PriorityActionCards
+            actions={priorityActions}
+            state={state}
+            templateId={templateId}
+          />
+          <h3>{saved ? "Your reviewed changes are saved" : "What the work suggests"}</h3>
           <p>
             {saved ? nextStep.detail : (direction?.reason ?? learning.summary)}
           </p>
           {handoff}
-          {direction && !saved && (
-            <>
-              <p className="lesson-direction-next">
-                <strong>Try next:</strong> {direction.nextStep}
-              </p>
-              <details className="followup-steps">
-                <summary>Teaching steps · {direction.minutes} min</summary>
-                <ol>
-                  {direction.steps.map((step) => (
-                    <li key={step}>{step}</li>
-                  ))}
-                </ol>
-                <p>
-                  <strong>Look for:</strong> {direction.successCheck}
-                </p>
-              </details>
-              <LearningEvidence evidence={direction.evidence} state={state} />
-            </>
-          )}
         </div>
       )}
       {state.assistant?.goals.text && (

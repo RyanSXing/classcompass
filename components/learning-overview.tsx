@@ -1,6 +1,7 @@
 "use client";
 import { StudentAvatar } from "@/components/student-avatar";
 import Link from "next/link";
+import { useEffect, useRef } from "react";
 import { ArrowRight, CheckCircle2, ChartNoAxesCombined } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import type { AppState } from "@/lib/contracts";
@@ -9,8 +10,8 @@ import { getUnderstandingOverview } from "@/lib/understanding";
 import { assistantHref } from "./decision-brief";
 import { LearningEvidence } from "./learning-evidence";
 import { Select } from "./ui/input";
+import { ClassroomCharts } from "./classroom-charts";
 import {
-  ClassUnderstandingBars,
   StudentUnderstandingChart,
   UnderstandingHeatmap,
   UnderstandingStageBadge,
@@ -26,6 +27,16 @@ export function LearningOverview({
   state: AppState;
 }) {
   const search = useSearchParams();
+  const progressRef = useRef<HTMLDetailsElement>(null);
+  const openSelectedWork = useRef(false);
+  useEffect(() => {
+    if (!openSelectedWork.current || search.get("progress") !== "open") return;
+    const target = progressRef.current?.querySelector<HTMLElement>(".understanding-student-detail");
+    if (!target) return;
+    openSelectedWork.current = false;
+    target.focus({ preventScroll: true });
+    target.scrollIntoView({ block: "start" });
+  }, [search]);
   const overview = getUnderstandingOverview(
     state,
     learning.assignment.templateId,
@@ -54,9 +65,9 @@ export function LearningOverview({
           .stage === "developing",
     ) ??
     overview.students[0];
-  function updateSelection(values: Record<string, string>) {
+  function updateSelection(values: Record<string, string | undefined>) {
     const query = new URLSearchParams(window.location.search);
-    Object.entries(values).forEach(([key, value]) => query.set(key, value));
+    Object.entries(values).forEach(([key, value]) => value ? query.set(key, value) : query.delete(key));
     window.history.replaceState(null, "", `/classroom?${query}`);
   }
   return (
@@ -70,7 +81,7 @@ export function LearningOverview({
             <ChartNoAxesCombined size={14} /> Across the unit
           </span>
           <h2 id="learning-picture-title">Learning picture</h2>
-          <p>Compare what the work shows, one skill at a time.</p>
+          <p>See where students are now and how the work has changed.</p>
         </div>
         <label className="field understanding-skill">
           <span>Focus on a skill</span>
@@ -92,6 +103,22 @@ export function LearningOverview({
           <UnderstandingStageBadge key={item.stage} stage={item.stage} />
         ))}
       </div>
+      <ClassroomCharts
+        overview={overview}
+        skill={skill}
+        selectedTemplateId={selectedTemplateId}
+        selectedStudentId={student?.studentId ?? ""}
+        onSelectDate={(templateId) => updateSelection({ understandingDate: templateId })}
+        onSelectStudent={(studentId, templateId) => {
+          openSelectedWork.current = true;
+          updateSelection({
+            understandingStudent: studentId,
+            understandingDate: templateId,
+            progress: "open",
+          });
+        }}
+        onSelectSkill={(skillId) => updateSelection({ skill: skillId })}
+      />
       <details className="understanding-definitions">
         <summary>How to read these stages</summary>
         <dl>
@@ -114,14 +141,16 @@ export function LearningOverview({
           <p key={limitation}>{limitation}</p>
         ))}
       </details>
-      <div className="understanding-class-layout">
-        <ClassUnderstandingBars
-          skill={skill}
-          selectedTemplateId={selectedTemplateId}
-          onSelectDate={(templateId) =>
-            updateSelection({ understandingDate: templateId })
-          }
-        />
+      <details
+        ref={progressRef}
+        className="student-progress-explorer"
+        open={search.get("progress") === "open"}
+        onToggle={(event) => {
+          if (event.currentTarget.open !== (search.get("progress") === "open"))
+            updateSelection({ progress: event.currentTarget.open ? "open" : undefined });
+        }}
+      >
+        <summary><span>Explore student progress</span><small>Dates, working and next checks</small></summary>
         <UnderstandingHeatmap
           overview={overview}
           skill={skill}
@@ -134,7 +163,6 @@ export function LearningOverview({
             })
           }
         />
-      </div>
       {student && (
         <StudentUnderstandingChart
           student={student}
@@ -145,6 +173,7 @@ export function LearningOverview({
           }
         />
       )}
+      </details>
     </section>
   );
 }

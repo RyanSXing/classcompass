@@ -2,6 +2,16 @@
 
 Checks performed on September 19–20, 2026. All work, student identities and handwriting images used in these checks are fictional. Prepared AI results and live provider checks are reported separately.
 
+## Figma-style charts and two teaching priorities
+
+The overview now leads with two supported teaching actions, followed by student-stage bars, a skill radar and an independent-work trend. Detailed student work opens on selection. The graphs use the existing stage rules and dated evidence; no mastery percentage was added.
+
+- **Teaching priorities:** focused tests cover current versus stale AI output, navigation-only suggestions, original multi-step instructions, duplicate AI actions, separate student groups and per-student timing. The current fixture groups Devon's numerator check separately from Casey and Harper's unfinished work. Each card keeps its own AI/sample/evidence provenance.
+- **Chart interactions:** targeted browser checks cover priority order, synchronized date/skill selection, exact evidence revisions, keyboard use and 390/768-pixel layouts. An all-missing skill breaks both the radar polygon and the trend line. Historical dates do not use later assignments. The first new comparison assertion used the modified teacher classroom's count instead of the untouched fixture's count; the fixture was independently checked and the test corrected.
+- **Regression checks:** 13 targeted browser scenarios passed, including uploads, review, assistant replies and saved lesson versions. The full unit suite passed before the final two prioritization cases were added; all six final priority cases passed. Production compilation and the artifact guard passed with 39 browser assets and 17 server traces checked. ESLint and TypeScript passed.
+
+No saved teacher work was changed by these checks, and no new live model request was needed for this presentation update.
+
 ## Notebook workspace and teacher account
 
 The [notebook redesign](notebook-redesign.md) adds the cream paper shell, original compass mark, eight generated student portraits, a dated lesson library, and a teacher sign-in boundary. The previous version is preserved on GitHub as `before-notebook-redesign-2026-09-20` at `eb631b3e74c4fddf0724835733792b4993a626a2`.

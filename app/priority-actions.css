@@ -1,0 +1,78 @@
+/* The two decisions sit above detailed charts: fast to scan, still inspectable. */
+.priority-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 18px;
+}
+.priority-action {
+  min-width: 0;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: rgba(255, 253, 247, 0.92);
+  box-shadow: 4px 4px 0 rgba(180, 151, 100, 0.16);
+}
+.lesson-decision .priority-action { padding: 20px; box-shadow: 4px 4px 0 rgba(180, 151, 100, 0.16); }
+.priority-action-head,
+.priority-action-meta,
+.priority-action-links {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.priority-action-head { justify-content: space-between; }
+.priority-action-number {
+  display: inline-grid;
+  width: 26px;
+  height: 26px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--violet);
+  color: white;
+  font-size: 12px;
+  font-weight: 900;
+}
+.lesson-decision .priority-action h3 {
+  margin: 15px 0 10px;
+  color: var(--ink);
+  font-size: 18px;
+  line-height: 1.25;
+}
+.lesson-decision .priority-action h3 { font-size: 20px; }
+.priority-action-meta {
+  flex-wrap: wrap;
+  color: var(--muted);
+  font-size: 12px;
+}
+.priority-action-meta span { display: inline-flex; align-items: center; gap: 4px; }
+.priority-action-next {
+  margin: 17px 0 11px;
+  font-size: 13px;
+  line-height: 1.55;
+}
+.priority-action-next span,
+.priority-action-check strong {
+  display: block;
+  margin-bottom: 3px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .055em;
+  text-transform: uppercase;
+}
+.priority-action-next p,
+.priority-action-check p { margin: 0; }
+.priority-action-check { color: var(--muted); font-size: 12px; line-height: 1.5; }
+.priority-action .learning-evidence {
+  margin-top: 16px;
+  padding-top: 13px;
+  border-top: 1px solid var(--line);
+}
+.priority-action .learning-evidence summary { font-size: 12px; font-weight: 800; }
+.priority-action-links { margin-top: 14px; }
+.priority-action-links .decision-ask { margin: 0; }
+.priority-action-links .text-link { font-size: 12px; }
+@media (max-width: 600px) {
+  .priority-actions { grid-template-columns: 1fr; }
+}

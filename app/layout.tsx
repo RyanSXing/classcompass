@@ -7,6 +7,8 @@ import "./intelligence.css";
 import "./understanding.css";
 import "./teaching-visuals.css";
 import "./notebook.css";
+import "./classroom-charts.css";
+import "./priority-actions.css";
 import { WorkspaceProvider } from "@/components/workspace-provider";
 import { AppShell } from "@/components/app-shell";
 

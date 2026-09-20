@@ -45,15 +45,15 @@ async function openPicture(page: Page) {
   return picture;
 }
 
-test("skill stages lead the overview and each selected square opens exact dated work", async ({
+test("top actions lead the overview and each selected square opens exact dated work", async ({
   page,
 }) => {
   const picture = await openPicture(page);
   const pictureBounds = await picture.boundingBox();
   const briefBounds = await page
-    .getByRole("region", { name: "Your next lesson", exact: true })
+    .getByRole("region", { name: "Do these next", exact: true })
     .boundingBox();
-  expect(pictureBounds!.y).toBeLessThan(briefBounds!.y);
+  expect(briefBounds!.y).toBeLessThan(pictureBounds!.y);
   const legend = picture.getByLabel("Understanding stages", { exact: true });
   for (const label of [
     "Needs support",
@@ -69,6 +69,7 @@ test("skill stages lead the overview and each selected square opens exact dated 
     8,
   );
   await expect(page.locator(".quality-score")).toBeHidden();
+  await picture.getByText("Explore student progress", { exact: true }).click();
 
   const avery = picture.getByRole("button", {
     name: "Avery, Sep 22: Needs support",
@@ -134,6 +135,7 @@ test("an unassessed skill is a gap, and changing skills preserves keyboard selec
     exact: true,
   });
   await expect(september25).toBeVisible();
+  await picture.getByText("Explore student progress", { exact: true }).click();
   const gap = picture.getByRole("button", {
     name: "Avery, Sep 25: Not enough evidence",
     exact: true,
@@ -179,7 +181,7 @@ for (const width of [390, 768]) {
       .getByLabel("Understanding skill", { exact: true })
       .selectOption("obj-equivalent-fractions");
     const gray = picture
-      .getByRole("button", { name: /^Gray, Sep 30:/ })
+      .getByRole("button", { name: /^Gray: .*Select Gray's work from Sep 30/ })
       .first();
     await gray.click();
     await expect(
@@ -196,3 +198,37 @@ for (const width of [390, 768]) {
     expect(cellBounds!.height).toBeGreaterThanOrEqual(24);
   });
 }
+
+test("charts update together by date and skill while detailed work stays optional", async ({ page }) => {
+  const picture = await openPicture(page);
+  const priorities = page.getByRole("region", { name: "Do these next", exact: true });
+  await expect(priorities.locator(".priority-action")).toHaveCount(2);
+  await expect(priorities.getByText("From classroom evidence", { exact: true })).toHaveCount(2);
+  await expect(picture.locator(".student-progress-explorer")).not.toHaveAttribute("open");
+  await expect(picture.getByRole("heading", { name: "What this work shows" })).toBeVisible();
+  await expect(picture.getByRole("heading", { name: "Skills at a glance" })).toBeVisible();
+  await expect(picture.getByRole("heading", { name: "Learning over time", exact: true })).toBeVisible();
+
+  await picture.getByRole("button", { name: /^Sep 22 · First check:/ }).click();
+  await expect(picture.locator(".trend-current")).toHaveText("4 of 8");
+  await expect(picture.getByRole("button", { name: /^Avery: Needs support\. Select Avery's work from Sep 22/ })).toBeVisible();
+  await expect(picture.getByRole("button", { name: /^Adding fractions: 4 of 8 students work independently/ })).toHaveAttribute("aria-pressed", "true");
+
+  await picture.getByRole("button", { name: /^Explaining and applying: / }).click();
+  await expect(page.getByLabel("Understanding skill", { exact: true })).toHaveValue("obj-explain-fraction-context");
+  await picture.getByRole("button", { name: /^Sep 25 · Fraction practice:/ }).click();
+  await expect(picture.locator(".trend-current")).toHaveText("Needs evidence");
+  await expect(picture.locator(".stage-bar-gap")).toHaveCount(8);
+  await expect(picture.locator('.trend-line[data-from-date="fraction-practice-template-v1"], .trend-line[data-to-date="fraction-practice-template-v1"]')).toHaveCount(0);
+  await expect(picture.getByRole("button", { name: /^Explaining and applying: Not enough evidence for 8 students/ })).toBeVisible();
+  await expect(picture.locator('.radar-gap[data-skill="obj-explain-fraction-context"]')).toBeVisible();
+  await expect(picture.locator(".radar-area")).toHaveCount(0);
+
+  await picture.getByRole("button", { name: /^Casey: Not enough evidence\. Select Casey's work from Sep 25/ }).press("Enter");
+  await expect(picture.locator(".student-progress-explorer")).toHaveAttribute("open");
+  await expect(picture.getByRole("region", { name: "Casey: selected work", exact: true })).toContainText("Not enough evidence");
+  await expect(picture.locator(".understanding-student-detail")).toBeFocused();
+  await page.reload();
+  await expect(picture.locator(".student-progress-explorer")).toHaveAttribute("open");
+  await expect(picture.locator(".trend-current")).toHaveText("Needs evidence");
+});

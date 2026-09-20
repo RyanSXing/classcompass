@@ -525,3 +525,45 @@ body {
   body { background: white; background-image: none; }
   .sidebar, .utility-bar { box-shadow: none; }
 }
+
+/* Keep individual evidence one step behind the classroom summary. */
+.intelligence-page .lesson-decision {
+  background: #edf3f2;
+  border-color: #c4d3d4;
+  box-shadow: 0 3px 0 rgba(82, 126, 153, .13);
+}
+.student-progress-explorer {
+  margin-top: 20px;
+  border-top: 1px solid var(--brand-tan);
+  padding-top: 4px;
+}
+.student-progress-explorer > summary {
+  padding: 16px 0;
+  cursor: pointer;
+  color: var(--brand-blue-dark);
+  font-size: 14px;
+  font-weight: 850;
+}
+.student-progress-explorer > summary small {
+  margin-left: 12px;
+  color: var(--brand-muted);
+  font-size: 11px;
+  font-weight: 500;
+}
+.student-progress-explorer > .understanding-student-detail {
+  margin-top: 18px;
+}
+.student-progress-explorer .understanding-student-detail { scroll-margin-top: 82px; }
+.student-progress-explorer .understanding-heatmap th:first-child { width: 128px; }
+.student-progress-explorer .understanding-heatmap-scroll { margin-top: 2px; }
+.understanding-panel > .understanding-definitions {
+  margin-top: 18px;
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+@media (max-width: 600px) {
+  .student-progress-explorer > summary small { display: block; margin: 4px 0 0 16px; }
+  .student-progress-explorer .understanding-heatmap th:first-child { width: 78px; }
+  .student-progress-explorer .student-name-with-avatar { gap: 5px; }
+  .student-progress-explorer .student-portrait { display: none; }
+}

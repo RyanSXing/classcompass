@@ -289,6 +289,7 @@ export function StudentUnderstandingChart({
     <section
       className="understanding-student-detail"
       aria-labelledby={`${chartId}-heading`}
+      tabIndex={-1}
     >
       <div className="understanding-student-heading">
         <div>
